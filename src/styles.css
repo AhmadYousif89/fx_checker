@@ -1,0 +1,123 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
+
+@import 'radius.tokens.css';
+@import 'spacing.tokens.css';
+@import 'typography.tokens.css';
+
+/* @custom-variant dark (&:is(.dark *)); */
+
+:root {
+  /* Neutral */
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #c6c6c6;
+  --color-neutral-200: #9d9d9d;
+  --color-neutral-300: #454547;
+  --color-neutral-400: #3d3d3d;
+  --color-neutral-500: #2e2e2e;
+  --color-neutral-600: #202022;
+  --color-neutral-700: #171719;
+  --color-neutral-900: #0a0a0a;
+
+  /* Brand */
+  --color-lime-500: #cef739;
+  --color-lime-800: #283300;
+
+  /* Status */
+  --color-green-500: #42eb05;
+  --color-red-500: #ff4141;
+}
+
+:root {
+  --background: var(--color-neutral-900);
+
+  --foreground: var(--color-neutral-50);
+  --foreground-darker: var(--color-neutral-100);
+
+  --surface: var(--color-neutral-700);
+  --surface-600: var(--color-neutral-600);
+  --surface-500: var(--color-neutral-500);
+  --surface-400: var(--color-neutral-400);
+  --surface-300: var(--color-neutral-300);
+
+  --border: var(--color-neutral-500);
+
+  --accent: var(--color-lime-500);
+  --accent-foreground: var(--color-neutral-900);
+
+  --popover: var(--color-neutral-600);
+  --popover-foreground: var(--color-neutral-50);
+
+  --muted: var(--color-neutral-200);
+
+  --lime: var(--color-lime-500);
+  --lime-800: var(--color-lime-800);
+
+  --green: var(--color-green-500);
+  --red: var(--color-red-500);
+}
+
+@theme inline {
+  --color-*: initial; /* Remove built-in colors */
+
+  --color-background: var(--background);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-darker: var(--foreground-darker);
+
+  --color-surface: var(--surface);
+  --color-surface-600: var(--surface-600);
+  --color-surface-500: var(--surface-500);
+  --color-surface-400: var(--surface-400);
+  --color-surface-300: var(--surface-300);
+
+  --color-border: var(--border);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-lime: var(--lime);
+  --color-lime-800: var(--lime-800);
+
+  --color-green: var(--green);
+  --color-red: var(--red);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  :root {
+    @apply scrollbar-none;
+  }
+  body {
+    @apply font-mono flex flex-col min-h-dvh bg-background text-foreground;
+  }
+}
+
+@utility wrapper {
+  @apply max-w-275 mx-auto w-full;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
