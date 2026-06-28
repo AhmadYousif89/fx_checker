@@ -13,7 +13,7 @@ const buttonVariants = cva(
         default:
           'bg-surface-500 border border-surface-400 hover:bg-surface-400 active:bg-surface-400',
         outline:
-          'border not-focus:border-accent bg-transparent shadow-xs hover:bg-lime-800 disabled:border active:bg-lime-800',
+          'border border-accent bg-transparent shadow-xs hover:bg-lime-800 disabled:border active:bg-lime-800',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
       },
       size: {

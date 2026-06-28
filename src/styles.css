@@ -87,6 +87,19 @@
 
   --color-green: var(--green);
   --color-red: var(--red);
+
+  --animate-flash: flash 1s ease-out;
+
+  @keyframes flash {
+    0% {
+      background-color: var(--color-lime-800);
+      border-color: var(--color-lime);
+    }
+    100% {
+      background-color: var(--color-surface-600);
+      border-color: var(--color-surface-500);
+    }
+  }
 }
 
 @layer base {

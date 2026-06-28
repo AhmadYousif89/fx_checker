@@ -5,7 +5,7 @@ import { Link } from '@tanstack/react-router'
 
 export const Header = () => {
   return (
-    <header className="sticky top-0 bg-background z-500">
+    <header className="sticky top-0 bg-background z-50">
       <nav className="flex items-center justify-between gap-2 min-h-13 md:min-h-16.5 p-4 md:py-5 md:px-6">
         <Link to="/">
           <Image
