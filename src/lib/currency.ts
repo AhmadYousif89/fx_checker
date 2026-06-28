@@ -1,5 +1,33 @@
 export const POPULAR_CODES = ['USD', 'EUR', 'GBP']
 
+export const GLOBAL_PRIORITY = [
+  'USD',
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'CAD',
+  'AUD',
+  'CNY',
+  'NZD',
+  'SEK',
+  'KRW',
+  'NOK',
+  'MXN',
+  'SGD',
+  'INR',
+  'BRL',
+]
+
+export const TIME_RANGES: Record<string, number> = {
+  '1d': 1,
+  '1w': 7,
+  '1m': 30,
+  '3m': 90,
+  '1y': 365,
+  '5y': 1825,
+}
+
 export const FLAG_CODES = [
   'ae',
   'ar',
@@ -70,25 +98,6 @@ export function getFlagUrl(isoCode: string) {
   return `/assets/images/flags/${code}.webp`
 }
 
-export const TICKER_CURRENCIES = [
-  'USD',
-  'GBP',
-  'JPY',
-  'CHF',
-  'CAD',
-  'AUD',
-  'CNY',
-  'NZD',
-  'MXN',
-  'SGD',
-  'HKD',
-  'NOK',
-  'KRW',
-  'TRY',
-  'INR',
-  'ZAR',
-]
-
 export const TICKER_PAIRS = [
   { base: 'USD', quote: 'JPY' },
   { base: 'GBP', quote: 'USD' },
@@ -120,10 +129,8 @@ export function abbreviateCurrencyName(name: string): string {
   return `${initials} ${words[words.length - 1]}`
 }
 
-export function restrictNumeric(e: React.InputEvent<HTMLInputElement>) {
-  e.currentTarget.value = e.currentTarget.value
-    .replace(/[^\d.]/g, '')
-    .replace(/(\..*)\./g, '$1')
+export function restrictNumeric(value: string) {
+  return value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
 }
 
 export function timeAgo(timestamp: number): string {
@@ -138,15 +145,61 @@ export function timeAgo(timestamp: number): string {
   return `${days}d ago`
 }
 
-export function getCrossRate(
-  rates: Record<string, number>,
-  base: string,
-  quote: string,
-): number | null {
+export function getCrossRate({
+  rates,
+  base,
+  quote,
+}: {
+  rates: Record<string, number>
+  base: string
+  quote: string
+}): number | null {
   if (base === quote) return 1
   if (base !== 'EUR' && !(base in rates)) return null
   if (quote !== 'EUR' && !(quote in rates)) return null
   const rBase = base === 'EUR' ? 1 : rates[base]
   const rQuote = quote === 'EUR' ? 1 : rates[quote]
   return rQuote / rBase
+}
+
+/**
+ * Format an amount for display using commas for thousands.
+ * Uses up to `maxDecimals` fraction digits, but trims trailing zeros.
+ * Examples: 1000 → "1,000"  |  853.02 → "853.02"  |  157910 → "157,910"
+ */
+export function formatAmount(value: number, maxDecimals = 2): string {
+  const decimals = value < 10 ? 4 : maxDecimals
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+  }).format(value)
+}
+
+/**
+ * Format a rate for display. Rates below 10 get 4 decimals, otherwise 2.
+ * Examples: 0.853 → "0.8530"  |  157.91 → "157.91"
+ */
+export function formatRate(value: number): string {
+  const decimals = value < 10 ? 4 : 2
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value)
+}
+
+/**
+ * Short relative time for log entries.
+ * Examples: "20M" | "1H" | "13 May"
+ */
+export function shortTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000)
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 1) return '<1M'
+  if (minutes < 60) return `${minutes}M`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}H`
+  const d = new Date(timestamp)
+  const day = d.getDate()
+  const month = d.toLocaleString('en-US', { month: 'short' })
+  return `${day} ${month}`
 }
