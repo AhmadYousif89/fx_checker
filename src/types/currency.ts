@@ -39,7 +39,7 @@ export type ConversionLog = {
   sender: string
   receiver: string
   amount: number
-  rate: number
+  baseRate: number
   result: number
   timestamp: number
 }
