@@ -111,7 +111,9 @@ export const InsightsSection = () => {
             value={tab.value}
             aria-labelledby={tab.id}
           >
-            <tab.Component />
+            <section className="hidden data-[state=active]:grid grid-rows-[auto_1fr]">
+              <tab.Component />
+            </section>
           </TabsContent>
         ))}
       </Tabs>
