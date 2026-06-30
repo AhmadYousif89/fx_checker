@@ -8,8 +8,8 @@ export function useCurrenciesQuery() {
   const query = useQuery({
     queryKey: ['currencies'],
     queryFn: () => getCurrencies(),
-    staleTime: 1000 * 60 * 60 * 12,
-    gcTime: 1000 * 60 * 60 * 24,
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 12,
   })
 
   const currencies = useMemo(

@@ -6,8 +6,8 @@ export function useLatestRates() {
   return useQuery({
     queryKey: ['latest-rates'],
     queryFn: () => getLatestRates(),
-    staleTime: 1000 * 60 * 15,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchInterval: 1000 * 60 * 15,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: 1000 * 60 * 10,
   })
 }
