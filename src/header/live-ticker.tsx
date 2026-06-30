@@ -1,9 +1,19 @@
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLiveTicker } from '#/hooks/use-live-ticker'
+import { useMarqueeDrag } from '#/hooks/use-marquee-drag'
 
 export const LiveTicker = () => {
   const { sender } = useActivePair()
   const ratesQuery = useLiveTicker(sender)
+
+  const {
+    scrollerRef,
+    handlePointerEnter,
+    handlePointerLeave,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+  } = useMarqueeDrag()
 
   const tickerRates = ratesQuery.data || []
 
@@ -28,7 +38,15 @@ export const LiveTicker = () => {
             Failed to load market rates
           </p>
         ) : (
-          <div className="flex h-full animate-marquee whitespace-nowrap">
+          <div
+            ref={scrollerRef}
+            className="flex h-full whitespace-nowrap cursor-grab touch-pan-y"
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+          >
             <ul className="flex items-center h-full divide-x divide-border">
               {tickerRates.map((rate) => {
                 return (
