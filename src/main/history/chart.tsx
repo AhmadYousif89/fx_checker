@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
+import { useReducedMotion } from '#/hooks/use-reduced-motion'
 
 export const HistoryChart = ({
   data,
@@ -26,6 +27,7 @@ export const HistoryChart = ({
   receiver: string
   selectedTime: string
 }) => {
+  const reducedMotion = useReducedMotion()
   const lastData = data[data.length - 1]
 
   const headerDate =
@@ -55,7 +57,7 @@ export const HistoryChart = ({
           {formatRate(lastData.close)} &bull; {headerDateStr}
         </span>
       </div>
-      <div className="flex-1 w-full min-h-[200px]">
+      <div className="flex-1 w-full min-h-50">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
@@ -99,7 +101,7 @@ export const HistoryChart = ({
             />
             <Tooltip
               content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null
+                if (!active || !payload.length) return null
                 const dateStr = label as string
                 const value = payload[0].value as number
                 return (
@@ -118,6 +120,7 @@ export const HistoryChart = ({
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorRate)"
+              isAnimationActive={!reducedMotion}
             />
           </AreaChart>
         </ResponsiveContainer>
