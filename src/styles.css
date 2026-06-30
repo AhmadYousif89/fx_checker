@@ -89,6 +89,7 @@
   --color-red: var(--red);
 
   --animate-flash: flash 1s ease-out;
+  --animate-fade-in: fade-in 0.35s ease-out forwards;
 
   @keyframes flash {
     0% {
@@ -98,6 +99,17 @@
     100% {
       background-color: var(--color-surface-600);
       border-color: var(--color-surface-500);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
