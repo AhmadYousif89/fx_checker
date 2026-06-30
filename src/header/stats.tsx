@@ -6,11 +6,7 @@ export const HeaderStats = () => {
   return (
     <div className="flex items-center gap-1 uppercase text-overline md:text-body text-muted">
       <span>{totalCurrencies}</span>
-      <p>currencies</p>
-      <span>.</span>
-      <p>eod</p>
-      <span>.</span>
-      <p>ecb data</p>
+      <p>currencies</p>•<p>eod</p>•<p>ecb data</p>
     </div>
   )
 }
