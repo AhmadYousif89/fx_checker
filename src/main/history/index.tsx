@@ -12,13 +12,14 @@ import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { HistoryChart } from './chart'
 import { HistoryStats } from './stats'
+import { CustomSpinner } from '#/components/custom-spinner'
 
 export const HistorySection = () => {
   const queryClient = useQueryClient()
 
   const search = useSearch({ from: '/' })
   const updateUrl = useUpdateUrl()
-  const selectedTime = search.date || '3m'
+  const selectedTime = search.view || '3m'
   const { sender, receiver } = useActivePair()
   const days = TIME_RANGES[selectedTime]
   const interval = RANGE_INTERVALS[selectedTime]
@@ -55,11 +56,7 @@ export const HistorySection = () => {
   const stats = computeHistoryStats(data)
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <span className="size-20 md:size-40 rounded-full aspect-square border-b-2 border-lime animate-spin duration-100" />
-      </div>
-    )
+    return <CustomSpinner />
   }
 
   if (isError) {
@@ -78,7 +75,7 @@ export const HistorySection = () => {
         <h3 className="text-heading text-foreground-darker">
           No chart data available
         </h3>
-        <p className="text-body text-muted max-w-[508px] text-center">
+        <p className="text-body text-muted max-w-127 text-center">
           We couldn&apos;t load rate history for {sender}/{receiver} right now.
           This usually clears up in a minute.
         </p>
@@ -97,7 +94,7 @@ export const HistorySection = () => {
           spacing={0.25}
           value={selectedTime}
           onValueChange={(value) => {
-            if (value) updateUrl({ date: value })
+            if (value) updateUrl({ view: value })
           }}
           className="mt-5 bg-surface p-0.5 lg:self-end"
         >

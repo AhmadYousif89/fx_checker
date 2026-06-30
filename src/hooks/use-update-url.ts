@@ -9,7 +9,7 @@ export function useUpdateUrl() {
       from?: string
       to?: string
       amount?: string
-      date?: string
+      view?: string
     }) => {
       navigate({
         to: '/',
