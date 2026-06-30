@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { TICKER_PAIRS } from '#/lib/currency'
 import { OPEN_API_URL } from '../config'
 
-import type { RateWithDiff, ApiRate } from '#/types/currency'
+import type { RateWithDiff, FrankfurterApiRate } from '#/types/currency'
 
 export const getRates = createServerFn().handler(async () => {
   const rates = await getHistoricalRates()
@@ -85,5 +85,5 @@ async function getHistoricalRates() {
   }
 
   const result = await response.json()
-  return result as ApiRate[]
+  return result as FrankfurterApiRate[]
 }

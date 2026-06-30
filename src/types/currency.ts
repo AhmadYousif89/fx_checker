@@ -20,7 +20,7 @@ export type RateWithDiff = {
   direction: 'up' | 'down' | 'flat'
 }
 
-export type ApiRate = {
+export type FrankfurterApiRate = {
   date: string
   base: string
   quote: string
@@ -42,4 +42,22 @@ export type ConversionLog = {
   baseRate: number
   result: number
   timestamp: number
+}
+
+export type TwelveDataApiRate = {
+  meta: {
+    symbol: string
+    interval: string
+    currency_base: string
+    currency_quote: string
+    type: string
+  }
+  values: Array<{
+    datetime: string
+    open: string
+    high: string
+    low: string
+    close: string
+  }>
+  status: string
 }

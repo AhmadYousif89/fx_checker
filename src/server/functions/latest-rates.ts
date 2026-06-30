@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { OPEN_API_URL } from '../config'
-import type { ApiRate } from '#/types/currency'
+import type { FrankfurterApiRate } from '#/types/currency'
 
 export const getLatestRates = createServerFn()
   .validator(
@@ -21,7 +21,7 @@ export const getLatestRates = createServerFn()
       throw new Error('Failed to fetch latest rates')
     }
 
-    const resData = (await res.json()) as ApiRate[]
+    const resData = (await res.json()) as FrankfurterApiRate[]
     const rates: Record<string, number> = {}
 
     for (const r of resData) {
