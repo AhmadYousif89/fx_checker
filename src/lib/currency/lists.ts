@@ -82,16 +82,3 @@ export const FLAG_CODES = [
 ]
 
 export const FLAG_CODE_SET = new Set(FLAG_CODES)
-
-export const TICKER_PAIRS = [
-  { base: 'USD', quote: 'JPY' },
-  { base: 'GBP', quote: 'USD' },
-  { base: 'USD', quote: 'EGP' },
-  { base: 'USD', quote: 'CHF' },
-  { base: 'EUR', quote: 'GBP' },
-  { base: 'EUR', quote: 'USD' },
-  { base: 'AUD', quote: 'USD' },
-  { base: 'USD', quote: 'CAD' },
-  { base: 'NZD', quote: 'USD' },
-  { base: 'EGP', quote: 'USD' },
-]

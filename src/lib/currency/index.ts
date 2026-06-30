@@ -2,7 +2,6 @@ export {
   FLAG_CODES,
   FLAG_CODE_SET,
   POPULAR_CODES,
-  TICKER_PAIRS,
   GLOBAL_PRIORITY,
 } from './lists'
 export { TIME_RANGES, RANGE_INTERVALS } from './time-ranges'
