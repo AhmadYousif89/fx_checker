@@ -1,47 +1,127 @@
-import { ArrowDownUp, StarIcon } from 'lucide-react'
-import { useNavigate } from '@tanstack/react-router'
+import { useState, useEffect, useCallback } from 'react'
+import { ArrowDownUp, Check, StarIcon } from 'lucide-react'
 
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from '#/components/ui/field'
-import { Input } from '#/components/ui/input'
+import { FieldGroup } from '#/components/ui/field'
 import { Button } from '#/components/ui/button'
 import { Separator } from '#/components/ui/separator'
-import { CurrencyPicker } from '#/components/currency-picker'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 
 import { useLatestRates } from '#/hooks/use-latest-rates'
+import { useActivePair } from '#/hooks/use-active-pair'
+import { useUpdateUrl } from '#/hooks/use-update-url'
 import {
   useIsFavorited,
-  toggleFavorites,
-  swapActivePair,
-  useCurrencyStore,
+  toggleFavorite,
+  addLog,
 } from '#/store/currencies.store'
-import { restrictNumeric, timeAgo, getCrossRate } from '#/lib/currency'
+import { restrictNumeric, getCrossRate, formatAmount } from '#/lib/currency'
+import { cn } from '#/lib/utils'
+
+import { SendField } from './converter/send.field'
+import { ReceiverField } from './converter/receiver.field'
+import { BaseExchangeRate } from './converter/base-rate'
+
+type EditSide = 'send' | 'receive'
+type LogStatus = 'idle' | 'created' | 'updated'
 
 export const RateConverter = () => {
-  const navigate = useNavigate()
-  const activePair = useCurrencyStore((s) => s.activePair)
-
+  const updateUrl = useUpdateUrl()
+  const { sender, receiver, amount: urlAmount, swap } = useActivePair()
   const {
     data: ratesData,
     isLoading,
     isError,
     dataUpdatedAt,
   } = useLatestRates()
-  const isFavorited = useIsFavorited()
+  const isFavorited = useIsFavorited(sender, receiver)
 
   const rate = ratesData
-    ? getCrossRate(ratesData.rates, activePair.sender, activePair.receiver)
+    ? getCrossRate({
+        rates: ratesData.rates,
+        base: sender,
+        quote: receiver,
+      })
     : null
+
+  // Track which side was last edited
+  const [sendValue, setSendValue] = useState('1')
+  const [receiveValue, setReceiveValue] = useState('')
+  const [editSide, setEditSide] = useState<EditSide>('send')
+  const [logBtnStatus, setLogBtnStatus] = useState<LogStatus>('idle')
+
+  // Sync sendValue from URL amount changes
+  useEffect(() => {
+    if (urlAmount && editSide === 'send') {
+      setSendValue(urlAmount)
+    }
+  }, [urlAmount, editSide])
+
+  // Recompute the "other" side whenever rate or the edited side changes
+  useEffect(() => {
+    if (rate == null) return
+
+    if (editSide === 'send') {
+      const num = parseFloat(sendValue)
+      if (!Number.isNaN(num) && num > 0) {
+        setReceiveValue(formatAmount(num * rate))
+      } else {
+        setReceiveValue('')
+      }
+    } else {
+      const num = parseFloat(receiveValue.replace(/,/g, ''))
+      if (!Number.isNaN(num) && num > 0) {
+        setSendValue(formatAmount(num / rate))
+      } else {
+        setSendValue('')
+      }
+    }
+  }, [rate, sendValue, receiveValue, editSide])
+
+  const handleSendInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = restrictNumeric(e.currentTarget.value)
+      setSendValue(value)
+      setEditSide('send')
+      updateUrl({ amount: value || '1' })
+    },
+    [updateUrl],
+  )
+
+  const handleReceiveInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = restrictNumeric(e.currentTarget.value)
+      setReceiveValue(value)
+      setEditSide('receive')
+
+      if (rate != null) {
+        const num = parseFloat(value.replace(/,/g, ''))
+        if (!Number.isNaN(num) && num > 0) {
+          updateUrl({ amount: (num / rate).toFixed(2).toString() })
+        } else {
+          updateUrl({ amount: '1' })
+        }
+      }
+    },
+    [rate, updateUrl],
+  )
+
+  const handleLogConversion = useCallback(() => {
+    if (rate == null) return
+
+    const sendNum = parseFloat(sendValue.replace(/,/g, ''))
+
+    if (Number.isNaN(sendNum) || sendNum <= 0) return
+    const status = addLog({
+      sender,
+      receiver,
+      amount: sendNum,
+      baseRate: rate,
+      result: sendNum * rate,
+      timestamp: Date.now(),
+    })
+
+    setLogBtnStatus(status)
+    setTimeout(() => setLogBtnStatus('idle'), 2000)
+  }, [rate, sendValue, sender, receiver])
 
   return (
     <section
@@ -56,31 +136,11 @@ export const RateConverter = () => {
 
       <form
         onSubmit={(e) => e.preventDefault()}
+        autoComplete="off"
         className="bg-surface rounded-20"
       >
         <FieldGroup className="gap-4 p-4 md:p-5 md:gap-6 md:flex-row">
-          <FieldSet className="basis-full grow">
-            <FieldLegend className="sr-only" aria-hidden>
-              Send currency
-            </FieldLegend>
-            <Field className="bg-surface-600 rounded-16 p-4 gap-5 border">
-              <FieldLabel className="self-start" htmlFor="send-amount">
-                Send
-              </FieldLabel>
-              <div className="flex items-center justify-between gap-2">
-                <Input
-                  id="send-amount"
-                  name="sendAmount"
-                  inputMode="decimal"
-                  type="text"
-                  placeholder="0"
-                  onInput={restrictNumeric}
-                  className="max-w-32 border-none text-display-sm md:text-display px-1 placeholder:text-display-sm md:placeholder:text-display"
-                />
-                <CurrencyPicker isSender />
-              </div>
-            </Field>
-          </FieldSet>
+          <SendField value={sendValue} onChange={handleSendInput} />
 
           <Button
             type="button"
@@ -88,43 +148,14 @@ export const RateConverter = () => {
             aria-label="Swap send and receive currencies"
             className="self-center"
             onClick={() => {
-              swapActivePair()
-              const { activePair } = useCurrencyStore.getState()
-              navigate({
-                to: '/',
-                search: (prev) => ({
-                  ...prev,
-                  from: activePair.sender,
-                  to: activePair.receiver,
-                }),
-              })
+              swap()
+              setEditSide('send')
             }}
           >
             <ArrowDownUp className="size-5 md:rotate-90" />
           </Button>
 
-          <FieldSet className="basis-full grow">
-            <FieldLegend className="sr-only" aria-hidden>
-              Receive currency
-            </FieldLegend>
-            <Field className="bg-surface-600 rounded-16 p-4 gap-5 border">
-              <FieldLabel className="self-start" htmlFor="receive-amount">
-                Receive
-              </FieldLabel>
-              <div className="flex items-center justify-between gap-2">
-                <Input
-                  id="receive-amount"
-                  name="receiveAmount"
-                  inputMode="decimal"
-                  type="text"
-                  placeholder="0"
-                  onInput={restrictNumeric}
-                  className="max-w-32 border-none text-display-sm md:text-display text-lime! px-1 placeholder:text-display-sm md:placeholder:text-display placeholder:text-muted!"
-                />
-                <CurrencyPicker />
-              </div>
-            </Field>
-          </FieldSet>
+          <ReceiverField value={receiveValue} onChange={handleReceiveInput} />
         </FieldGroup>
 
         <Separator className="border-dashed border bg-transparent" />
@@ -141,8 +172,8 @@ export const RateConverter = () => {
               </p>
             ) : (
               <BaseExchangeRate
-                base={activePair.sender}
-                quote={activePair.receiver}
+                base={sender}
+                quote={receiver}
                 rate={rate}
                 dataUpdatedAt={dataUpdatedAt}
               />
@@ -153,7 +184,7 @@ export const RateConverter = () => {
               type="button"
               size="sm"
               aria-pressed={isFavorited}
-              onClick={toggleFavorites}
+              onClick={() => toggleFavorite(sender, receiver)}
               className="group uppercase text-caption-medium gap-2.5 aria-pressed:bg-accent aria-pressed:border-accent aria-pressed:text-background"
             >
               <StarIcon className="group-aria-pressed:fill-background" />
@@ -163,53 +194,29 @@ export const RateConverter = () => {
               type="button"
               variant="outline"
               size="sm"
-              className="uppercase text-caption-medium"
+              disabled={logBtnStatus !== 'idle'}
+              className={cn(
+                'min-w-33.5 text-caption-medium transition-all disabled:opacity-100',
+                logBtnStatus !== 'idle' &&
+                  'bg-accent text-background! hover:bg-accent',
+              )}
+              onClick={handleLogConversion}
             >
-              Log conversion
+              {logBtnStatus === 'created' ? (
+                <span className="flex items-center gap-2">
+                  <Check /> Logged
+                </span>
+              ) : logBtnStatus === 'updated' ? (
+                <span className="flex items-center gap-2">
+                  <Check /> Updated
+                </span>
+              ) : (
+                <span className="uppercase">Log conversion</span>
+              )}
             </Button>
           </div>
         </div>
       </form>
     </section>
-  )
-}
-
-type BaseRateProps = {
-  base: string
-  quote: string
-  rate: number
-  dataUpdatedAt: number
-}
-
-const BaseExchangeRate = ({
-  base,
-  quote,
-  rate,
-  dataUpdatedAt,
-}: BaseRateProps) => {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-5 p-2.5 rounded-full cursor-default select-text"
-        >
-          <span className="text-overline md:text-caption">
-            1 {base} = {rate.toFixed(4)} {quote}
-          </span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="hidden md:flex md:flex-col gap-1">
-        <span>
-          1 {base} = {rate.toFixed(4)} {quote}
-        </span>
-        <span>
-          1 {quote} = {(1 / rate).toFixed(4)} {base}
-        </span>
-        <span className="border-b border-dotted border-muted" />
-        <span className="text-muted">Updated {timeAgo(dataUpdatedAt)}</span>
-        <span className="text-muted">Frankfurter (ECB reference rate)</span>
-      </TooltipContent>
-    </Tooltip>
   )
 }
