@@ -2,17 +2,14 @@ import { useSearch } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getHistory } from '#/server/functions/history'
-import {
-  TIME_RANGES,
-  RANGE_INTERVALS,
-  computeHistoryStats,
-} from '#/lib/currency'
+import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { HistoryChart } from './chart'
 import { HistoryStats } from './stats'
 import { CustomSpinner } from '#/components/custom-spinner'
+import { computeHistoryStats } from '#/lib/history-helpers'
 
 export const HistorySection = () => {
   const queryClient = useQueryClient()
