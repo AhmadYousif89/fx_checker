@@ -28,7 +28,7 @@ export const CompareSection = () => {
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError } = useLatestRates()
 
-  const amount = parseFloat(urlAmount.replace(/,/g, '') || '0')
+  const amount = parseFloat(urlAmount.replace(/,/g, '')) || 1
 
   // Build a code → name map
   const codeToName = useMemo(() => {
@@ -163,7 +163,7 @@ const CompareRow = memo((props: CompareRowProps) => {
         </span>
       </div>
       <div className="flex items-center gap-5">
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
           <span className="text-body-lg">{formatAmount(converted)}</span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>
         </div>

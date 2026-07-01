@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ArrowDownUp, Check, StarIcon } from 'lucide-react'
 
-import { FieldGroup } from '#/components/ui/field'
 import { Button } from '#/components/ui/button'
+import { FieldGroup } from '#/components/ui/field'
 import { Separator } from '#/components/ui/separator'
 
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import {
+  addLog,
   useIsFavorited,
   toggleFavorite,
-  addLog,
 } from '#/store/currencies.store'
 import { restrictNumeric, getCrossRate, formatAmount } from '#/lib/currency'
 import { cn } from '#/lib/utils'
@@ -42,11 +42,13 @@ export const RateConverter = () => {
       })
     : null
 
-  // Track which side was last edited
-  const [sendValue, setSendValue] = useState('1')
+  const [sendValue, setSendValue] = useState(urlAmount)
   const [receiveValue, setReceiveValue] = useState('')
   const [editSide, setEditSide] = useState<EditSide>('send')
   const [logBtnStatus, setLogBtnStatus] = useState<LogStatus>('idle')
+
+  const sendNum = parseFloat(sendValue)
+  const isAmountValid = !Number.isNaN(sendNum) && sendNum > 0
 
   // Sync sendValue from URL amount changes
   useEffect(() => {
@@ -81,7 +83,8 @@ export const RateConverter = () => {
       const value = restrictNumeric(e.currentTarget.value)
       setSendValue(value)
       setEditSide('send')
-      updateUrl({ amount: value || '1' })
+      const parsed = parseFloat(value)
+      updateUrl({ amount: !value || parsed === 0 ? '1' : value })
     },
     [updateUrl],
   )
@@ -106,8 +109,6 @@ export const RateConverter = () => {
 
   const handleLogConversion = useCallback(() => {
     if (rate == null) return
-
-    const sendNum = parseFloat(sendValue.replace(/,/g, ''))
 
     if (Number.isNaN(sendNum) || sendNum <= 0) return
     const status = addLog({
@@ -185,7 +186,7 @@ export const RateConverter = () => {
               size="sm"
               aria-pressed={isFavorited}
               onClick={() => toggleFavorite(sender, receiver)}
-              className="group uppercase text-caption-medium gap-2.5 aria-pressed:bg-accent aria-pressed:border-accent aria-pressed:text-background"
+              className="group min-w-29.5 uppercase text-caption-medium gap-2.5 aria-pressed:bg-accent aria-pressed:border-accent aria-pressed:text-background"
             >
               <StarIcon className="group-aria-pressed:fill-background" />
               <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
@@ -194,11 +195,11 @@ export const RateConverter = () => {
               type="button"
               variant="outline"
               size="sm"
-              disabled={logBtnStatus !== 'idle'}
+              disabled={logBtnStatus !== 'idle' || !isAmountValid}
               className={cn(
-                'min-w-33.5 text-caption-medium transition-all disabled:opacity-100',
+                'min-w-33.5 text-caption-medium transition-all',
                 logBtnStatus !== 'idle' &&
-                  'bg-accent text-background! hover:bg-accent',
+                  'disabled:opacity-100 bg-accent text-background! hover:bg-accent',
               )}
               onClick={handleLogConversion}
             >
