@@ -21,7 +21,14 @@ afterEach(cleanup)
 beforeEach(() => {
   vi.mocked(getLatestRates).mockResolvedValue({
     date: '2024-01-15',
-    rates: { USD: 1.1, GBP: 0.85, JPY: 130, CHF: 0.95, CAD: 1.25, AUD: 1.35 },
+    rates: new Map([
+      ['USD', 1.1],
+      ['GBP', 0.85],
+      ['JPY', 130],
+      ['CHF', 0.95],
+      ['CAD', 1.25],
+      ['AUD', 1.35],
+    ]),
   })
   vi.mocked(getCurrencies).mockResolvedValue([
     {

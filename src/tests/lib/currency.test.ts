@@ -134,7 +134,7 @@ describe('shortTimeAgo', () => {
 })
 
 describe('getCrossRate', () => {
-  const rates = { USD: 1.1, GBP: 0.85, JPY: 130 }
+  const rates = new Map([['USD', 1.1], ['GBP', 0.85], ['JPY', 130]])
 
   it('returns 1 for same base and quote', () => {
     expect(getCrossRate({ rates, base: 'USD', quote: 'USD' })).toBe(1)

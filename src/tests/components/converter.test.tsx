@@ -29,7 +29,11 @@ afterEach(cleanup)
 beforeEach(() => {
   vi.mocked(getLatestRates).mockResolvedValue({
     date: '2024-01-15',
-    rates: { USD: 1.1, GBP: 0.85, JPY: 130 },
+    rates: new Map([
+      ['USD', 1.1],
+      ['GBP', 0.85],
+      ['JPY', 130],
+    ]),
   })
   useCurrencyStore.setState({
     favorites: [],

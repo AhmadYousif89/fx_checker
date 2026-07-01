@@ -52,7 +52,7 @@ export function toggleFavorite(sender: string, receiver: string) {
         ? state.favorites.filter(
             (f) => f.sender !== sender || f.receiver !== receiver,
           )
-        : [...state.favorites, { sender, receiver }],
+        : [{ sender, receiver }, ...state.favorites],
     }
   })
 }
@@ -102,5 +102,5 @@ export function removeLog(timestamp: number) {
 }
 
 export function clearLogs() {
-  useCurrencyStore.setState({ logs: [] })
+  useCurrencyStore.setState({ logs: [], lastLogTimestamp: null })
 }
