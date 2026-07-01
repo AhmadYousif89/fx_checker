@@ -1,40 +1,63 @@
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
-import { OPEN_API_URL } from '../config'
 
-import type { ApiRate } from '#/types/currency'
+import { getCached, setCache } from './cache'
+import { computeOutputSize } from '#/lib/history-helpers'
+import type { TwelveDataApiRate } from '#/types/currency'
+import { TWELVE_DATA_API_URL, TWELVE_DATA_API_KEY, TDI } from '../config'
+
+const schema = z.object({
+  base: z.string(),
+  quote: z.string(),
+  days: z.number().min(1).max(Infinity).default(30),
+  interval: z.enum(TDI).default('1day'),
+})
+
+export type HistoryInput = z.infer<typeof schema>
+
+type HistoryEntry = {
+  time: string
+  close: number
+  open: number
+  high: number
+  low: number
+}
 
 export const getHistory = createServerFn()
-  .validator(
-    z.object({
-      base: z.string(),
-      quote: z.string(),
-      days: z.number().min(1).max(Infinity).default(30),
-    }),
-  )
+  .validator(schema)
   .handler(async ({ data: input }) => {
-    const { base, quote, days } = input
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(endDate.getDate() - days)
+    const { base, quote, days, interval } = input
+    const cacheKey = `history:${base}/${quote}/${days}/${interval}`
 
-    const format = (d: Date) => d.toISOString().split('T')[0]
+    const cached = getCached<HistoryEntry[]>(cacheKey)
+    if (cached) return cached
+
+    const outputsize = computeOutputSize(days, interval)
 
     const res = await fetch(
-      `${OPEN_API_URL}/v2/rates?base=${base}&from=${format(startDate)}&to=${format(endDate)}`,
+      `${TWELVE_DATA_API_URL}/time_series?symbol=${base}/${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
     )
 
     if (!res.ok) {
       throw new Error(`Failed to fetch history for ${base}/${quote}`)
     }
 
-    const data = (await res.json()) as ApiRate[]
+    const data = (await res.json()) as TwelveDataApiRate
 
-    // Filter to only the quote currency and map to { date, rate }
-    const filtered = data
-      .filter((r) => r.quote === quote)
-      .map((r) => ({ date: r.date, rate: r.rate }))
-      .sort((a, b) => a.date.localeCompare(b.date))
+    if (data.status !== 'ok') {
+      console.error(data)
+      throw new Error(`Failed to fetch history for ${base}/${quote}`)
+    }
 
-    return filtered
+    const values = data.values.reverse()
+    const result = values.map((v) => ({
+      time: v.datetime,
+      close: parseFloat(v.close),
+      open: parseFloat(v.open),
+      high: parseFloat(v.high),
+      low: parseFloat(v.low),
+    }))
+
+    setCache(cacheKey, result)
+    return result
   })
