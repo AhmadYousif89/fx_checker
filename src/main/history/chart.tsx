@@ -48,7 +48,7 @@ export const HistoryChart = ({
     : `${headerDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase()} ${timeStr}`
 
   return (
-    <div className="min-h-96 w-full mt-4 md:mt-5 py-4 px-3 md:p-5 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
+    <div className="min-h-96 w-full py-4 px-3 md:p-5 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
       <div className="flex justify-between items-center uppercase">
         <span className="text-body-lg-medium text-foreground">
           {sender}/{receiver}
@@ -57,8 +57,13 @@ export const HistoryChart = ({
           {formatRate(lastData.close)} &bull; {headerDateStr}
         </span>
       </div>
-      <div className="flex-1 w-full min-h-50">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex-1 w-full">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minHeight={200}
+          className=""
+        >
           <AreaChart
             data={data}
             margin={{ top: 20, right: 25, left: 0, bottom: 0 }}

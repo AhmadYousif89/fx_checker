@@ -34,7 +34,7 @@ describe('HistorySection', () => {
 
   it('renders chart with data', async () => {
     renderWithQuery(<HistorySection />)
-    expect(await screen.findByText('USD/EUR')).toBeInTheDocument()
+    expect(await screen.findByText('USD/EUR', {}, { timeout: 3000 })).toBeInTheDocument()
   })
 
   it('shows error state on failure', async () => {

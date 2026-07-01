@@ -1,6 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { useSearch } from '@tanstack/react-router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import { getHistory } from '#/server/functions/history'
 import { computeHistoryStats } from '#/lib/history-helpers'
@@ -39,6 +43,8 @@ export const HistorySection = () => {
         },
       }),
     staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 60 * 24,
+    placeholderData: keepPreviousData,
   })
 
   const prefetchRange = (rangeKey: string) => {
@@ -51,16 +57,18 @@ export const HistorySection = () => {
           data: { base: sender, quote: receiver, days: d, interval: i },
         }),
       staleTime: 1000 * 60 * 15,
+      gcTime: 1000 * 60 * 60 * 24,
     })
   }
 
   const stats = computeHistoryStats(data)
+  const hasData = data && data.length > 0
 
-  if (isLoading) {
+  if (isLoading && !hasData) {
     return <CustomSpinner />
   }
 
-  if (isError) {
+  if (isError && !hasData) {
     return (
       <div className="flex items-center justify-center py-10">
         <p className="text-red text-center">
@@ -70,7 +78,7 @@ export const HistorySection = () => {
     )
   }
 
-  if (!data || data.length === 0) {
+  if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-10">
         <h3 className="text-heading text-foreground-darker">
@@ -88,7 +96,7 @@ export const HistorySection = () => {
     <>
       <div className="flex flex-col gap-5 lg:flex-row lg:justify-between">
         {/* Stats */}
-        <HistoryStats stats={stats} isLoading={isFetching || isLoading} />
+        <HistoryStats stats={stats} isLoading={isFetching} />
         {/* Time range */}
         <ToggleGroup
           type="single"
@@ -111,14 +119,33 @@ export const HistorySection = () => {
         </ToggleGroup>
       </div>
       {/* Chart */}
-      <Suspense fallback={<CustomSpinner />}>
-        <HistoryChart
-          data={data}
-          sender={sender}
-          receiver={receiver}
-          selectedTime={selectedTime}
-        />
-      </Suspense>
+      <div className="relative flex overflow-hidden mt-4 md:mt-5">
+        {isFetching && (
+          <div className="absolute inset-0 bg-surface/25 flex items-center justify-center z-10">
+            <CustomSpinner />
+          </div>
+        )}
+        <Suspense fallback={<ChartSkeleton />}>
+          <HistoryChart
+            data={data}
+            sender={sender}
+            receiver={receiver}
+            selectedTime={selectedTime}
+          />
+        </Suspense>
+      </div>
     </>
+  )
+}
+
+const ChartSkeleton = () => {
+  return (
+    <div className="w-full bg-surface flex flex-col gap-5 py-4 px-3 md:p-5 rounded-16">
+      <div className="flex items-center justify-between h-5">
+        <span className="h-full w-18.5 bg-muted/10 rounded-full animate-pulse" />
+        <span className="h-full w-57.5 bg-muted/10 rounded-full animate-pulse" />
+      </div>
+      <div className="size-full bg-muted/10 animate-pulse rounded-16" />
+    </div>
   )
 }
