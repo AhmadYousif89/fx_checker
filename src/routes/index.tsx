@@ -20,7 +20,7 @@ export const Route = createFileRoute('/')({
   beforeLoad: async ({ context, search }) => {
     const from = search.from ?? 'USD'
     const to = search.to ?? 'EUR'
-    const rangeKeys = Object.keys(TIME_RANGES).filter((k) => k.endsWith('m')) // prefetch ['1m', '3m', '6m']
+    const rangeKeys = ['3m']
 
     await Promise.all([
       ...rangeKeys.map((key) =>

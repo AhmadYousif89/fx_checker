@@ -1,15 +1,20 @@
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
-import { getCached, setCache } from './cache'
+import { getOrFetch } from './cache'
 import { computeOutputSize } from '#/lib/history-helpers'
 import type { TwelveDataApiRate } from '#/types/currency'
-import { TWELVE_DATA_API_URL, TWELVE_DATA_API_KEY, TDI } from '../config'
+import {
+  TWELVE_DATA_API_URL,
+  TWELVE_DATA_API_KEY,
+  TTL_BY_INTERVAL,
+  TDI,
+} from '../config'
 
 const schema = z.object({
   base: z.string(),
   quote: z.string(),
-  days: z.number().min(1).max(Infinity).default(30),
+  days: z.number().min(1).default(30),
   interval: z.enum(TDI).default('1day'),
 })
 
@@ -28,36 +33,37 @@ export const getHistory = createServerFn()
   .handler(async ({ data: input }) => {
     const { base, quote, days, interval } = input
     const cacheKey = `history:${base}/${quote}/${days}/${interval}`
+    const ttl = TTL_BY_INTERVAL[interval] ?? 15 * 60 * 1000 // default to 15 mins if undefined
 
-    const cached = getCached<HistoryEntry[]>(cacheKey)
-    if (cached) return cached
+    return getOrFetch<HistoryEntry[]>(
+      cacheKey,
+      async () => {
+        const outputsize = computeOutputSize(days, interval)
 
-    const outputsize = computeOutputSize(days, interval)
+        const res = await fetch(
+          `${TWELVE_DATA_API_URL}/time_series?symbol=${base}/${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
+        )
 
-    const res = await fetch(
-      `${TWELVE_DATA_API_URL}/time_series?symbol=${base}/${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
+        if (!res.ok) {
+          throw new Error(`Failed to fetch history for ${base}/${quote}`)
+        }
+
+        const data = (await res.json()) as TwelveDataApiRate
+
+        if (data.status !== 'ok') {
+          console.error(data)
+          throw new Error(`Failed to fetch history for ${base}/${quote}`)
+        }
+
+        const values = data.values.reverse()
+        return values.map((v) => ({
+          time: v.datetime,
+          close: parseFloat(v.close),
+          open: parseFloat(v.open),
+          high: parseFloat(v.high),
+          low: parseFloat(v.low),
+        }))
+      },
+      ttl,
     )
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch history for ${base}/${quote}`)
-    }
-
-    const data = (await res.json()) as TwelveDataApiRate
-
-    if (data.status !== 'ok') {
-      console.error(data)
-      throw new Error(`Failed to fetch history for ${base}/${quote}`)
-    }
-
-    const values = data.values.reverse()
-    const result = values.map((v) => ({
-      time: v.datetime,
-      close: parseFloat(v.close),
-      open: parseFloat(v.open),
-      high: parseFloat(v.high),
-      low: parseFloat(v.low),
-    }))
-
-    setCache(cacheKey, result)
-    return result
   })

@@ -1,15 +1,19 @@
+import { lazy, Suspense } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getHistory } from '#/server/functions/history'
+import { computeHistoryStats } from '#/lib/history-helpers'
 import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
-import { HistoryChart } from './chart'
-import { HistoryStats } from './stats'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
-import { computeHistoryStats } from '#/lib/history-helpers'
+import { HistoryStats } from './stats'
+
+const HistoryChart = lazy(() =>
+  import('./chart').then((m) => ({ default: m.HistoryChart })),
+)
 
 export const HistorySection = () => {
   const queryClient = useQueryClient()
@@ -107,12 +111,14 @@ export const HistorySection = () => {
         </ToggleGroup>
       </div>
       {/* Chart */}
-      <HistoryChart
-        data={data}
-        sender={sender}
-        receiver={receiver}
-        selectedTime={selectedTime}
-      />
+      <Suspense fallback={<CustomSpinner />}>
+        <HistoryChart
+          data={data}
+          sender={sender}
+          receiver={receiver}
+          selectedTime={selectedTime}
+        />
+      </Suspense>
     </>
   )
 }
