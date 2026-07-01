@@ -38,7 +38,7 @@ export const CompareSection = () => {
   // Track which currencies are available in the current rates data
   const availableCodes = useMemo(() => {
     if (!ratesData) return new Set<string>()
-    return new Set([...Object.keys(ratesData.rates), 'EUR'])
+    return new Set([...ratesData.rates.keys(), 'EUR'])
   }, [ratesData])
 
   const comparePairs = useMemo(

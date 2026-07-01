@@ -6,9 +6,9 @@ import { FLAG_CODE_SET } from '#/lib/currency'
 import type { RateWithDiff, FrankfurterApiRate } from '#/types/currency'
 
 export const getRates = createServerFn()
-  .validator(z.object({ base: z.string().default('USD') }))
+  .validator(z.object({ base: z.string() }).optional())
   .handler(async ({ data }) => {
-    const { base } = data
+    const base = data ? data.base : 'USD'
     const rates = await getHistoricalRates()
 
     // Get unique dates in descending order (latest first)
