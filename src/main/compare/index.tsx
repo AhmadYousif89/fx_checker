@@ -59,8 +59,8 @@ export const CompareSection = () => {
     return (
       <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
         <div className="flex items-center justify-between">
-          <div className="h-5 w-48 rounded bg-muted/30 animate-pulse" />
-          <div className="h-4 w-16 rounded bg-muted/30 animate-pulse" />
+          <div className="h-5 w-48 rounded bg-muted/10 animate-pulse" />
+          <div className="h-4 w-16 rounded bg-muted/10 animate-pulse" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (

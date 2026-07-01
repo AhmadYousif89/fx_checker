@@ -164,7 +164,7 @@ export const RateConverter = () => {
           <div aria-live="polite">
             {isLoading ? (
               <div className="grid items-center h-6 md:h-5 w-30 md:w-40">
-                <div className="rounded-full animate-pulse h-1/2 md:h-full bg-muted/30" />
+                <div className="rounded-full animate-pulse h-1/2 md:h-full bg-muted/10" />
               </div>
             ) : isError || rate == null ? (
               <p className="text-overline md:text-caption text-red">

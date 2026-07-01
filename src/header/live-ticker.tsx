@@ -32,7 +32,7 @@ export const LiveTicker = () => {
         <div className="absolute inset-y-0 right-0 w-12 bg-linear-to-l from-surface to-transparent z-10 pointer-events-none" />
 
         {ratesQuery.isLoading ? (
-          <div className="flex items-center size-full animate-pulse bg-muted/30" />
+          <div className="flex items-center size-full animate-pulse bg-muted/10" />
         ) : ratesQuery.isError ? (
           <p className="text-caption text-red text-center px-6 w-full">
             Failed to load market rates

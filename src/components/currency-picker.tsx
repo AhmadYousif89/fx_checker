@@ -172,7 +172,7 @@ const TriggerSkeleton = () => (
     disabled
     className="flex items-center justify-between gap-2 text-muted border border-surface-400 bg-surface-500 rounded-8 p-2.5 h-10 w-24.25 shrink-0 disabled:opacity-50"
   >
-    <span className="aspect-square animate-pulse rounded-full bg-muted/30 size-5" />
+    <span className="aspect-square animate-pulse rounded-full bg-muted/10 size-5" />
     <span className="w-full h-px bg-current" />
     <ArrowDropDown className="basis-1/4" />
   </button>
