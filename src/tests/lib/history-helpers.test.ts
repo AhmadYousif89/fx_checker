@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { computePointsPerDay, computeOutputSize } from '#/lib/history-helpers'
+import {
+  computeHistoryYAxisDomain,
+  computePointsPerDay,
+  computeOutputSize,
+} from '#/lib/history-helpers'
 
 describe('computePointsPerDay', () => {
   it('returns 288 for 5min interval', () => {
@@ -46,5 +50,25 @@ describe('computeOutputSize', () => {
 
   it('clamps to maximum of 5000', () => {
     expect(computeOutputSize(1000, '5min')).toBe(5000)
+  })
+})
+
+describe('computeHistoryYAxisDomain', () => {
+  it('pads tiny price ranges to avoid chart exaggeration', () => {
+    const [min, max] = computeHistoryYAxisDomain([
+      { close: 3.6725 },
+      { close: 3.6735 },
+    ])
+
+    expect(min).toBeLessThan(3.6725)
+    expect(max).toBeGreaterThan(3.6735)
+    expect(max - min).toBeGreaterThanOrEqual(0.0015)
+  })
+
+  it('adds padding for flat series', () => {
+    const [min, max] = computeHistoryYAxisDomain([{ close: 1.25 }])
+
+    expect(min).toBeLessThan(1.25)
+    expect(max).toBeGreaterThan(1.25)
   })
 })

@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
+import { computeHistoryYAxisDomain } from '#/lib/history-helpers'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
 
 export const HistoryChart = ({
@@ -29,6 +30,7 @@ export const HistoryChart = ({
 }) => {
   const reducedMotion = useReducedMotion()
   const lastData = data[data.length - 1]
+  const yDomain = computeHistoryYAxisDomain(data)
 
   const headerDate =
     selectedTime === '5y'
@@ -92,7 +94,7 @@ export const HistoryChart = ({
               minTickGap={30}
             />
             <YAxis
-              domain={['dataMin', 'dataMax']}
+              domain={yDomain}
               axisLine={false}
               tickLine={false}
               tick={{
@@ -119,7 +121,7 @@ export const HistoryChart = ({
               }}
             />
             <Area
-              type="linear"
+              type="monotone"
               dataKey="close"
               stroke="var(--lime)"
               strokeWidth={2}
