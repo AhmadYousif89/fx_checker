@@ -3,9 +3,8 @@ import { useCallback } from 'react'
 
 export function useActivePair() {
   const navigate = useNavigate()
-
-  const from = useSearch({ from: '/', select: (s) => s.from ?? 'USD' })
-  const to = useSearch({ from: '/', select: (s) => s.to ?? 'EUR' })
+  const sender = useSearch({ from: '/', select: (s) => s.from ?? 'USD' })
+  const receiver = useSearch({ from: '/', select: (s) => s.to ?? 'EUR' })
   const amount = useSearch({ from: '/', select: (s) => s.amount ?? '1' })
 
   const swap = useCallback(() => {
@@ -13,15 +12,15 @@ export function useActivePair() {
       to: '/',
       search: (prev) => ({
         ...prev,
-        from: prev.to ?? 'EUR',
-        to: prev.from ?? 'USD',
+        from: receiver,
+        to: sender,
       }),
     })
-  }, [navigate])
+  }, [navigate, receiver, sender])
 
   return {
-    sender: from,
-    receiver: to,
+    sender,
+    receiver,
     amount,
     swap,
   }
