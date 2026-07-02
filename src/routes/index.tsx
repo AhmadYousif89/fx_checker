@@ -7,6 +7,7 @@ import { getRates } from '#/server/functions/rates'
 import { getHistory } from '#/server/functions/history'
 import { getCurrencies } from '#/server/functions/currencies'
 import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
+import { Footer } from '#/footer'
 
 const searchSchema = z.object({
   from: z.string().optional(),
@@ -58,6 +59,7 @@ function Home() {
     <>
       <Header />
       <Main />
+      <Footer />
     </>
   )
 }
