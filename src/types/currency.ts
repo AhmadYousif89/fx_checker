@@ -1,3 +1,8 @@
+export type CurrencySearch = {
+  from?: string
+  to?: string
+}
+
 export type CurrencyPair = {
   sender: string
   receiver: string
