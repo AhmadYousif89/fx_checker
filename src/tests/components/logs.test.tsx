@@ -78,6 +78,7 @@ describe('LogsSection', () => {
     })
     render(<LogsSection />)
     fireEvent.click(screen.getByText('Clear All'))
+    fireEvent.click(screen.getByText('Yes, clear all'))
     expect(screen.getByText('No conversions logged yet')).toBeInTheDocument()
   })
 })

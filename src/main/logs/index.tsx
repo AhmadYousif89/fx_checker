@@ -1,16 +1,17 @@
-import { memo } from 'react'
-import { ArrowRightIcon, TrashIcon } from 'lucide-react'
-
-import { cn } from '#/lib/utils'
-import { Button } from '#/components/ui/button'
-import { useUpdateUrl } from '#/hooks/use-update-url'
-import { formatAmount, shortTimeAgo } from '#/lib/currency'
 import {
-  clearLogs,
-  removeLog,
-  useCurrencyStore,
-} from '#/store/currencies.store'
-import type { ConversionLog } from '#/types/currency'
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '#/components/ui/alert-dialog'
+import { Button } from '#/components/ui/button'
+import { clearLogs, useCurrencyStore } from '#/store/currencies.store'
+import { LogList } from './log-list'
 
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
@@ -38,71 +39,37 @@ export const LogsSection = () => {
           <span className="text-caption uppercase text-foreground-darker">
             {logCount} logged
           </span>
-          <Button
-            onClick={clearLogs}
-            className="h-7.5 px-3 py-2 text-caption hover:bg-red hover:border-red"
-          >
-            Clear All
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="h-7.5 px-3 py-2 text-caption hover:bg-red hover:border-red focus-visible:ring-red">
+                Clear All
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all logs?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all conversion logs.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="text-body">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={clearLogs}
+                  variant="destructive"
+                  className="text-body"
+                >
+                  Yes, clear all
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
-      <ul className="space-y-3">
-        {logs.map((log, index) => (
-          <LogRow key={log.timestamp} log={log} index={index} />
-        ))}
-      </ul>
+      <LogList logs={logs} />
     </div>
   )
 }
-
-const LogRow = memo(({ log, index }: { log: ConversionLog; index: number }) => {
-  const updateUrl = useUpdateUrl()
-  const logTime = shortTimeAgo(log.timestamp)
-
-  return (
-    <li
-      onClick={() => {
-        updateUrl({
-          from: log.sender,
-          to: log.receiver,
-          amount: String(log.amount),
-        })
-      }}
-      style={{ animationDelay: `${index * 80}ms` }}
-      className={cn(
-        'h-15 flex items-center justify-between gap-2.5 md:gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer hover:border-surface-300 active:border-surface-300 transition animate-fade-in',
-      )}
-    >
-      <div className="flex grow md:items-center flex-col md:flex-row gap-1 md:gap-4">
-        <time className="text-body text-muted min-w-16">{logTime}</time>
-        <span className="flex items-center gap-2 text-body">
-          {log.sender}
-          <ArrowRightIcon className="size-4 text-muted" />
-          {log.receiver}
-        </span>
-      </div>
-
-      <div
-        className={cn(
-          'flex grow items-end md:items-center md:justify-end flex-col md:flex-row gap-1 md:gap-4',
-        )}
-      >
-        <span className="text-body-lg text-foreground-darker">
-          {formatAmount(log.amount)}
-        </span>
-        <span className="text-body-lg text-accent">
-          {formatAmount(log.result)}
-        </span>
-      </div>
-      <Button
-        size="icon-sm"
-        variant="outline"
-        onClick={() => removeLog(log.timestamp)}
-        className="group border-border hover:border-red focus-visible:ring-red hover:bg-surface-500 active:bg-surface-500"
-      >
-        <TrashIcon className="group-hover:text-red" />
-      </Button>
-    </li>
-  )
-})
