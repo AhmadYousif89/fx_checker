@@ -10,7 +10,7 @@ export const Footer = () => {
 
   return (
     <>
-      <footer className="hidden lg:flex justify-center pb-2">
+      <footer className="hidden lg:flex justify-center pb-4 md:pb-6">
         <p className="text-caption text-muted flex items-center gap-1.5">
           keyboard shortcuts ➞
           <kbd className="px-1.5 py-1 rounded-full text-overline bg-surface-600">
