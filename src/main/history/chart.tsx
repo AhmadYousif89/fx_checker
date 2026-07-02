@@ -62,7 +62,7 @@ export const HistoryChart = ({
           width="100%"
           height="100%"
           minHeight={200}
-          className=""
+          initialDimension={{ height: 200, width: 300 }}
         >
           <AreaChart
             data={data}

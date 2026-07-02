@@ -15,6 +15,8 @@ const buttonVariants = cva(
         outline:
           'border border-accent bg-transparent shadow-xs hover:bg-lime-800 disabled:border active:bg-lime-800',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
+        destructive:
+          'bg-red text-red-foreground hover:bg-red/90 active:bg-red/90 focus-visible:ring-red',
       },
       size: {
         default: 'h-10 px-4 py-2 has-[>svg]:px-3',
