@@ -1,20 +1,13 @@
-import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Main } from '#/main'
 import { Header } from '#/header'
+import { Footer } from '#/footer'
 import { getRates } from '#/server/functions/rates'
 import { getHistory } from '#/server/functions/history'
 import { getCurrencies } from '#/server/functions/currencies'
 import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
-import { Footer } from '#/footer'
-
-const searchSchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-  amount: z.string().optional(),
-  view: z.string().optional(),
-})
+import { searchSchema } from '../server/search-schema'
 
 export const Route = createFileRoute('/')({
   validateSearch: searchSchema,

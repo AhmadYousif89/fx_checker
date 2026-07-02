@@ -1,6 +1,10 @@
 import type { HistoryInput } from '#/server/functions/history'
 
-export const TIME_RANGES: Record<string, number> = {
+export const rangeKeys = ['1d', '1w', '1m', '3m', '6m', '1y', '5y'] as const
+
+export type RangeKey = (typeof rangeKeys)[number]
+
+export const TIME_RANGES: Record<RangeKey, number> = {
   '1d': 1,
   '1w': 7,
   '1m': 30,
@@ -10,7 +14,7 @@ export const TIME_RANGES: Record<string, number> = {
   '5y': 1825,
 }
 
-export const RANGE_INTERVALS: Record<string, HistoryInput['interval']> = {
+export const RANGE_INTERVALS: Record<RangeKey, HistoryInput['interval']> = {
   '1d': '5min',
   '1w': '1h',
   '1m': '1day',

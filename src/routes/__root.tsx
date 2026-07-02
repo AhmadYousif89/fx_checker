@@ -9,6 +9,7 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { Button } from '#/components/ui/button'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -46,17 +47,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
   errorComponent: () => {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center gap-4 h-screen">
         <p>Something went wrong!</p>
-        <Link to="/">Go home</Link>
+        <Button asChild variant="outline">
+          <Link to="/">Go home</Link>
+        </Button>
       </div>
     )
   },
   notFoundComponent: () => {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center gap-4 h-screen">
         <p>Not found!</p>
-        <Link to="/">Go home</Link>
+        <Button asChild variant="outline">
+          <Link to="/">Go home</Link>
+        </Button>
       </div>
     )
   },

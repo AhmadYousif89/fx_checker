@@ -2,16 +2,20 @@ import { lazy, Suspense } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
-  keepPreviousData,
   useQuery,
   useQueryClient,
+  keepPreviousData,
 } from '@tanstack/react-query'
 
-import { getHistory } from '#/server/functions/history'
+import { rangeKeys } from '#/lib/currency/time-ranges'
+import type { RangeKey } from '#/lib/currency/time-ranges'
 import { computeHistoryStats } from '#/lib/history-helpers'
 import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
+
+import { getHistory } from '#/server/functions/history'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
+
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
 import { HistoryStats } from './stats'
@@ -25,10 +29,8 @@ export const HistorySection = () => {
 
   const search = useSearch({ from: '/' })
   const updateUrl = useUpdateUrl()
-  const selectedTime = search.view || '3m'
+  const selectedTime = (search.view ?? '3m') as RangeKey
   const { sender, receiver } = useActivePair()
-
-  const rangeKeys = Object.keys(TIME_RANGES)
 
   const hotkeys = rangeKeys.map((rangeKey, i) => ({
     hotkey: { key: `${i + 1}` },
@@ -58,7 +60,7 @@ export const HistorySection = () => {
     placeholderData: keepPreviousData,
   })
 
-  const prefetchRange = (rangeKey: string) => {
+  const prefetchRange = (rangeKey: RangeKey) => {
     const d = TIME_RANGES[rangeKey]
     const i = RANGE_INTERVALS[rangeKey]
     queryClient.prefetchQuery({
@@ -118,13 +120,13 @@ export const HistorySection = () => {
           }}
           className="mt-5 bg-surface p-0.5 lg:self-end"
         >
-          {Object.keys(TIME_RANGES).map((rangeKey) => (
+          {rangeKeys.map((rk) => (
             <ToggleGroupItem
-              key={rangeKey}
-              value={rangeKey}
-              onPointerOver={() => prefetchRange(rangeKey)}
+              key={rk}
+              value={rk}
+              onPointerOver={() => prefetchRange(rk)}
             >
-              {rangeKey.toUpperCase()}
+              {rk.toUpperCase()}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
