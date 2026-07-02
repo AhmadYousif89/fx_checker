@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { useSearch } from '@tanstack/react-router'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
   keepPreviousData,
   useQuery,
@@ -26,6 +27,16 @@ export const HistorySection = () => {
   const updateUrl = useUpdateUrl()
   const selectedTime = search.view || '3m'
   const { sender, receiver } = useActivePair()
+
+  const rangeKeys = Object.keys(TIME_RANGES)
+
+  const hotkeys = rangeKeys.map((rangeKey, i) => ({
+    hotkey: { key: `${i + 1}` },
+    callback: () => updateUrl({ view: rangeKey }),
+  }))
+
+  useHotkeys(hotkeys, { requireReset: true })
+
   const days = TIME_RANGES[selectedTime]
   const interval = RANGE_INTERVALS[selectedTime]
 

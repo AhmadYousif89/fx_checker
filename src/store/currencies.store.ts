@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 import type { CurrencyPair, ConversionLog } from '#/types/currency'
 
+type ActivePicker = 'sender' | 'receiver' | null
+
 type CurrencyStore = {
   favorites: CurrencyPair[]
   logs: ConversionLog[]
@@ -11,6 +13,8 @@ type CurrencyStore = {
     from: string[]
     to: string[]
   }
+  activePicker: ActivePicker
+  lastActivePicker: ActivePicker
 }
 
 const initialState: CurrencyStore = {
@@ -18,6 +22,8 @@ const initialState: CurrencyStore = {
   logs: [],
   lastLogTimestamp: null,
   recent: { from: [], to: [] },
+  activePicker: null,
+  lastActivePicker: null,
 }
 
 export const useCurrencyStore = create(
@@ -103,4 +109,11 @@ export function removeLog(timestamp: number) {
 
 export function clearLogs() {
   useCurrencyStore.setState({ logs: [], lastLogTimestamp: null })
+}
+
+export function setActivePicker(picker: ActivePicker) {
+  useCurrencyStore.setState(() => ({
+    activePicker: picker,
+    ...(picker !== null ? { lastActivePicker: picker } : {}),
+  }))
 }

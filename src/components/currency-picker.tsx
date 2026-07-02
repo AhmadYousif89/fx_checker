@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { EarthIcon, HistoryIcon, Search, TrendingUpIcon } from 'lucide-react'
 import { Image } from '@unpic/react'
+import { useSearch } from '@tanstack/react-router'
+import { EarthIcon, HistoryIcon, Search, TrendingUpIcon } from 'lucide-react'
 
 import {
   Combobox,
@@ -26,20 +27,28 @@ import {
   abbreviateCurrencyName,
 } from '#/lib/currency'
 import { ArrowDropDown } from './icons/arrow-drop-down'
-import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useCurrencyStore, pushToRecent } from '#/store/currencies.store'
+import {
+  useCurrencyStore,
+  pushToRecent,
+  setActivePicker,
+} from '#/store/currencies.store'
+import { useUpdateUrl } from '#/hooks/use-update-url'
 
 type CurrencyPickerProps = {
   isSender?: boolean
 }
 
 export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
-  const navigate = useNavigate()
+  const updateUrl = useUpdateUrl()
   const { from = 'USD', to = 'EUR' } = useSearch({ from: '/' })
   const selectedValue = isSender ? from : to
   const recent = useCurrencyStore((s) =>
     isSender ? s.recent.from : s.recent.to,
   )
+  const activePicker = useCurrencyStore((s) => s.activePicker)
+  const isActive = isSender
+    ? activePicker === 'sender'
+    : activePicker === 'receiver'
 
   const currenciesQuery = useCurrenciesQuery()
 
@@ -92,11 +101,18 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
     <Combobox
       items={groups}
       value={selectedValue}
+      open={isActive}
+      onOpenChange={(open) => {
+        if (open) {
+          setActivePicker(isSender ? 'sender' : 'receiver')
+        } else if (isActive) {
+          setActivePicker(null)
+        }
+      }}
       onValueChange={(value) => {
         if (value) pushToRecent(isSender ? 'from' : 'to', value)
-        navigate({
-          to: '/',
-          search: (prev) => ({ ...prev, [isSender ? 'from' : 'to']: value }),
+        updateUrl({
+          [isSender ? 'from' : 'to']: value,
         })
       }}
     >

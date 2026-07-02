@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ArrowDownUp, Check, StarIcon } from 'lucide-react'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 import { Button } from '#/components/ui/button'
 import { FieldGroup } from '#/components/ui/field'
@@ -12,6 +13,8 @@ import {
   addLog,
   useIsFavorited,
   toggleFavorite,
+  setActivePicker,
+  useCurrencyStore,
 } from '#/store/currencies.store'
 import { restrictNumeric, getCrossRate, formatAmount } from '#/lib/currency'
 import { cn } from '#/lib/utils'
@@ -26,13 +29,21 @@ type LogStatus = 'idle' | 'created' | 'updated'
 export const RateConverter = () => {
   const updateUrl = useUpdateUrl()
   const { sender, receiver, amount: urlAmount, swap } = useActivePair()
+  const isFavorited = useIsFavorited(sender, receiver)
+  const activePicker = useCurrencyStore((s) => s.activePicker)
+  const lastActivePicker = useCurrencyStore((s) => s.lastActivePicker)
+
+  const [sendValue, setSendValue] = useState(urlAmount)
+  const [receiveValue, setReceiveValue] = useState('')
+  const [editSide, setEditSide] = useState<EditSide>('send')
+  const [logBtnStatus, setLogBtnStatus] = useState<LogStatus>('idle')
+
   const {
     data: ratesData,
     isLoading,
     isError,
     dataUpdatedAt,
   } = useLatestRates()
-  const isFavorited = useIsFavorited(sender, receiver)
 
   const rate = ratesData
     ? getCrossRate({
@@ -42,10 +53,36 @@ export const RateConverter = () => {
       })
     : null
 
-  const [sendValue, setSendValue] = useState(urlAmount)
-  const [receiveValue, setReceiveValue] = useState('')
-  const [editSide, setEditSide] = useState<EditSide>('send')
-  const [logBtnStatus, setLogBtnStatus] = useState<LogStatus>('idle')
+  useHotkey(
+    '/',
+    () => {
+      if (!activePicker) setActivePicker(lastActivePicker ?? 'sender')
+    },
+    { ignoreInputs: true, requireReset: true },
+  )
+
+  useHotkey('Shift+S', swap, { requireReset: true })
+
+  useEffect(() => {
+    if (!activePicker) return
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' && activePicker === 'sender') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePicker('receiver')
+      }
+      if (e.key === 'ArrowLeft' && activePicker === 'receiver') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePicker('sender')
+      }
+    }
+
+    window.addEventListener('keydown', handler, { capture: true })
+    return () =>
+      window.removeEventListener('keydown', handler, { capture: true })
+  }, [activePicker])
 
   const sendNum = parseFloat(sendValue)
   const isAmountValid = !Number.isNaN(sendNum) && sendNum > 0
