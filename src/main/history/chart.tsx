@@ -6,6 +6,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
+  Brush,
 } from 'recharts'
 import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
 import { computeHistoryYAxisDomain } from '#/lib/history-helpers'
@@ -50,7 +51,7 @@ export const HistoryChart = ({
     : `${headerDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase()} ${timeStr}`
 
   return (
-    <div className="min-h-96 w-full py-4 px-3 md:p-5 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
+    <div className="min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
       <div className="flex justify-between items-center uppercase">
         <span className="text-body-lg-medium text-foreground">
           {sender}/{receiver}
@@ -68,7 +69,7 @@ export const HistoryChart = ({
         >
           <AreaChart
             data={data}
-            margin={{ top: 20, right: 25, left: 0, bottom: 0 }}
+            margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
@@ -90,7 +91,7 @@ export const HistoryChart = ({
                 fill: 'var(--muted)',
                 className: 'text-caption',
               }}
-              dy={10}
+              dy={-2}
               minTickGap={30}
             />
             <YAxis
@@ -104,7 +105,7 @@ export const HistoryChart = ({
               tickFormatter={(val) => formatRate(val)}
               orientation="left"
               mirror={true}
-              dy={-10}
+              dy={-8}
             />
             <Tooltip
               content={({ active, payload, label }) => {
@@ -114,8 +115,7 @@ export const HistoryChart = ({
                 return (
                   <div className="bg-surface-600 rounded-10 px-3 py-1.5 text-body text-foreground">
                     <span>{formatTooltipDate(dateStr, selectedTime)}</span>{' '}
-                    &mdash;{' '}
-                    <span className="text-accent">{formatRate(value)}</span>
+                    &mdash; <span>{formatRate(value)}</span>
                   </div>
                 )
               }}
@@ -129,6 +129,24 @@ export const HistoryChart = ({
               fill="url(#colorRate)"
               isAnimationActive={!reducedMotion}
             />
+            <Brush
+              dataKey="time"
+              fill="transparent"
+              stroke="var(--muted)"
+              travellerWidth={8}
+              height={50}
+            >
+              <AreaChart>
+                <Area
+                  type="monotone"
+                  dataKey="close"
+                  stroke="var(--accent)"
+                  fill="var(--accent-darker)"
+                  fillOpacity={0.25}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </Brush>
           </AreaChart>
         </ResponsiveContainer>
       </div>
