@@ -10,6 +10,7 @@ export function useUpdateUrl() {
       to?: string
       amount?: string
       view?: string
+      tab?: string
     }) => {
       navigate({
         to: '/',

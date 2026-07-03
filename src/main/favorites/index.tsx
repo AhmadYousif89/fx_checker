@@ -2,7 +2,6 @@ import type { CurrencyPair } from '#/types/currency'
 import { getCrossRate } from '#/lib/currency'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useCurrencyStore } from '#/store/currencies.store'
-import { CustomSpinner } from '#/components/custom-spinner'
 import { FavoritesList } from './favorites-list'
 
 export const FavoritesSection = () => {
@@ -21,7 +20,7 @@ export const FavoritesSection = () => {
       : 0
 
   if (isLoading || isFetching) {
-    return <CustomSpinner />
+    return <FavoritesSkeleton />
   }
 
   if (isError || !ratesData) {
@@ -56,6 +55,22 @@ export const FavoritesSection = () => {
         </p>
       </header>
       <FavoritesList favorites={favorites} getRate={getRate} />
+    </div>
+  )
+}
+
+const FavoritesSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-36 rounded bg-muted/10 animate-pulse" />
+        <div className="h-4 w-24 rounded bg-muted/10 animate-pulse" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
+        ))}
+      </div>
     </div>
   )
 }

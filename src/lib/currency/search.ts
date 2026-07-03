@@ -28,6 +28,8 @@ export function sanitizeCurrencySearch(
   return { from, to }
 }
 
+const TAB_VALUES = ['history', 'favorites', 'compare', 'logs'] as const
+
 export const searchSchema = z.object({
   from: z.preprocess((v) => {
     if (v == null) return
@@ -49,5 +51,10 @@ export const searchSchema = z.object({
     if (v == null) return
     if (typeof v !== 'string') return '3m'
     return rangeKeys.includes(v as RangeKey) ? v : '3m'
+  }, z.string().optional()),
+  tab: z.preprocess((v) => {
+    if (v == null) return
+    if (typeof v !== 'string') return 'history'
+    return TAB_VALUES.includes(v as (typeof TAB_VALUES)[number]) ? v : 'history'
   }, z.string().optional()),
 })

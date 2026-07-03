@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useSearch } from '@tanstack/react-router'
+
 import {
   Select,
   SelectContent,
@@ -8,6 +9,7 @@ import {
 } from '#/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCurrencyStore } from '#/store/currencies.store'
+import { useUpdateUrl } from '#/hooks/use-update-url'
 import { HistorySection } from './history'
 import { FavoritesSection } from './favorites'
 import { CompareSection } from './compare'
@@ -44,12 +46,14 @@ const tabs = [
   },
 ] as const
 
-type TabValue = (typeof tabs)[number]['value']
-
 export const InsightsSection = () => {
-  const [activeTab, setActiveTab] = useState<TabValue>('history')
+  const { tab: tabParam } = useSearch({ from: '/' })
+  const activeTab = tabParam ?? 'history'
   const logsCount = useCurrencyStore((s) => s.logs.length)
   const favoritesCount = useCurrencyStore((s) => s.favorites.length)
+  const updateUrl = useUpdateUrl()
+
+  const handleTabChange = (v: string) => updateUrl({ tab: v })
 
   const counts: Record<string, number> = {
     favorites: favoritesCount,
@@ -60,13 +64,10 @@ export const InsightsSection = () => {
     <div className="grow flex flex-col">
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as TabValue)}
+        onValueChange={handleTabChange}
         aria-label="Exchange information"
       >
-        <Select
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as TabValue)}
-        >
+        <Select value={activeTab} onValueChange={handleTabChange}>
           <SelectTrigger className="md:hidden w-full" aria-label="Select view">
             <SelectValue />
           </SelectTrigger>

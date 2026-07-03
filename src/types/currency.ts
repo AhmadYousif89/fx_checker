@@ -1,6 +1,7 @@
 export type CurrencySearch = {
   from?: string
   to?: string
+  tab?: string
 }
 
 export type CurrencyPair = {
