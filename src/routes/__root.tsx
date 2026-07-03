@@ -10,6 +10,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Button } from '#/components/ui/button'
+import { ThemeEffect } from '#/components/theme'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -43,6 +44,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         href: '/assets/icon.svg',
       },
     ],
+    scripts: [
+      {
+        children:
+          '(function(){try{var d=JSON.parse(localStorage.getItem("fx_checker_theme"));if(d&&d.state&&d.state.theme==="light")document.documentElement.classList.add("light")}catch(e){}})()',
+      },
+    ],
   }),
   shellComponent: RootDocument,
   errorComponent: () => {
@@ -74,6 +81,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <ThemeEffect />
         <TooltipProvider>{children}</TooltipProvider>
         <Scripts />
       </body>

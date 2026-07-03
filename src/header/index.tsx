@@ -1,7 +1,9 @@
 import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+
 import { LiveTicker } from './live-ticker'
 import { HeaderStats } from './stats'
-import { Link } from '@tanstack/react-router'
+import { ThemeButton } from '#/components/theme.button'
 
 export const Header = () => {
   return (
@@ -10,11 +12,21 @@ export const Header = () => {
         <Link to="/">
           <Image
             src="/assets/images/logo.svg"
+            alt="FX Checker"
             layout="fullWidth"
-            className="max-md:h-5"
+            className="logo-dark max-md:h-5"
+          />
+          <Image
+            src="/assets/images/logo-light.svg"
+            alt="FX Checker"
+            layout="fullWidth"
+            className="logo-light max-md:h-5"
           />
         </Link>
-        <HeaderStats />
+        <div className="flex items-center gap-2">
+          <ThemeButton />
+          <HeaderStats />
+        </div>
       </nav>
       <LiveTicker />
     </header>

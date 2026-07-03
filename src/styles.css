@@ -6,8 +6,6 @@
 @import 'spacing.tokens.css';
 @import 'typography.tokens.css';
 
-/* @custom-variant dark (&:is(.dark *)); */
-
 :root {
   /* Neutral */
   --color-neutral-50: #ffffff;
@@ -42,27 +40,42 @@
   --surface-300: var(--color-neutral-300);
 
   --border: var(--color-neutral-500);
+  --muted: var(--color-neutral-200);
 
   --accent: var(--color-lime-500);
+  --accent-darker: var(--color-lime-800);
   --accent-foreground: var(--color-neutral-900);
 
   --popover: var(--color-neutral-600);
   --popover-foreground: var(--color-neutral-50);
 
-  --muted: var(--color-neutral-200);
-
-  --lime: var(--color-lime-500);
-  --lime-800: var(--color-lime-800);
-
   --green: var(--color-green-500);
   --red: var(--color-red-500);
 }
 
+.light {
+  --background: #f4f0e8;
+  --foreground: #101820;
+  --foreground-darker: #3f4b57;
+  --surface: #fbf8f2;
+  --surface-600: #e7e5e2;
+  --surface-500: #e8e1d6;
+  --surface-400: #ded5c6;
+  --surface-300: #c8bca8;
+  --border: #d8cdbf;
+  --accent: #a4d100;
+  --accent-darker: #465900;
+  --accent-foreground: #101820;
+  --popover: #f6f2ea;
+  --popover-foreground: #101820;
+  --muted: #6b7280;
+  --green: #3dce08;
+}
+
 @theme inline {
-  --color-*: initial; /* Remove built-in colors */
+  --color-*: initial;
 
   --color-background: var(--background);
-
   --color-foreground: var(--foreground);
   --color-foreground-darker: var(--foreground-darker);
 
@@ -73,17 +86,14 @@
   --color-surface-300: var(--surface-300);
 
   --color-border: var(--border);
+  --color-muted: var(--muted);
 
   --color-accent: var(--accent);
+  --color-accent-darker: var(--accent-darker);
   --color-accent-foreground: var(--accent-foreground);
 
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-
-  --color-muted: var(--muted);
-
-  --color-lime: var(--lime);
-  --color-lime-800: var(--lime-800);
 
   --color-green: var(--green);
   --color-red: var(--red);
@@ -93,8 +103,8 @@
 
   @keyframes flash {
     0% {
-      background-color: var(--color-lime-800);
-      border-color: var(--color-lime);
+      background-color: var(--accent-darker);
+      border-color: var(--accent);
     }
     100% {
       background-color: var(--color-surface-600);
@@ -121,6 +131,26 @@
   body {
     @apply font-mono flex flex-col min-h-dvh bg-background text-foreground;
   }
+}
+
+.logo-light {
+  display: none;
+}
+
+.light .logo-dark {
+  display: none;
+}
+
+.light .logo-light {
+  display: block;
+}
+
+.no-transition,
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
+  animation: none !important;
 }
 
 @utility wrapper {
