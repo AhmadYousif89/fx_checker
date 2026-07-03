@@ -177,7 +177,9 @@ const CompareRow = memo((props: CompareRowProps) => {
           className="hover:bg-surface-500 active:bg-surface-500"
         >
           <StarIcon
-            className={isFavorited ? 'fill-lime stroke-lime' : 'stroke-muted'}
+            className={
+              isFavorited ? 'fill-accent stroke-accent' : 'stroke-muted'
+            }
           />
         </Button>
       </div>

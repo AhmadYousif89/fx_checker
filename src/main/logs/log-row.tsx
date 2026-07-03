@@ -59,7 +59,7 @@ export const LogRow = memo(({ log, index }: LogRowProps) => {
           e.stopPropagation()
           removeLog(log.timestamp)
         }}
-        className="border-border hover:bg-red hover:border-red focus-visible:ring-red active:bg-red active:border-red"
+        className="border-border hover:text-[white] hover:bg-red hover:border-red focus-visible:ring-red active:bg-red active:border-red"
       >
         <TrashIcon />
       </Button>

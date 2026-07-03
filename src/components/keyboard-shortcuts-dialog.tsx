@@ -20,7 +20,8 @@ const SHORTCUTS = [
   { keys: '\u2192', action: 'Switch to receiver picker' },
   { keys: '\u2190', action: 'Switch to sender picker' },
   { keys: 'Shift+S', action: 'Swap currencies' },
-  { keys: '1\u20137', action: 'Select chart range' },
+  { keys: 'Shift+T', action: 'Toggle theme' },
+  { keys: '1-7', action: 'Select chart range' },
 ] as const
 
 export const KeyboardShortcutsDialog = ({ open, onOpenChange }: Props) => (
@@ -30,9 +31,12 @@ export const KeyboardShortcutsDialog = ({ open, onOpenChange }: Props) => (
         <AlertDialogTitle className="text-center uppercase">
           Keyboard Shortcuts
         </AlertDialogTitle>
-        <div className="grid gap-3 mt-4 w-full bg-surface-600 p-4 rounded-10">
+        <div className="grid gap-3 mt-4 w-full rounded-10">
           {SHORTCUTS.map(({ keys, action }) => (
-            <div key={keys} className="flex items-center justify-between gap-4">
+            <div
+              key={keys}
+              className="flex items-center justify-between gap-4 bg-surface-600 py-2 px-4 rounded-8"
+            >
               <span className="text-body">{action}</span>
               <kbd className="text-caption px-1.5 py-1 rounded-4 bg-surface-600 border shrink-0 pointer-events-none">
                 {formatForDisplay(keys)}

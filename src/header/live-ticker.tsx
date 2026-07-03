@@ -20,7 +20,7 @@ export const LiveTicker = () => {
   return (
     <div className="grid items-center">
       <div className="z-10 col-end-1 row-end-1 w-fit flex items-center justify-center gap-2 bg-accent px-2 py-3 md:px-4">
-        <span className="size-1.5 rounded-full bg-background animate-pulse" />
+        <span className="size-1.5 rounded-full bg-[black] animate-pulse" />
         <p className="text-accent-foreground uppercase text-overline md:text-caption-medium">
           live markets
         </p>

@@ -6,17 +6,17 @@ import { Slot } from 'radix-ui'
 import { cn } from '#/lib/utils.ts'
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-8 font-medium whitespace-nowrap transition-all outline-none focus-visible:ring focus-visible:ring-lime focus-visible:ring-offset-2  focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer select-none",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-8 font-medium whitespace-nowrap transition-all outline-none focus-visible:ring focus-visible:ring-accent focus-visible:ring-offset-2  focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer select-none",
   {
     variants: {
       variant: {
         default:
           'bg-surface-500 border border-surface-400 hover:bg-surface-400 active:bg-surface-400',
         outline:
-          'border border-accent bg-transparent shadow-xs hover:bg-lime-800 disabled:border active:bg-lime-800',
+          'border border-accent bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground disabled:border active:bg-accent active:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         destructive:
-          'bg-red text-red-foreground hover:bg-red/90 active:bg-red/90 focus-visible:ring-red',
+          'bg-red hover:text-[#fff] hover:bg-red/90 active:bg-red/90 focus-visible:ring-red',
       },
       size: {
         default: 'h-10 px-4 py-2 has-[>svg]:px-3',

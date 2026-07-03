@@ -75,7 +75,7 @@ export const InsightsSection = () => {
               <SelectItem key={tab.value} value={tab.value}>
                 {tab.label}
                 {counts[tab.value] > 0 && (
-                  <span className="aspect-square bg-lime-800 text-lime text-overline size-5 rounded-full flex items-center justify-center">
+                  <span className="aspect-square bg-accent-darker text-accent text-overline size-5 rounded-full flex items-center justify-center">
                     {counts[tab.value]}
                   </span>
                 )}
@@ -95,7 +95,7 @@ export const InsightsSection = () => {
             >
               {tab.label}
               {counts[tab.value] > 0 && (
-                <span className="aspect-square bg-lime-800 text-lime text-overline size-5 rounded-full flex items-center justify-center">
+                <span className="aspect-square bg-accent-darker text-accent text-overline size-5 rounded-full flex items-center justify-center">
                   {counts[tab.value]}
                 </span>
               )}

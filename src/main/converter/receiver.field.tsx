@@ -23,7 +23,7 @@ export const ReceiverField = ({ value, onChange }: ReceiverFieldProps) => (
           placeholder="0"
           value={value}
           onChange={onChange}
-          className="border-none text-display-sm md:text-display text-lime! px-1 placeholder:text-display-sm md:placeholder:text-display placeholder:text-muted!"
+          className="border-none text-display-sm md:text-display text-accent! px-1 placeholder:text-display-sm md:placeholder:text-display placeholder:text-muted!"
         />
         <CurrencyPicker />
       </div>

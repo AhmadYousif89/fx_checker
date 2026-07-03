@@ -72,8 +72,8 @@ export const HistoryChart = ({
           >
             <defs>
               <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="1%" stopColor="var(--lime)" stopOpacity={0.5} />
-                <stop offset="99%" stopColor="var(--lime)" stopOpacity={0} />
+                <stop offset="1%" stopColor="var(--accent)" stopOpacity={0.5} />
+                <stop offset="99%" stopColor="var(--accent)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -123,7 +123,7 @@ export const HistoryChart = ({
             <Area
               type="monotone"
               dataKey="close"
-              stroke="var(--lime)"
+              stroke="var(--accent)"
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorRate)"

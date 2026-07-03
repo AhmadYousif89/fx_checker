@@ -70,7 +70,7 @@ export const LogsSection = () => {
             </DropdownMenu>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button className="h-7.5 px-3 py-2 text-caption hover:bg-red hover:border-red focus-visible:ring-red">
+                <Button className="h-7.5 px-3 py-2 text-caption hover:text-[white] hover:bg-red hover:border-red focus-visible:ring-red">
                   Clear All
                 </Button>
               </AlertDialogTrigger>
