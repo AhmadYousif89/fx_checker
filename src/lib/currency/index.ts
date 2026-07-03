@@ -9,6 +9,7 @@ export {
   timeAgo,
   formatRate,
   formatAmount,
+  formatInputAmount,
   shortTimeAgo,
   parseCurrency,
   restrictNumeric,

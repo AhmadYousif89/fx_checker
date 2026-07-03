@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowDownUp, Check, StarIcon } from 'lucide-react'
 import { useHotkey } from '@tanstack/react-hotkeys'
 
@@ -16,7 +16,12 @@ import {
   setActivePicker,
   useCurrencyStore,
 } from '#/store/currencies.store'
-import { restrictNumeric, getCrossRate, formatAmount } from '#/lib/currency'
+import {
+  restrictNumeric,
+  getCrossRate,
+  formatAmount,
+  formatInputAmount,
+} from '#/lib/currency'
 import { cn } from '#/lib/utils'
 
 import { SendField } from './converter/send.field'
@@ -38,9 +43,13 @@ export const RateConverter = () => {
   const [editSide, setEditSide] = useState<EditSide>('send')
   const [logBtnStatus, setLogBtnStatus] = useState<LogStatus>('idle')
 
+  const sendInputRef = useRef<HTMLInputElement>(null)
+  const receiveInputRef = useRef<HTMLInputElement>(null)
+
   const {
     data: ratesData,
     isLoading,
+    isFetching,
     isError,
     dataUpdatedAt,
   } = useLatestRates()
@@ -52,6 +61,11 @@ export const RateConverter = () => {
         quote: receiver,
       })
     : null
+
+  const displaySendValue =
+    editSide === 'send' ? formatInputAmount(sendValue) : sendValue
+  const displayReceiveValue =
+    editSide === 'receive' ? formatInputAmount(receiveValue) : receiveValue
 
   useHotkey(
     '/',
@@ -118,29 +132,52 @@ export const RateConverter = () => {
 
   const handleSendInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = restrictNumeric(e.currentTarget.value)
-      setSendValue(value)
+      const raw = e.currentTarget.value.replace(/,/g, '')
+      const sanitized = restrictNumeric(raw)
+
+      const cursor = e.currentTarget.selectionStart ?? 0
+      const rawBefore = raw.slice(0, cursor)
+      const formattedBefore = formatInputAmount(rawBefore)
+      const newCursor = formattedBefore.length
+
+      setSendValue(sanitized)
       setEditSide('send')
-      const parsed = parseFloat(value)
-      updateUrl({ amount: !value || parsed === 0 ? '1' : value })
+
+      const parsed = parseFloat(sanitized)
+      updateUrl({ amount: !sanitized || parsed === 0 ? '1' : sanitized })
+
+      requestAnimationFrame(() => {
+        sendInputRef.current?.setSelectionRange(newCursor, newCursor)
+      })
     },
     [updateUrl],
   )
 
   const handleReceiveInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = restrictNumeric(e.currentTarget.value)
-      setReceiveValue(value)
+      const raw = e.currentTarget.value.replace(/,/g, '')
+      const sanitized = restrictNumeric(raw)
+
+      const cursor = e.currentTarget.selectionStart ?? 0
+      const rawBefore = raw.slice(0, cursor)
+      const formattedBefore = formatInputAmount(rawBefore)
+      const newCursor = formattedBefore.length
+
+      setReceiveValue(sanitized)
       setEditSide('receive')
 
       if (rate != null) {
-        const num = parseFloat(value.replace(/,/g, ''))
+        const num = parseFloat(sanitized)
         if (!Number.isNaN(num) && num > 0) {
           updateUrl({ amount: (num / rate).toFixed(2).toString() })
         } else {
           updateUrl({ amount: '1' })
         }
       }
+
+      requestAnimationFrame(() => {
+        receiveInputRef.current?.setSelectionRange(newCursor, newCursor)
+      })
     },
     [rate, updateUrl],
   )
@@ -179,7 +216,11 @@ export const RateConverter = () => {
         className="bg-surface rounded-20"
       >
         <FieldGroup className="gap-4 p-4 md:p-5 md:gap-6 md:flex-row">
-          <SendField value={sendValue} onChange={handleSendInput} />
+          <SendField
+            value={displaySendValue}
+            onChange={handleSendInput}
+            ref={sendInputRef}
+          />
 
           <Button
             type="button"
@@ -194,7 +235,12 @@ export const RateConverter = () => {
             <ArrowDownUp className="size-5 md:rotate-90" />
           </Button>
 
-          <ReceiverField value={receiveValue} onChange={handleReceiveInput} />
+          <ReceiverField
+            value={displayReceiveValue}
+            onChange={handleReceiveInput}
+            isLoading={isLoading || isFetching}
+            ref={receiveInputRef}
+          />
         </FieldGroup>
 
         <Separator className="border-dashed border bg-transparent" />

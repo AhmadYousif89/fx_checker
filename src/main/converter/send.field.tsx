@@ -5,9 +5,10 @@ import { CurrencyPicker } from '#/components/currency-picker'
 type SendFieldProps = {
   value: string
   onChange: React.ChangeEventHandler<HTMLInputElement>
+  ref?: React.Ref<HTMLInputElement>
 }
 
-export const SendField = ({ value, onChange }: SendFieldProps) => (
+export const SendField = ({ value, onChange, ref }: SendFieldProps) => (
   <FieldSet className="basis-full grow">
     <FieldLegend className="sr-only" aria-hidden>
       Send currency
@@ -16,6 +17,7 @@ export const SendField = ({ value, onChange }: SendFieldProps) => (
       <FieldLabel htmlFor="send-amount">Send</FieldLabel>
       <div className="flex items-center justify-between gap-4">
         <Input
+          ref={ref}
           id="send-amount"
           name="sendAmount"
           inputMode="decimal"

@@ -32,6 +32,15 @@ export function timeAgo(timestamp: number): string {
   return `${days}d ago`
 }
 
+export function formatInputAmount(value: string): string {
+  if (!value) return value
+  const dot = value.indexOf('.')
+  if (dot === -1) return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  const integer = value.slice(0, dot)
+  const decimal = value.slice(dot + 1)
+  return `${integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${decimal}`
+}
+
 export function formatAmount(value: number, maxDecimals = 2): string {
   const decimals = value < 10 ? 4 : maxDecimals
   return new Intl.NumberFormat('en-US', {

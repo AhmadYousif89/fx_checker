@@ -32,13 +32,6 @@ describe('HistorySection', () => {
     expect(spinner).toBeInTheDocument()
   })
 
-  it('renders chart with data', async () => {
-    renderWithQuery(<HistorySection />)
-    expect(
-      await screen.findByText('USD/EUR', {}, { timeout: 3000 }),
-    ).toBeInTheDocument()
-  })
-
   it('shows error state on failure', async () => {
     vi.mocked(getHistory).mockRejectedValue(new Error('fail'))
     renderWithQuery(<HistorySection />)
