@@ -1,4 +1,5 @@
 import { DownloadIcon } from 'lucide-react'
+import { useHydrated } from '@tanstack/react-router'
 
 import {
   AlertDialog,
@@ -25,6 +26,11 @@ import { LogList } from './log-list'
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
   const logCount = logs.length
+  const hydrated = useHydrated()
+
+  if (!hydrated) {
+    return <LogsSkeleton />
+  }
 
   if (logCount === 0) {
     return (
@@ -100,6 +106,26 @@ export const LogsSection = () => {
       </header>
 
       <LogList logs={logs} />
+    </div>
+  )
+}
+
+const LogsSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
+      <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+        <div className="h-5 w-40 rounded-8 bg-muted/10 animate-pulse" />
+        <div className="h-full flex items-center gap-4">
+          <div className="h-5 w-16 rounded-8 bg-muted/10 animate-pulse" />
+          <div className="h-7.5 w-24 rounded-8 bg-muted/10 animate-pulse" />
+          <div className="h-7.5 w-24 rounded-8 bg-muted/10 animate-pulse" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
+        ))}
+      </div>
     </div>
   )
 }

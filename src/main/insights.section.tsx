@@ -1,4 +1,4 @@
-import { useSearch } from '@tanstack/react-router'
+import { useSearch, useHydrated } from '@tanstack/react-router'
 
 import {
   Select,
@@ -52,6 +52,7 @@ export const InsightsSection = () => {
   const logsCount = useCurrencyStore((s) => s.logs.length)
   const favoritesCount = useCurrencyStore((s) => s.favorites.length)
   const updateUrl = useUpdateUrl()
+  const hydrated = useHydrated()
 
   const handleTabChange = (v: string) => updateUrl({ tab: v })
 
@@ -59,6 +60,9 @@ export const InsightsSection = () => {
     favorites: favoritesCount,
     logs: logsCount,
   }
+
+  const renderCounters = (v: string) =>
+    (v in counts && !hydrated) || counts[v] > 0
 
   return (
     <div className="grow flex flex-col">
@@ -95,7 +99,7 @@ export const InsightsSection = () => {
               className="hover:border-b-accent"
             >
               {tab.label}
-              {counts[tab.value] > 0 && (
+              {renderCounters(tab.value) && (
                 <span className="aspect-square bg-accent-darker text-accent text-overline size-5 rounded-full flex items-center justify-center">
                   {counts[tab.value]}
                 </span>

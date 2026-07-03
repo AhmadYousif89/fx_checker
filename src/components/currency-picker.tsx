@@ -117,7 +117,7 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
       }}
     >
       <ComboboxTrigger
-        className="flex items-center gap-2 shrink-0 border text-body p-2.5 rounded-8"
+        className="flex items-center gap-2 shrink-0 border text-body p-2.5 rounded-8 ml-auto"
         render={currenciesQuery.isLoading ? <TriggerSkeleton /> : <Button />}
       >
         {selectedValue && (
