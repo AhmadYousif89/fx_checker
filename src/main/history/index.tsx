@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
@@ -10,11 +10,12 @@ import {
 import { rangeKeys } from '#/lib/currency/time-ranges'
 import type { RangeKey } from '#/lib/currency/time-ranges'
 import { computeHistoryStats } from '#/lib/history-helpers'
-import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
+import { TIME_RANGES, RANGE_INTERVALS, getCrossRate } from '#/lib/currency'
 
 import { getHistory } from '#/server/functions/history'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
+import { useLatestRates } from '#/hooks/use-latest-rates'
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
@@ -60,6 +61,80 @@ export const HistorySection = () => {
     placeholderData: keepPreviousData,
   })
 
+  const { data: latestRates } = useLatestRates()
+
+  const liveRate = latestRates?.rates
+    ? getCrossRate({ rates: latestRates.rates, base: sender, quote: receiver })
+    : null
+
+  const patchedData = useMemo(() => {
+    if (!data || data.length === 0 || liveRate == null) return data
+
+    const last = data[data.length - 1]
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const useTime = last.time.includes(' ')
+    const formatTS = (d: Date) => {
+      const datePart = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
+      if (!useTime) return datePart
+      const timePart = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`
+      return `${datePart} ${timePart}`
+    }
+
+    const intervalMinutes = interval.endsWith('min')
+      ? parseInt(interval)
+      : interval.endsWith('h')
+        ? parseInt(interval) * 60
+        : null
+
+    if (!intervalMinutes) {
+      const now = new Date()
+      return [
+        ...data.slice(0, -1),
+        { ...last, close: liveRate, time: formatTS(now) },
+      ]
+    }
+
+    const lastDate = new Date(last.time.replace(' ', 'T') + 'Z')
+    if (Number.isNaN(lastDate.getTime())) {
+      const now = new Date()
+      return [
+        ...data.slice(0, -1),
+        { ...last, close: liveRate, time: formatTS(now) },
+      ]
+    }
+
+    const now = new Date()
+    const diffMinutes = (now.getTime() - lastDate.getTime()) / (1000 * 60)
+
+    if (diffMinutes < intervalMinutes) {
+      return [
+        ...data.slice(0, -1),
+        { ...last, close: liveRate, time: formatTS(now) },
+      ]
+    }
+
+    const pointsToAdd = Math.min(Math.floor(diffMinutes / intervalMinutes), 144)
+    const lastClose = last.close
+    const totalSteps = pointsToAdd + 1
+
+    const interpolated: typeof data = []
+    for (let i = 1; i <= pointsToAdd; i++) {
+      const t = i / totalSteps
+      const close = lastClose + (liveRate - lastClose) * t
+      const time = formatTS(
+        new Date(lastDate.getTime() + i * intervalMinutes * 60 * 1000),
+      )
+      interpolated.push({ ...last, close, time })
+    }
+
+    return [
+      ...data.slice(0, -1),
+      last,
+      ...interpolated,
+      { ...last, close: liveRate, time: formatTS(now) },
+    ]
+  }, [data, liveRate, interval])
+
   const prefetchRange = (rangeKey: RangeKey) => {
     const d = TIME_RANGES[rangeKey]
     const i = RANGE_INTERVALS[rangeKey]
@@ -74,7 +149,7 @@ export const HistorySection = () => {
     })
   }
 
-  const stats = computeHistoryStats(data)
+  const stats = computeHistoryStats(patchedData)
   const hasData = data && data.length > 0
 
   if (isLoading && !hasData) {
@@ -140,7 +215,7 @@ export const HistorySection = () => {
         )}
         <Suspense fallback={<ChartSkeleton />}>
           <HistoryChart
-            data={data}
+            data={patchedData ?? data}
             sender={sender}
             receiver={receiver}
             selectedTime={selectedTime}

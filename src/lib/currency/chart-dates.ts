@@ -17,14 +17,12 @@ export function formatTooltipDate(dateStr: string, rangeKey: string) {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'UTC',
     })
   }
   return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-    timeZone: 'UTC',
   })
 }
 
@@ -37,7 +35,6 @@ export function formatAxisDate(dateStr: string, rangeKey: string) {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'UTC',
     })
   }
   if (
@@ -49,12 +46,10 @@ export function formatAxisDate(dateStr: string, rangeKey: string) {
     return d.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      timeZone: 'UTC',
     })
   }
   return d.toLocaleDateString('en-US', {
     month: 'short',
     year: '2-digit',
-    timeZone: 'UTC',
   })
 }

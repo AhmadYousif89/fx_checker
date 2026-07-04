@@ -107,6 +107,7 @@ export const HistoryChart = ({
 
   return (
     <div className="min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
+      <style>{`.recharts-brush-texts { font-size: 14px !important; }`}</style>
       <div className="flex justify-between items-center uppercase">
         <span className="text-body-lg-medium text-foreground">
           {sender}/{receiver}
