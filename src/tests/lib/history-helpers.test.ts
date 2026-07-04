@@ -3,7 +3,10 @@ import {
   computeHistoryYAxisDomain,
   computePointsPerDay,
   computeOutputSize,
+  invertData,
+  computeCrossRate,
 } from '#/lib/history-helpers'
+import type { HistoryEntry } from '#/lib/history-helpers'
 
 describe('computePointsPerDay', () => {
   it('returns 288 for 5min interval', () => {
@@ -70,5 +73,84 @@ describe('computeHistoryYAxisDomain', () => {
 
     expect(min).toBeLessThan(1.25)
     expect(max).toBeGreaterThan(1.25)
+  })
+})
+
+describe('invertData', () => {
+  const sample: HistoryEntry[] = [
+    {
+      time: '2024-01-15 14:30',
+      close: 0.0067,
+      open: 0.0066,
+      high: 0.0068,
+      low: 0.0065,
+    },
+    {
+      time: '2024-01-15 14:35',
+      close: 0.0068,
+      open: 0.0067,
+      high: 0.0069,
+      low: 0.0066,
+    },
+  ]
+
+  it('inverts all OHLC values', () => {
+    const result = invertData(sample)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].close).toBeCloseTo(1 / 0.0067, 6)
+    expect(result[0].open).toBeCloseTo(1 / 0.0066, 6)
+    expect(result[0].high).toBeCloseTo(1 / 0.0068, 6)
+    expect(result[0].low).toBeCloseTo(1 / 0.0065, 6)
+  })
+
+  it('preserves time values', () => {
+    const result = invertData(sample)
+
+    expect(result[0].time).toBe('2024-01-15 14:30')
+    expect(result[1].time).toBe('2024-01-15 14:35')
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(invertData([])).toEqual([])
+  })
+})
+
+describe('computeCrossRate', () => {
+  const baseData: HistoryEntry[] = [
+    { time: '2024-01-15', close: 1.1, open: 1.09, high: 1.12, low: 1.08 },
+    { time: '2024-01-16', close: 1.11, open: 1.1, high: 1.13, low: 1.09 },
+  ]
+
+  const quoteData: HistoryEntry[] = [
+    { time: '2024-01-15', close: 1.3, open: 1.29, high: 1.31, low: 1.28 },
+    { time: '2024-01-16', close: 1.31, open: 1.3, high: 1.32, low: 1.29 },
+  ]
+
+  it('computes cross rate by dividing base by quote', () => {
+    const result = computeCrossRate(baseData, quoteData)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].close).toBeCloseTo(1.1 / 1.3, 6)
+    expect(result[0].open).toBeCloseTo(1.09 / 1.29, 6)
+    expect(result[0].high).toBeCloseTo(1.12 / 1.31, 6)
+    expect(result[0].low).toBeCloseTo(1.08 / 1.28, 6)
+  })
+
+  it('uses base timestamps', () => {
+    const result = computeCrossRate(baseData, quoteData)
+
+    expect(result[0].time).toBe('2024-01-15')
+    expect(result[1].time).toBe('2024-01-16')
+  })
+
+  it('returns empty array for empty inputs', () => {
+    expect(computeCrossRate([], [])).toEqual([])
+  })
+
+  it('throws on length mismatch', () => {
+    expect(() => computeCrossRate(baseData, baseData.slice(0, 1))).toThrow(
+      'Data length mismatch',
+    )
   })
 })

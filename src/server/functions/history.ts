@@ -2,7 +2,12 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { getOrFetch } from './cache'
-import { computeOutputSize } from '#/lib/history-helpers'
+import {
+  computeOutputSize,
+  computeCrossRate,
+  invertData,
+} from '#/lib/history-helpers'
+import type { HistoryEntry } from '#/lib/history-helpers'
 import type { FrankfurterApiRate, TwelveDataApiRate } from '#/types/currency'
 import { twelveDataBucket } from '../rate-limiter'
 import {
@@ -22,49 +27,76 @@ const schema = z.object({
 
 export type HistoryInput = z.infer<typeof schema>
 
-type HistoryEntry = {
-  time: string
-  close: number
-  open: number
-  high: number
-  low: number
+async function fetchSymbolTimeSeries(
+  symbol: string,
+  days: number,
+  interval: string,
+  ttl: number,
+): Promise<HistoryEntry[]> {
+  const cacheKey = `td:${symbol}/${days}/${interval}`
+  const outputsize = computeOutputSize(days, interval)
+
+  return getOrFetch<HistoryEntry[]>(
+    cacheKey,
+    async () => {
+      await twelveDataBucket.acquire()
+      const res = await fetch(
+        `${TWELVE_DATA_API_URL}/time_series?symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
+      )
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch history for ${symbol}`)
+      }
+
+      const data = (await res.json()) as TwelveDataApiRate
+
+      if (!Array.isArray(data.values) || data.values.length === 0) {
+        throw new Error(`Failed to fetch history for ${symbol}`)
+      }
+
+      const values = data.values.reverse()
+      return values.map((v) => ({
+        time: v.datetime,
+        close: parseFloat(v.close),
+        open: parseFloat(v.open),
+        high: parseFloat(v.high),
+        low: parseFloat(v.low),
+      }))
+    },
+    ttl,
+  )
 }
 
 export const getHistory = createServerFn()
   .validator(schema)
   .handler(async ({ data: input }) => {
     const { base, quote, days, interval } = input
+    const ttl = TTL_BY_INTERVAL[interval] ?? 15 * 60 * 1000
+
     const cacheKey = `history:${base}/${quote}/${days}/${interval}`
-    const ttl = TTL_BY_INTERVAL[interval] ?? 15 * 60 * 1000 // default to 15 mins if undefined
 
     return getOrFetch<HistoryEntry[]>(
       cacheKey,
       async () => {
-        await twelveDataBucket.acquire() // Acquire a token from the rate limiter before making the API request
-        const outputsize = computeOutputSize(days, interval)
-
-        const res = await fetch(
-          `${TWELVE_DATA_API_URL}/time_series/cross?base=${base}&quote=${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
-        )
-
-        if (!res.ok) {
-          throw new Error(`Failed to fetch history for ${base}/${quote}`)
+        if (quote === 'USD') {
+          return fetchSymbolTimeSeries(`${base}/${quote}`, days, interval, ttl)
         }
 
-        const data = (await res.json()) as TwelveDataApiRate
-
-        if (!Array.isArray(data.values) || data.values.length === 0) {
-          throw new Error(`Failed to fetch history for ${base}/${quote}`)
+        if (base === 'USD') {
+          const data = await fetchSymbolTimeSeries(
+            `${quote}/${base}`,
+            days,
+            interval,
+            ttl,
+          )
+          return invertData(data)
         }
 
-        const values = data.values.reverse()
-        return values.map((v) => ({
-          time: v.datetime,
-          close: parseFloat(v.close),
-          open: parseFloat(v.open),
-          high: parseFloat(v.high),
-          low: parseFloat(v.low),
-        }))
+        const [baseData, quoteData] = await Promise.all([
+          fetchSymbolTimeSeries(`${base}/USD`, days, interval, ttl),
+          fetchSymbolTimeSeries(`${quote}/USD`, days, interval, ttl),
+        ])
+        return computeCrossRate(baseData, quoteData)
       },
       ttl,
     )

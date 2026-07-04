@@ -33,6 +33,43 @@ export function computeHistoryYAxisDomain(
   return [min - padding, max + padding]
 }
 
+export type HistoryEntry = {
+  time: string
+  close: number
+  open: number
+  high: number
+  low: number
+}
+
+export function invertData(data: HistoryEntry[]): HistoryEntry[] {
+  return data.map((d) => ({
+    ...d,
+    close: 1 / d.close,
+    open: 1 / d.open,
+    high: 1 / d.high,
+    low: 1 / d.low,
+  }))
+}
+
+export function computeCrossRate(
+  baseData: HistoryEntry[],
+  quoteData: HistoryEntry[],
+): HistoryEntry[] {
+  if (baseData.length !== quoteData.length) {
+    throw new Error('Data length mismatch')
+  }
+  return baseData.map((base, i) => {
+    const quote = quoteData[i]
+    return {
+      time: base.time,
+      close: base.close / quote.close,
+      open: base.open / quote.open,
+      high: base.high / quote.high,
+      low: base.low / quote.low,
+    }
+  })
+}
+
 export function computeHistoryStats(
   data: { open: number; close: number }[] | undefined,
 ): {
