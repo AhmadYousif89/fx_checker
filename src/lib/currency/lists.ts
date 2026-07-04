@@ -1,4 +1,4 @@
-export const POPULAR_CODES = ['USD', 'EUR', 'GBP']
+export const POPULAR_CODES = ['USD', 'EUR', 'GBP', 'JPY']
 
 export const GLOBAL_PRIORITY = [
   'USD',

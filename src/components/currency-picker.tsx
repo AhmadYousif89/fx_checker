@@ -42,6 +42,7 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
   const updateUrl = useUpdateUrl()
   const { from = 'USD', to = 'EUR' } = useSearch({ from: '/' })
   const selectedValue = isSender ? from : to
+  const oppositeValue = isSender ? to : from
   const recent = useCurrencyStore((s) =>
     isSender ? s.recent.from : s.recent.to,
   )
@@ -60,17 +61,23 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
   const groups = useMemo(() => {
     if (!currenciesQuery.currencies.length) return []
 
+    const excludeOpposite = (item: string) =>
+      !item.startsWith(`${oppositeValue}-`)
+
     const recentItems = recent
       .filter((code) => codeToName.has(code))
       .map((code) => `${code}-${codeToName.get(code)}`)
+      .filter(excludeOpposite)
 
     const popularItems = currenciesQuery.currencies
       .filter((item) => POPULAR_CODES.includes(item.iso_code))
       .map(({ iso_code, name }) => `${iso_code}-${name}`)
+      .filter(excludeOpposite)
 
     const otherItems = currenciesQuery.currencies
       .filter((item) => !POPULAR_CODES.includes(item.iso_code))
       .map(({ iso_code, name }) => `${iso_code}-${name}`)
+      .filter(excludeOpposite)
 
     return [
       ...(recentItems.length > 0
@@ -87,7 +94,7 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
           ]
         : []),
     ]
-  }, [currenciesQuery.currencies, recent, codeToName])
+  }, [currenciesQuery.currencies, recent, codeToName, oppositeValue])
 
   if (currenciesQuery.isError) {
     return (

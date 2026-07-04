@@ -41,7 +41,7 @@ export const getHistory = createServerFn()
         const outputsize = computeOutputSize(days, interval)
 
         const res = await fetch(
-          `${TWELVE_DATA_API_URL}/time_series?symbol=${base}/${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
+          `${TWELVE_DATA_API_URL}/time_series/cross?base=${base}&quote=${quote}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
         )
 
         if (!res.ok) {
@@ -50,8 +50,7 @@ export const getHistory = createServerFn()
 
         const data = (await res.json()) as TwelveDataApiRate
 
-        if (data.status !== 'ok') {
-          console.error(data)
+        if (!Array.isArray(data.values) || data.values.length === 0) {
           throw new Error(`Failed to fetch history for ${base}/${quote}`)
         }
 

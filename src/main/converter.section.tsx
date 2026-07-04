@@ -73,7 +73,7 @@ export const RateConverter = () => {
       if (activePicker) setActivePicker(null)
       else setActivePicker(lastActivePicker ?? 'sender')
     },
-    { requireReset: true },
+    { requireReset: true, ignoreInputs: false },
   )
 
   useHotkey('Shift+S', swap, { requireReset: true })
