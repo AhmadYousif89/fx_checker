@@ -3,12 +3,14 @@ import { createServerFn } from '@tanstack/react-start'
 
 import { getOrFetch } from './cache'
 import { computeOutputSize } from '#/lib/history-helpers'
-import type { TwelveDataApiRate } from '#/types/currency'
+import type { FrankfurterApiRate, TwelveDataApiRate } from '#/types/currency'
+import { twelveDataBucket } from '../rate-limiter'
 import {
   TWELVE_DATA_API_URL,
   TWELVE_DATA_API_KEY,
   TTL_BY_INTERVAL,
   TDI,
+  OPEN_API_URL,
 } from '../config'
 
 const schema = z.object({
@@ -38,6 +40,7 @@ export const getHistory = createServerFn()
     return getOrFetch<HistoryEntry[]>(
       cacheKey,
       async () => {
+        await twelveDataBucket.acquire() // Acquire a token from the rate limiter before making the API request
         const outputsize = computeOutputSize(days, interval)
 
         const res = await fetch(
@@ -61,6 +64,45 @@ export const getHistory = createServerFn()
           open: parseFloat(v.open),
           high: parseFloat(v.high),
           low: parseFloat(v.low),
+        }))
+      },
+      ttl,
+    )
+  })
+
+export const getFrankfurterHistory = createServerFn()
+  .validator(schema)
+  .handler(async ({ data: input }) => {
+    const { base, quote, days } = input
+
+    const endDate = new Date()
+    const startDate = new Date(endDate)
+    startDate.setDate(startDate.getDate() - days)
+
+    const fmt = (d: Date) => d.toISOString().split('T')[0]
+
+    const cacheKey = `frankfurter:history:${base}/${quote}/${days}`
+    const ttl = 24 * 60 * 60 * 1000 // 1 day
+
+    return getOrFetch<HistoryEntry[]>(
+      cacheKey,
+      async () => {
+        const res = await fetch(
+          `${OPEN_API_URL}/v2/rates?base=${base}&quotes=${quote}&from=${fmt(startDate)}&to=${fmt(endDate)}`,
+        )
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch history for ${base}/${quote}`)
+        }
+
+        const data = (await res.json()) as FrankfurterApiRate[]
+
+        return data.map((entry) => ({
+          time: entry.date,
+          close: entry.rate,
+          open: entry.rate,
+          high: entry.rate,
+          low: entry.rate,
         }))
       },
       ttl,

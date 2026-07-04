@@ -12,8 +12,7 @@ import type { RangeKey } from '#/lib/currency/time-ranges'
 import { computeHistoryStats } from '#/lib/history-helpers'
 import { TIME_RANGES, RANGE_INTERVALS, getCrossRate } from '#/lib/currency'
 
-import { getHistory } from '#/server/functions/history'
-import { getFrankfurterHistory } from '#/server/functions/history-frankfurter'
+import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { useLatestRates } from '#/hooks/use-latest-rates'
@@ -59,7 +58,7 @@ export const HistorySection = () => {
         : getFrankfurterHistory({
             data: { base: sender, quote: receiver, days },
           }),
-    staleTime: 1000 * 60 * 15,
+    staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     placeholderData: keepPreviousData,
   })
@@ -154,7 +153,7 @@ export const HistorySection = () => {
           : getFrankfurterHistory({
               data: { base: sender, quote: receiver, days: d },
             }),
-      staleTime: 1000 * 60 * 15,
+      staleTime: 1000 * 60 * 60,
       gcTime: 1000 * 60 * 60 * 24,
     })
   }
