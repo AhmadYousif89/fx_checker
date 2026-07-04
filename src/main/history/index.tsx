@@ -13,6 +13,7 @@ import { computeHistoryStats } from '#/lib/history-helpers'
 import { TIME_RANGES, RANGE_INTERVALS, getCrossRate } from '#/lib/currency'
 
 import { getHistory } from '#/server/functions/history'
+import { getFrankfurterHistory } from '#/server/functions/history-frankfurter'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { useLatestRates } from '#/hooks/use-latest-rates'
@@ -40,22 +41,24 @@ export const HistorySection = () => {
 
   useHotkeys(hotkeys, { requireReset: true })
 
+  const isIntraday = selectedTime === '1d' || selectedTime === '1w'
   const days = TIME_RANGES[selectedTime]
   const interval = RANGE_INTERVALS[selectedTime]
 
-  const queryKey = ['history', sender, receiver, selectedTime]
+  const queryKey = isIntraday
+    ? ['history', sender, receiver, selectedTime]
+    : ['frankfurter-history', sender, receiver, selectedTime]
 
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey,
     queryFn: () =>
-      getHistory({
-        data: {
-          base: sender,
-          quote: receiver,
-          days,
-          interval,
-        },
-      }),
+      isIntraday
+        ? getHistory({
+            data: { base: sender, quote: receiver, days, interval },
+          })
+        : getFrankfurterHistory({
+            data: { base: sender, quote: receiver, days },
+          }),
     staleTime: 1000 * 60 * 15,
     gcTime: 1000 * 60 * 60 * 24,
     placeholderData: keepPreviousData,
@@ -138,12 +141,19 @@ export const HistorySection = () => {
   const prefetchRange = (rangeKey: RangeKey) => {
     const d = TIME_RANGES[rangeKey]
     const i = RANGE_INTERVALS[rangeKey]
+    const intraday = rangeKey === '1d' || rangeKey === '1w'
     queryClient.prefetchQuery({
-      queryKey: ['history', sender, receiver, rangeKey],
+      queryKey: intraday
+        ? ['history', sender, receiver, rangeKey]
+        : ['frankfurter-history', sender, receiver, rangeKey],
       queryFn: () =>
-        getHistory({
-          data: { base: sender, quote: receiver, days: d, interval: i },
-        }),
+        intraday
+          ? getHistory({
+              data: { base: sender, quote: receiver, days: d, interval: i },
+            })
+          : getFrankfurterHistory({
+              data: { base: sender, quote: receiver, days: d },
+            }),
       staleTime: 1000 * 60 * 15,
       gcTime: 1000 * 60 * 60 * 24,
     })

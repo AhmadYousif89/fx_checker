@@ -67,6 +67,9 @@ export const RateConverter = () => {
   const displayReceiveValue =
     editSide === 'receive' ? formatInputAmount(receiveValue) : receiveValue
 
+  const sendNum = parseFloat(sendValue)
+  const isAmountValid = !Number.isNaN(sendNum) && sendNum > 0
+
   useHotkey(
     '/',
     () => {
@@ -78,6 +81,7 @@ export const RateConverter = () => {
 
   useHotkey('Shift+S', swap, { requireReset: true })
 
+  // Handle switching between send and receive inputs with arrow keys
   useEffect(() => {
     if (!activePicker) return
 
@@ -99,17 +103,14 @@ export const RateConverter = () => {
       window.removeEventListener('keydown', handler, { capture: true })
   }, [activePicker])
 
-  const sendNum = parseFloat(sendValue)
-  const isAmountValid = !Number.isNaN(sendNum) && sendNum > 0
-
-  // Sync sendValue from URL amount changes
+  // If the URL amount changes, update the send value
   useEffect(() => {
     if (urlAmount && editSide === 'send') {
       setSendValue(urlAmount)
     }
   }, [urlAmount, editSide])
 
-  // Recompute the "other" side whenever rate or the edited side changes
+  // Update the receive value when the rate or send value changes
   useEffect(() => {
     if (rate == null) return
 
