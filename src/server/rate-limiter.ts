@@ -6,6 +6,7 @@ export class TokenBucket {
   private readonly maxTokens: number
   private readonly refillInterval: number
   private readonly now: NowFn
+  private _waiting = 0
 
   constructor(maxTokens: number, refillIntervalMs: number, now?: NowFn) {
     this.now = now ?? Date.now
@@ -24,9 +25,18 @@ export class TokenBucket {
 
   async acquire(): Promise<void> {
     while (!this.tryAcquire()) {
-      const waitMs = Math.ceil(this.refillInterval / this.maxTokens)
-      await new Promise((resolve) => setTimeout(resolve, waitMs))
+      this._waiting++
+      try {
+        const waitMs = Math.ceil(this.refillInterval / this.maxTokens)
+        await new Promise((resolve) => setTimeout(resolve, waitMs))
+      } finally {
+        this._waiting--
+      }
     }
+  }
+
+  get isWaiting(): boolean {
+    return this._waiting > 0
   }
 
   private refill(): void {

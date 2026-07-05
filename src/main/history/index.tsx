@@ -6,6 +6,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from '@tanstack/react-query'
+import { InfoIcon } from 'lucide-react'
 
 import { rangeKeys } from '#/lib/currency/time-ranges'
 import type { RangeKey } from '#/lib/currency/time-ranges'
@@ -16,10 +17,17 @@ import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { useLatestRates } from '#/hooks/use-latest-rates'
+import { useRateLimiterStatus } from '#/hooks/use-rate-limiter'
 
+import { cn } from '#/lib/utils'
+import { HistoryStats } from './stats'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
-import { HistoryStats } from './stats'
 
 const HistoryChart = lazy(() =>
   import('./chart').then((m) => ({ default: m.HistoryChart })),
@@ -64,6 +72,9 @@ export const HistorySection = () => {
   })
 
   const { data: latestRates } = useLatestRates()
+  const { data: rateLimiterData } = useRateLimiterStatus(
+    isIntraday && isFetching,
+  )
 
   const liveRate = latestRates?.rates
     ? getCrossRate({ rates: latestRates.rates, base: sender, quote: receiver })
@@ -195,28 +206,53 @@ export const HistorySection = () => {
         {/* Stats */}
         <HistoryStats stats={stats} isLoading={isFetching} />
         {/* Time range */}
-        <ToggleGroup
-          type="single"
-          spacing={0.25}
-          value={selectedTime}
-          onValueChange={(value) => {
-            if (value) updateUrl({ view: value })
-          }}
-          className="mt-5 bg-surface p-0.5 lg:self-end"
-        >
-          {rangeKeys.map((rk) => (
-            <ToggleGroupItem
-              key={rk}
-              value={rk}
-              onPointerOver={() => prefetchRange(rk)}
-            >
-              {rk.toUpperCase()}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        <div className="relative mt-5 w-fit lg:self-end">
+          {rateLimiterData?.isWaiting && (
+            <Tooltip>
+              <div className="absolute max-sm:left-0 max-sm:-top-5 sm:-right-6 sm:inset-y-0 flex items-center justify-center">
+                <TooltipTrigger asChild>
+                  <InfoIcon className="size-4 text-accent" />
+                </TooltipTrigger>
+              </div>
+              <TooltipContent align="end" sideOffset={6}>
+                <p className="text-caption text-balance text-center flex flex-col gap-1">
+                  <span className="text-red uppercase">
+                    Rate limit exceeded!
+                  </span>
+                  <span>
+                    Please wait a few seconds before switching time ranges.
+                  </span>
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <ToggleGroup
+            type="single"
+            spacing={0.25}
+            value={selectedTime}
+            onValueChange={(value) => {
+              if (value) updateUrl({ view: value })
+            }}
+            disabled={rateLimiterData?.isWaiting}
+            className={cn(
+              'bg-surface p-0.5',
+              rateLimiterData?.isWaiting && 'ring ring-accent/50 animate-pulse',
+            )}
+          >
+            {rangeKeys.map((rk) => (
+              <ToggleGroupItem
+                key={rk}
+                value={rk}
+                onPointerOver={() => prefetchRange(rk)}
+              >
+                {rk.toUpperCase()}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
       </div>
       {/* Chart */}
-      <div className="relative flex overflow-hidden mt-4 md:mt-5">
+      <div className="relative flex grow overflow-hidden mt-4 md:mt-5">
         {isFetching && (
           <div className="absolute inset-0 bg-surface/25 flex items-center justify-center z-10">
             <CustomSpinner />

@@ -127,4 +127,28 @@ describe('TokenBucket', () => {
       expect(elapsed).toBeGreaterThanOrEqual(40)
     })
   })
+
+  describe('isWaiting', () => {
+    it('returns false initially', () => {
+      const bucket = new TokenBucket(1, 60_000, () => 0)
+      expect(bucket.isWaiting).toBe(false)
+    })
+
+    it('returns true while waiting for a token', async () => {
+      vi.useFakeTimers()
+      let now = Date.now()
+      const bucket = new TokenBucket(1, 200, () => now)
+
+      await bucket.acquire()
+      const promise = bucket.acquire()
+
+      expect(bucket.isWaiting).toBe(true)
+
+      now += 200
+      vi.advanceTimersByTime(200)
+      await promise
+
+      expect(bucket.isWaiting).toBe(false)
+    })
+  })
 })
