@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto'
 
 let CACHE_DIR = process.env.CACHE_DIR ?? resolve(process.cwd(), 'var/cache')
 
+const MAX_CACHE_SIZE = 500
 const store = new Map<string, { data: unknown; expires: number }>()
 const pending = new Map<string, Promise<unknown>>()
 
@@ -101,6 +102,18 @@ export function getCached<T>(key: string): T | undefined {
 
 export function setCache<T>(key: string, data: T, ttl: number): void {
   init()
+
+  if (store.size >= MAX_CACHE_SIZE) {
+    const now = Date.now()
+    for (const [k, v] of store) {
+      if (v.expires < now) store.delete(k)
+      if (store.size < MAX_CACHE_SIZE) break
+    }
+    if (store.size >= MAX_CACHE_SIZE) {
+      const firstKey = store.keys().next().value
+      if (firstKey) store.delete(firstKey)
+    }
+  }
 
   const expires = Date.now() + ttl
   store.set(key, { data, expires })

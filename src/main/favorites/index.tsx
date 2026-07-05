@@ -8,7 +8,7 @@ export const FavoritesSection = () => {
   const favorites = useCurrencyStore((s) => s.favorites)
   const favoritesCount = favorites.length
 
-  const { data: ratesData, isLoading, isFetching, isError } = useLatestRates()
+  const { data: ratesData, isLoading, isError } = useLatestRates()
 
   const getRate = (f: CurrencyPair) =>
     ratesData
@@ -19,7 +19,7 @@ export const FavoritesSection = () => {
         }) ?? 0)
       : 0
 
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return <FavoritesSkeleton />
   }
 

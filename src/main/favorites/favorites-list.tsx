@@ -55,7 +55,10 @@ export const FavoritesList = ({ favorites, getRate }: FavoritesListProps) => {
               <Button
                 size="icon-sm"
                 variant="outline"
-                onClick={() => toggleFavorite(f.sender, f.receiver)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleFavorite(f.sender, f.receiver)
+                }}
                 className="hover:bg-surface-500 active:bg-surface-500"
               >
                 <StarIcon className="fill-accent stroke-accent" />

@@ -23,7 +23,7 @@ import {
 
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
-  const recent = useCurrencyStore.getState().recent
+  const recent = useCurrencyStore((s) => s.recent)
   const favorites = useCurrencyStore((s) => s.favorites)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError } = useLatestRates()

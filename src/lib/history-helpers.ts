@@ -55,10 +55,8 @@ export function computeCrossRate(
   baseData: HistoryEntry[],
   quoteData: HistoryEntry[],
 ): HistoryEntry[] {
-  if (baseData.length !== quoteData.length) {
-    throw new Error('Data length mismatch')
-  }
-  return baseData.map((base, i) => {
+  const len = Math.min(baseData.length, quoteData.length)
+  return baseData.slice(0, len).map((base, i) => {
     const quote = quoteData[i]
     return {
       time: base.time,

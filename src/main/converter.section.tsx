@@ -110,26 +110,27 @@ export const RateConverter = () => {
     }
   }, [urlAmount, editSide])
 
-  // Update the receive value when the rate or send value changes
+  // Sync receive from send
   useEffect(() => {
-    if (rate == null) return
-
-    if (editSide === 'send') {
-      const num = parseFloat(sendValue)
-      if (!Number.isNaN(num) && num > 0) {
-        setReceiveValue(formatAmount(num * rate))
-      } else {
-        setReceiveValue('')
-      }
+    if (rate == null || editSide !== 'send') return
+    const num = parseFloat(sendValue)
+    if (!Number.isNaN(num) && num > 0) {
+      setReceiveValue(formatAmount(num * rate))
     } else {
-      const num = parseFloat(receiveValue.replace(/,/g, ''))
-      if (!Number.isNaN(num) && num > 0) {
-        setSendValue(formatAmount(num / rate))
-      } else {
-        setSendValue('')
-      }
+      setReceiveValue('')
     }
-  }, [rate, sendValue, receiveValue, editSide])
+  }, [rate, sendValue, editSide])
+
+  // Sync send from receive
+  useEffect(() => {
+    if (rate == null || editSide !== 'receive') return
+    const num = parseFloat(receiveValue.replace(/,/g, ''))
+    if (!Number.isNaN(num) && num > 0) {
+      setSendValue(formatAmount(num / rate))
+    } else {
+      setSendValue('')
+    }
+  }, [rate, receiveValue, editSide])
 
   const handleSendInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,13 +187,14 @@ export const RateConverter = () => {
   const handleLogConversion = useCallback(() => {
     if (rate == null) return
 
-    if (Number.isNaN(sendNum) || sendNum <= 0) return
+    const amount = parseFloat(sendValue)
+    if (Number.isNaN(amount) || amount <= 0) return
     const status = addLog({
       sender,
       receiver,
-      amount: sendNum,
+      amount,
       baseRate: rate,
-      result: sendNum * rate,
+      result: amount * rate,
       timestamp: Date.now(),
     })
 

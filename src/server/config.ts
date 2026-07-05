@@ -15,7 +15,7 @@ export const TDI = [
   '1day',
   '1week',
   '1month',
-]
+] as const
 
 export const TTL_BY_INTERVAL: Record<string, number> = {
   '1min': 15 * 60 * 1000,

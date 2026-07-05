@@ -111,14 +111,10 @@ export const InsightsSection = () => {
         {tabs.map((tab) => (
           <TabsContent
             key={tab.value}
-            asChild
-            forceMount
             value={tab.value}
             aria-labelledby={tab.id}
           >
-            <section className="hidden data-[state=active]:grid grid-rows-[auto_1fr]">
-              <tab.Component />
-            </section>
+            <tab.Component />
           </TabsContent>
         ))}
       </Tabs>

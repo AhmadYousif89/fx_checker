@@ -4,9 +4,9 @@ import { Main } from '#/main'
 import { Header } from '#/header'
 import { Footer } from '#/footer'
 import { getRates } from '#/server/functions/rates'
-import { getHistory } from '#/server/functions/history'
+import { getFrankfurterHistory } from '#/server/functions/history'
 import { getCurrencies } from '#/server/functions/currencies'
-import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/currency'
+import { TIME_RANGES } from '#/lib/currency'
 import { sanitizeCurrencySearch, searchSchema } from '#/lib/currency/search'
 
 export const Route = createFileRoute('/')({
@@ -33,22 +33,21 @@ export const Route = createFileRoute('/')({
 
     await Promise.all([
       context.queryClient.prefetchQuery({
-        queryKey: ['history', sanitized.from, sanitized.to, '3m'],
+        queryKey: ['frankfurter-history', sanitized.from, sanitized.to, '3m'],
         queryFn: () =>
-          getHistory({
+          getFrankfurterHistory({
             data: {
               base: sanitized.from,
               quote: sanitized.to,
               days: TIME_RANGES['3m'],
-              interval: RANGE_INTERVALS['3m'],
             },
           }),
-        staleTime: 1000 * 60 * 15, // 15 minutes
+        staleTime: 1000 * 60 * 60,
         gcTime: 1000 * 60 * 60 * 24, // 24 hours
       }),
       context.queryClient.prefetchQuery({
-        queryKey: ['rates'],
-        queryFn: () => getRates(),
+        queryKey: ['rates', sanitized.from],
+        queryFn: () => getRates({ data: { base: sanitized.from } }),
         staleTime: 1000 * 60 * 10, // 10 minutes
         gcTime: 1000 * 60 * 60, // 1 hour
       }),

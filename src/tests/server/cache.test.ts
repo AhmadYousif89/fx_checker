@@ -164,4 +164,34 @@ describe('cache', () => {
       expect(getCached('multi:c')).toBe(3)
     })
   })
+
+  describe('eviction', () => {
+    it('evicts oldest entry when cache exceeds MAX_CACHE_SIZE', () => {
+      for (let i = 0; i < 501; i++) {
+        setCache(`evict:${i}`, i, 60_000)
+      }
+      expect(getCached('evict:0')).toBeUndefined()
+      expect(getCached('evict:500')).toBe(500)
+    })
+
+    it('evicts expired entries before oldest entry', () => {
+      vi.useFakeTimers()
+      for (let i = 0; i < 500; i++) {
+        setCache(`expired:${i}`, i, -1)
+      }
+      vi.advanceTimersByTime(1)
+      setCache('fresh', 'value', 60_000)
+      expect(getCached('expired:0')).toBeUndefined()
+      expect(getCached('fresh')).toBe('value')
+      vi.useRealTimers()
+    })
+
+    it('does not evict when cache is below MAX_CACHE_SIZE', () => {
+      for (let i = 0; i < 499; i++) {
+        setCache(`below:${i}`, i, 60_000)
+      }
+      expect(getCached('below:0')).toBe(0)
+      expect(getCached('below:498')).toBe(498)
+    })
+  })
 })

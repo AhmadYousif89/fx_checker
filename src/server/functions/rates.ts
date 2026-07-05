@@ -80,11 +80,14 @@ export const getRates = createServerFn()
   })
 
 async function getHistoricalRates() {
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setDate(endDate.getDate() - 5) // get 5 days of rates to calculate the difference
+  const now = new Date()
+  const endDate = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  )
+  const startDate = new Date(endDate)
+  startDate.setUTCDate(endDate.getUTCDate() - 5)
 
-  const format = (d: Date) => d.toISOString().split('T')[0] // extract date to YYYY-MM-DD
+  const format = (d: Date) => d.toISOString().split('T')[0]
 
   const response = await fetch(
     `${OPEN_API_URL}/v2/rates?from=${format(startDate)}&to=${format(endDate)}`,
