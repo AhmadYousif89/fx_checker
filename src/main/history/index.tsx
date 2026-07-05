@@ -83,7 +83,19 @@ export const HistorySection = () => {
   const patchedData = useMemo(() => {
     if (!data || data.length === 0 || liveRate == null) return data
 
-    const last = data[data.length - 1]
+    const lastClose = data[data.length - 1].close
+    const needsFix = Math.abs(lastClose - 1 / liveRate) < Math.abs(lastClose - liveRate)
+    const points = needsFix
+      ? data.map((d) => ({
+          time: d.time,
+          close: 1 / d.close,
+          open: 1 / d.open,
+          high: 1 / d.high,
+          low: 1 / d.low,
+        }))
+      : data
+
+    const last = points[points.length - 1]
     const pad = (n: number) => n.toString().padStart(2, '0')
     const useTime = last.time.includes(' ')
     const formatTS = (d: Date) => {
@@ -102,7 +114,7 @@ export const HistorySection = () => {
     if (!intervalMinutes) {
       const now = new Date()
       return [
-        ...data.slice(0, -1),
+        ...points.slice(0, -1),
         { ...last, close: liveRate, time: formatTS(now) },
       ]
     }
@@ -111,7 +123,7 @@ export const HistorySection = () => {
     if (Number.isNaN(lastDate.getTime())) {
       const now = new Date()
       return [
-        ...data.slice(0, -1),
+        ...points.slice(0, -1),
         { ...last, close: liveRate, time: formatTS(now) },
       ]
     }
@@ -121,19 +133,19 @@ export const HistorySection = () => {
 
     if (diffMinutes < intervalMinutes) {
       return [
-        ...data.slice(0, -1),
+        ...points.slice(0, -1),
         { ...last, close: liveRate, time: formatTS(now) },
       ]
     }
 
     const pointsToAdd = Math.min(Math.floor(diffMinutes / intervalMinutes), 144)
-    const lastClose = last.close
+    const lastCloseVal = last.close
     const totalSteps = pointsToAdd + 1
 
     const interpolated: typeof data = []
     for (let i = 1; i <= pointsToAdd; i++) {
       const t = i / totalSteps
-      const close = lastClose + (liveRate - lastClose) * t
+      const close = lastCloseVal + (liveRate - lastCloseVal) * t
       const time = formatTS(
         new Date(lastDate.getTime() + i * intervalMinutes * 60 * 1000),
       )
@@ -141,7 +153,7 @@ export const HistorySection = () => {
     }
 
     return [
-      ...data.slice(0, -1),
+      ...points.slice(0, -1),
       last,
       ...interpolated,
       { ...last, close: liveRate, time: formatTS(now) },

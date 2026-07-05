@@ -2,11 +2,7 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { getOrFetch } from './cache'
-import {
-  computeOutputSize,
-  computeCrossRate,
-  invertData,
-} from '#/lib/history-helpers'
+import { computeOutputSize, computeCrossRate } from '#/lib/history-helpers'
 import type { HistoryEntry } from '#/lib/history-helpers'
 import type { FrankfurterApiRate, TwelveDataApiRate } from '#/types/currency'
 import { twelveDataBucket } from '../rate-limiter'
@@ -79,22 +75,11 @@ export const getHistory = createServerFn()
       cacheKey,
       async () => {
         if (quote === 'USD') {
-          const data = await fetchSymbolTimeSeries(
-            `${quote}/${base}`,
-            days,
-            interval,
-            ttl,
-          )
-          return invertData(data)
+          return fetchSymbolTimeSeries(`${quote}/${base}`, days, interval, ttl)
         }
 
         if (base === 'USD') {
-          return fetchSymbolTimeSeries(
-            `${base}/${quote}`,
-            days,
-            interval,
-            ttl,
-          )
+          return fetchSymbolTimeSeries(`${base}/${quote}`, days, interval, ttl)
         }
 
         const [baseData, quoteData] = await Promise.all([
