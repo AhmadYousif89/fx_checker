@@ -84,7 +84,8 @@ export const HistorySection = () => {
     if (!data || data.length === 0 || liveRate == null) return data
 
     const lastClose = data[data.length - 1].close
-    const needsFix = Math.abs(lastClose - 1 / liveRate) < Math.abs(lastClose - liveRate)
+    const needsFix =
+      Math.abs(lastClose - 1 / liveRate) < Math.abs(lastClose - liveRate)
     const points = needsFix
       ? data.map((d) => ({
           time: d.time,

@@ -2,7 +2,11 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { getOrFetch } from './cache'
-import { computeOutputSize, computeCrossRate } from '#/lib/history-helpers'
+import {
+  computeOutputSize,
+  computeCrossRate,
+  invertData,
+} from '#/lib/history-helpers'
 import type { HistoryEntry } from '#/lib/history-helpers'
 import type { FrankfurterApiRate, TwelveDataApiRate } from '#/types/currency'
 import { twelveDataBucket } from '../rate-limiter'
@@ -63,6 +67,20 @@ async function fetchSymbolTimeSeries(
   )
 }
 
+async function fetchCurrencyVsUSD(
+  currency: string,
+  days: number,
+  interval: string,
+  ttl: number,
+): Promise<HistoryEntry[]> {
+  try {
+    return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl)
+  } catch {
+    const data = await fetchSymbolTimeSeries(`USD/${currency}`, days, interval, ttl)
+    return invertData(data)
+  }
+}
+
 export const getHistory = createServerFn()
   .validator(schema)
   .handler(async ({ data: input }) => {
@@ -83,8 +101,8 @@ export const getHistory = createServerFn()
         }
 
         const [baseData, quoteData] = await Promise.all([
-          fetchSymbolTimeSeries(`${base}/USD`, days, interval, ttl),
-          fetchSymbolTimeSeries(`${quote}/USD`, days, interval, ttl),
+          fetchCurrencyVsUSD(base, days, interval, ttl),
+          fetchCurrencyVsUSD(quote, days, interval, ttl),
         ])
         return computeCrossRate(baseData, quoteData)
       },
