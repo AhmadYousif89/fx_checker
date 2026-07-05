@@ -79,10 +79,6 @@ export const getHistory = createServerFn()
       cacheKey,
       async () => {
         if (quote === 'USD') {
-          return fetchSymbolTimeSeries(`${base}/${quote}`, days, interval, ttl)
-        }
-
-        if (base === 'USD') {
           const data = await fetchSymbolTimeSeries(
             `${quote}/${base}`,
             days,
@@ -90,6 +86,15 @@ export const getHistory = createServerFn()
             ttl,
           )
           return invertData(data)
+        }
+
+        if (base === 'USD') {
+          return fetchSymbolTimeSeries(
+            `${base}/${quote}`,
+            days,
+            interval,
+            ttl,
+          )
         }
 
         const [baseData, quoteData] = await Promise.all([
