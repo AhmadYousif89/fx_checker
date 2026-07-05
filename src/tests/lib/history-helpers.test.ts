@@ -148,9 +148,9 @@ describe('computeCrossRate', () => {
     expect(computeCrossRate([], [])).toEqual([])
   })
 
-  it('throws on length mismatch', () => {
-    expect(() => computeCrossRate(baseData, baseData.slice(0, 1))).toThrow(
-      'Data length mismatch',
-    )
+  it('handles length mismatch by using shorter array', () => {
+    const result = computeCrossRate(baseData, baseData.slice(0, 1))
+    expect(result).toHaveLength(1)
+    expect(result[0].close).toBeCloseTo(1.1 / 1.1, 6)
   })
 })

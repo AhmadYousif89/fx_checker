@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { getHistory } from '#/server/functions/history'
+import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 import { HistorySection } from '#/main/history'
 
 vi.mock('#/hooks/use-update-url', () => ({
@@ -17,11 +17,13 @@ function renderWithQuery(ui: React.ReactElement) {
 afterEach(cleanup)
 
 beforeEach(() => {
-  vi.mocked(getHistory).mockResolvedValue([
+  const mockData = [
     { time: '2024-01-01', close: 1.1, open: 1.0, high: 1.12, low: 0.99 },
     { time: '2024-01-08', close: 1.15, open: 1.1, high: 1.16, low: 1.09 },
     { time: '2024-01-15', close: 1.2, open: 1.15, high: 1.21, low: 1.14 },
-  ])
+  ]
+  vi.mocked(getHistory).mockResolvedValue(mockData)
+  vi.mocked(getFrankfurterHistory).mockResolvedValue(mockData)
 })
 
 describe('HistorySection', () => {
@@ -34,6 +36,7 @@ describe('HistorySection', () => {
 
   it('shows error state on failure', async () => {
     vi.mocked(getHistory).mockRejectedValue(new Error('fail'))
+    vi.mocked(getFrankfurterHistory).mockRejectedValue(new Error('fail'))
     renderWithQuery(<HistorySection />)
     expect(await screen.findByText(/Something went wrong/)).toBeInTheDocument()
   })

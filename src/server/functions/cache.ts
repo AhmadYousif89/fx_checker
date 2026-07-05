@@ -100,18 +100,27 @@ export function getCached<T>(key: string): T | undefined {
   return undefined
 }
 
+function removeCacheEntry(key: string): void {
+  store.delete(key)
+  try {
+    unlinkSync(getFilePath(key))
+  } catch {
+    /* file may not exist */
+  }
+}
+
 export function setCache<T>(key: string, data: T, ttl: number): void {
   init()
 
   if (store.size >= MAX_CACHE_SIZE) {
     const now = Date.now()
     for (const [k, v] of store) {
-      if (v.expires < now) store.delete(k)
+      if (v.expires < now) removeCacheEntry(k)
       if (store.size < MAX_CACHE_SIZE) break
     }
     if (store.size >= MAX_CACHE_SIZE) {
       const firstKey = store.keys().next().value
-      if (firstKey) store.delete(firstKey)
+      if (firstKey) removeCacheEntry(firstKey)
     }
   }
 

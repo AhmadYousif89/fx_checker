@@ -19,6 +19,7 @@ vi.mock('#/server/functions/latest-rates', () => ({
 
 vi.mock('#/server/functions/history', () => ({
   getHistory: vi.fn(),
+  getFrankfurterHistory: vi.fn(),
 }))
 
 vi.mock('#/server/functions/rates', () => ({
