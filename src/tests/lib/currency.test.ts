@@ -8,6 +8,10 @@ import {
   timeAgo,
   shortTimeAgo,
   getCrossRate,
+  getCrossRateAtDate,
+  getRateAtDate,
+  generateFallbackPairs,
+  FALLBACK_PAIRS,
   formatAmount,
   formatRate,
   formatTooltipDate,
@@ -15,6 +19,7 @@ import {
   orderCompareCurrencies,
 } from '#/lib/currency'
 import { computeHistoryStats } from '#/lib/history-helpers'
+import type { FrankfurterApiRate } from '#/types/currency'
 
 describe('getFlagUrl', () => {
   it('returns correct url for known code', () => {
@@ -166,6 +171,128 @@ describe('getCrossRate', () => {
 
   it('returns null when quote is missing from rates', () => {
     expect(getCrossRate({ rates, base: 'USD', quote: 'XYZ' })).toBeNull()
+  })
+})
+
+describe('getRateAtDate', () => {
+  const sampleRates: FrankfurterApiRate[] = [
+    { date: '2026-07-01', base: 'EUR', quote: 'USD', rate: 1.1 },
+    { date: '2026-07-01', base: 'EUR', quote: 'JPY', rate: 130 },
+    { date: '2026-07-02', base: 'EUR', quote: 'USD', rate: 1.12 },
+    { date: '2026-07-02', base: 'EUR', quote: 'JPY', rate: 132 },
+  ]
+
+  it('returns rate for matching date and quote', () => {
+    expect(getRateAtDate(sampleRates, '2026-07-01', 'USD')).toBe(1.1)
+    expect(getRateAtDate(sampleRates, '2026-07-02', 'JPY')).toBe(132)
+  })
+
+  it('returns 1 for EUR quote', () => {
+    expect(getRateAtDate(sampleRates, '2026-07-01', 'EUR')).toBe(1)
+  })
+
+  it('returns null for missing quote at date', () => {
+    expect(getRateAtDate(sampleRates, '2026-07-01', 'GBP')).toBeNull()
+  })
+
+  it('returns null for missing date', () => {
+    expect(getRateAtDate(sampleRates, '2025-01-01', 'USD')).toBeNull()
+  })
+
+  it('returns null for empty rates array', () => {
+    expect(getRateAtDate([], '2026-07-01', 'USD')).toBeNull()
+  })
+})
+
+describe('getCrossRateAtDate', () => {
+  const sampleRates: FrankfurterApiRate[] = [
+    { date: '2026-07-01', base: 'EUR', quote: 'USD', rate: 1.1 },
+    { date: '2026-07-01', base: 'EUR', quote: 'JPY', rate: 130 },
+    { date: '2026-07-01', base: 'EUR', quote: 'GBP', rate: 0.85 },
+  ]
+
+  it('computes cross rate between two non-EUR currencies', () => {
+    const rate = getCrossRateAtDate(sampleRates, '2026-07-01', 'USD', 'JPY')
+    expect(rate).toBeCloseTo(130 / 1.1, 6)
+  })
+
+  it('computes rate from EUR to a currency', () => {
+    const rate = getCrossRateAtDate(sampleRates, '2026-07-01', 'EUR', 'USD')
+    expect(rate).toBe(1.1)
+  })
+
+  it('computes rate from a currency to EUR', () => {
+    const rate = getCrossRateAtDate(sampleRates, '2026-07-01', 'USD', 'EUR')
+    expect(rate).toBeCloseTo(1 / 1.1, 6)
+  })
+
+  it('returns null when base code is missing', () => {
+    expect(
+      getCrossRateAtDate(sampleRates, '2026-07-01', 'XYZ', 'USD'),
+    ).toBeNull()
+  })
+
+  it('returns null when quote code is missing', () => {
+    expect(
+      getCrossRateAtDate(sampleRates, '2026-07-01', 'USD', 'XYZ'),
+    ).toBeNull()
+  })
+
+  it('returns null for empty rates array', () => {
+    expect(getCrossRateAtDate([], '2026-07-01', 'USD', 'JPY')).toBeNull()
+  })
+})
+
+describe('generateFallbackPairs', () => {
+  const sampleRates: FrankfurterApiRate[] = [
+    { date: '2026-07-02', base: 'EUR', quote: 'USD', rate: 1.1 },
+    { date: '2026-07-02', base: 'EUR', quote: 'JPY', rate: 130 },
+    { date: '2026-07-02', base: 'EUR', quote: 'GBP', rate: 0.85 },
+    { date: '2026-07-01', base: 'EUR', quote: 'USD', rate: 1.08 },
+    { date: '2026-07-01', base: 'EUR', quote: 'JPY', rate: 128 },
+    { date: '2026-07-01', base: 'EUR', quote: 'GBP', rate: 0.86 },
+  ]
+
+  it('returns pairs for valid complete dates', () => {
+    const result = generateFallbackPairs(sampleRates, [
+      '2026-07-02',
+      '2026-07-01',
+    ])
+    expect(result.length).toBeGreaterThan(0)
+    for (const entry of result) {
+      expect(entry).toHaveProperty('base')
+      expect(entry).toHaveProperty('quote')
+      expect(entry).toHaveProperty('rate')
+      expect(typeof entry.rate).toBe('number')
+      expect(entry.rate).toBeGreaterThan(0)
+      expect(['up', 'down', 'flat']).toContain(entry.direction)
+    }
+  })
+
+  it('returns empty array when completeDates is empty', () => {
+    expect(generateFallbackPairs(sampleRates, [])).toEqual([])
+  })
+
+  it('computes flat direction when only one date is provided', () => {
+    const result = generateFallbackPairs(sampleRates, ['2026-07-02'])
+    for (const entry of result) {
+      expect(entry.difference).toBe(0)
+      expect(entry.direction).toBe('flat')
+    }
+  })
+})
+
+describe('FALLBACK_PAIRS', () => {
+  it('contains expected number of pairs', () => {
+    expect(FALLBACK_PAIRS.length).toBe(27)
+  })
+
+  it('all pairs are [string, string] tuples', () => {
+    for (const pair of FALLBACK_PAIRS) {
+      expect(pair).toHaveLength(2)
+      expect(typeof pair[0]).toBe('string')
+      expect(typeof pair[1]).toBe('string')
+    }
   })
 })
 

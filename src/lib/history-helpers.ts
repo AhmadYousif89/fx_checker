@@ -51,7 +51,7 @@ export function invertData(data: HistoryEntry[]): HistoryEntry[] {
   }))
 }
 
-export function computeCrossRate(
+export function computeHistoryCrossRate(
   baseData: HistoryEntry[],
   quoteData: HistoryEntry[],
 ): HistoryEntry[] {

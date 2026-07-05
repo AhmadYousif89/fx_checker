@@ -4,7 +4,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getOrFetch } from './cache'
 import {
   computeOutputSize,
-  computeCrossRate,
+  computeHistoryCrossRate,
   invertData,
 } from '#/lib/history-helpers'
 import type { HistoryEntry } from '#/lib/history-helpers'
@@ -76,7 +76,12 @@ async function fetchCurrencyVsUSD(
   try {
     return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl)
   } catch {
-    const data = await fetchSymbolTimeSeries(`USD/${currency}`, days, interval, ttl)
+    const data = await fetchSymbolTimeSeries(
+      `USD/${currency}`,
+      days,
+      interval,
+      ttl,
+    )
     return invertData(data)
   }
 }
@@ -104,7 +109,7 @@ export const getHistory = createServerFn()
           fetchCurrencyVsUSD(base, days, interval, ttl),
           fetchCurrencyVsUSD(quote, days, interval, ttl),
         ])
-        return computeCrossRate(baseData, quoteData)
+        return computeHistoryCrossRate(baseData, quoteData)
       },
       ttl,
     )

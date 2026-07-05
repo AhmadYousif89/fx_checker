@@ -4,6 +4,11 @@ import { createServerFn } from '@tanstack/react-start'
 import { OPEN_API_URL } from '../config'
 import { FLAG_CODE_SET } from '#/lib/currency'
 import type { RateWithDiff, FrankfurterApiRate } from '#/types/currency'
+import {
+  generateFallbackPairs,
+  getCrossRateAtDate,
+  getRateAtDate,
+} from '#/lib/currency/rates'
 
 export const getRates = createServerFn()
   .validator(z.object({ base: z.string() }).optional())
@@ -21,25 +26,21 @@ export const getRates = createServerFn()
       (date) => rates.filter((r) => r.date === date).length > 20,
     )
 
-    const latestDate = completeDates[0]
-    const previousDate = completeDates[1]
+    // Find the latest date where the base currency actually has data.
+    // On weekends, less-traded currencies are missing from Frankfurter,
+    // so picking the absolute latest date would produce empty results
+    // for bases like ARS, BDT, CLP, CNH, etc.
+    const latestDate = completeDates.find(
+      (date) => getRateAtDate(rates, date, base) !== null,
+    )
 
-    const getRateAtDate = (date: string, quote: string): number | null => {
-      if (quote === 'EUR') return 1
-      const match = rates.find((r) => r.date === date && r.quote === quote)
-      return match ? match.rate : null
+    if (!latestDate) {
+      return generateFallbackPairs(rates, completeDates)
     }
 
-    const getCrossRate = (
-      date: string,
-      baseCode: string,
-      quoteCode: string,
-    ): number | null => {
-      const rBase = getRateAtDate(date, baseCode)
-      const rQuote = getRateAtDate(date, quoteCode)
-      if (rBase === null || rQuote === null) return null
-      return rQuote / rBase
-    }
+    const previousDate = completeDates.find(
+      (date) => date < latestDate && getRateAtDate(rates, date, base) !== null,
+    )
 
     const supportedQuotes = Array.from(
       new Set(rates.map((r) => r.quote)),
@@ -50,16 +51,14 @@ export const getRates = createServerFn()
     const ratesWithDiff: RateWithDiff[] = []
 
     for (const quote of supportedQuotes) {
-      if (!latestDate) continue
-
-      const latestRate = getCrossRate(latestDate, base, quote)
+      const latestRate = getCrossRateAtDate(rates, latestDate, base, quote)
       if (latestRate === null) continue
 
       let difference = 0
       let direction: 'up' | 'down' | 'flat' = 'flat'
 
       if (previousDate) {
-        const previousRate = getCrossRate(previousDate, base, quote)
+        const previousRate = getCrossRateAtDate(rates, previousDate, base, quote)
         if (previousRate !== null && previousRate > 0) {
           difference = ((latestRate - previousRate) / previousRate) * 100
           direction =
@@ -79,6 +78,7 @@ export const getRates = createServerFn()
     return ratesWithDiff
   })
 
+// Fetch historical rates from the Frankfurter API for the last 5 days
 async function getHistoricalRates() {
   const now = new Date()
   const endDate = new Date(

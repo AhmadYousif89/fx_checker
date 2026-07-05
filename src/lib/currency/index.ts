@@ -16,6 +16,12 @@ export {
   abbreviateCurrencyName,
 } from './format'
 export { getFlagUrl } from './flags'
-export { getCrossRate } from './rates'
 export { orderCompareCurrencies } from './ordering'
 export { formatTooltipDate, formatAxisDate } from './chart-dates'
+export {
+  getCrossRate,
+  getCrossRateAtDate,
+  generateFallbackPairs,
+  getRateAtDate,
+  FALLBACK_PAIRS,
+} from './rates'
