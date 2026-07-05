@@ -1,8 +1,11 @@
-import { useNavigate } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+
+import { useLoadingStore } from '#/store/loading.store'
 
 export function useUpdateUrl() {
   const navigate = useNavigate()
+  const setLoading = useLoadingStore((s) => s.setLoading)
 
   return useCallback(
     (updates: {
@@ -12,12 +15,16 @@ export function useUpdateUrl() {
       view?: string
       tab?: string
     }) => {
+      if ('from' in updates || 'to' in updates) {
+        setLoading(true)
+      }
+
       navigate({
         to: '/',
         search: (prev) => ({ ...prev, ...updates }),
         replace: true,
       })
     },
-    [navigate],
+    [navigate, setLoading],
   )
 }

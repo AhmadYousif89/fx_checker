@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Main } from '#/main'
 import { Header } from '#/header'
 import { Footer } from '#/footer'
+import { TopLoader } from '#/components/top-loader'
 import { getRates } from '#/server/functions/rates'
 import { getFrankfurterHistory } from '#/server/functions/history'
 import { getCurrencies } from '#/server/functions/currencies'
@@ -60,6 +61,7 @@ function Home() {
   return (
     <>
       <Header />
+      <TopLoader />
       <Main />
       <Footer />
     </>
