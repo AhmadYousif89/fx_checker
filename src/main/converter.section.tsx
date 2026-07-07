@@ -79,7 +79,14 @@ export const RateConverter = () => {
     { requireReset: true, ignoreInputs: false },
   )
 
-  useHotkey('Shift+S', swap, { requireReset: true })
+  useHotkey(
+    'Shift+S',
+    () => {
+      swap()
+      setEditSide('send')
+    },
+    { requireReset: true },
+  )
 
   // Handle switching between send and receive inputs with arrow keys
   useEffect(() => {

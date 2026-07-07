@@ -17,16 +17,11 @@ export function useActivePair() {
       to: '/',
       search: (prev) => ({
         ...prev,
-        from: receiver,
-        to: sender,
+        from: prev.to ?? 'EUR',
+        to: prev.from ?? 'USD',
       }),
     })
-  }, [navigate, receiver, sender, setLoading])
+  }, [navigate, setLoading])
 
-  return {
-    sender,
-    receiver,
-    amount,
-    swap,
-  }
+  return { sender, receiver, amount, swap }
 }

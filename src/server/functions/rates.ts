@@ -58,7 +58,12 @@ export const getRates = createServerFn()
       let direction: 'up' | 'down' | 'flat' = 'flat'
 
       if (previousDate) {
-        const previousRate = getCrossRateAtDate(rates, previousDate, base, quote)
+        const previousRate = getCrossRateAtDate(
+          rates,
+          previousDate,
+          base,
+          quote,
+        )
         if (previousRate !== null && previousRate > 0) {
           difference = ((latestRate - previousRate) / previousRate) * 100
           direction =
