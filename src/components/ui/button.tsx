@@ -16,7 +16,7 @@ const buttonVariants = cva(
           'border border-accent bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground disabled:border active:bg-accent active:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         destructive:
-          'bg-red hover:text-[#fff] hover:bg-red/90 active:bg-red/90 focus-visible:ring-red',
+          'bg-red text-background hover:text-background hover:bg-red/90 active:bg-red/90 focus-visible:ring-red',
       },
       size: {
         default: 'h-10 px-4 py-2 has-[>svg]:px-3',

@@ -20,8 +20,9 @@ const SHORTCUTS = [
   { keys: '\u2192', action: 'Switch to receiver picker' },
   { keys: '\u2190', action: 'Switch to sender picker' },
   { keys: 'Shift+S', action: 'Swap currencies' },
+  { keys: 'Shift+H', action: 'Take a screenshot' },
   { keys: 'Shift+T', action: 'Toggle theme' },
-  { keys: '1-7', action: 'Select chart range' },
+  { keys: '1-6', action: 'Select chart range' },
 ] as const
 
 export const KeyboardShortcutsDialog = ({ open, onOpenChange }: Props) => (
