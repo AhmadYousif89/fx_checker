@@ -20,6 +20,7 @@ import {
   abbreviateCurrencyName,
   orderCompareCurrencies,
 } from '#/lib/currency'
+import { cn } from '#/lib/utils'
 
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
@@ -56,22 +57,7 @@ export const CompareSection = () => {
   const rates = ratesData?.rates
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-        <div className="flex items-center justify-between">
-          <div className="h-5 w-48 rounded bg-muted/10 animate-pulse" />
-          <div className="h-4 w-16 rounded bg-muted/10 animate-pulse" />
-        </div>
-        <div className="space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-14 rounded-10 animate-pulse bg-muted/10"
-            />
-          ))}
-        </div>
-      </div>
-    )
+    return <CompareSkeleton />
   }
 
   if (isError || !ratesData) {
@@ -83,8 +69,8 @@ export const CompareSection = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-      <header className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+    <div className="flex flex-col gap-2 md:gap-3 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5">
+      <header className="flex flex-col justify-between gap-2 px-2 md:flex-row md:items-center">
         <h3 className="uppercase">
           <span className="text-body text-muted">multi-currency </span>
           <span className="text-body-lg-medium text-foreground">
@@ -96,7 +82,7 @@ export const CompareSection = () => {
         </p>
       </header>
 
-      <ul className="space-y-3">
+      <ul className="space-y-3 p-2">
         {comparePairs.map((quote, index) => (
           <CompareRow
             key={quote}
@@ -134,12 +120,25 @@ const CompareRow = memo((props: CompareRowProps) => {
 
   const converted = amount * rate
   const flagUrl = getFlagUrl(quote)
+  const handleClick = () => updateUrl({ from: sender, to: quote })
 
   return (
     <li
-      onClick={() => updateUrl({ from: sender, to: quote })}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleClick()
+        }
+      }}
+      tabIndex={0}
+      role="button"
       style={{ animationDelay: `${index * 80}ms` }}
-      className="h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer hover:border-surface-300 active:border-surface-300 transition-colors opacity-0 animate-fade-in"
+      className={cn(
+        'h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
+        'hover:border-surface-300 active:border-surface-300 transition-colors opacity-0 animate-fade-in',
+        'outline-none focus-visible:ring focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+      )}
     >
       <div className="flex items-center gap-2.5 size-full md:gap-5">
         {flagUrl && (
@@ -186,3 +185,19 @@ const CompareRow = memo((props: CompareRowProps) => {
     </li>
   )
 })
+
+const CompareSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-48 rounded bg-muted/10 animate-pulse" />
+        <div className="h-4 w-16 rounded bg-muted/10 animate-pulse" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="h-14 rounded-10 animate-pulse bg-muted/10" />
+        ))}
+      </div>
+    </div>
+  )
+}

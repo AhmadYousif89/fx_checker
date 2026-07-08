@@ -78,8 +78,8 @@ export const FavoritesSection = () => {
   }
 
   return (
-    <div className="grid grow place-content-start justify-normal gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-      <header className="flex items-center justify-between gap-2">
+    <div className="grid grow place-content-start justify-normal gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5">
+      <header className="flex items-center justify-between gap-2 px-2">
         <h3 className="text-body-lg-medium uppercase">pinned pairs</h3>
         <p className="text-foreground-darker text-caption uppercase">
           <span>{favoritesCount} </span>

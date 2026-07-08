@@ -27,7 +27,7 @@ export const LogList = ({ logs }: { logs: ConversionLog[] }) => {
       ref={listRef}
       style={maxHeight != null ? { maxHeight } : undefined}
     >
-      <ul className="space-y-3">
+      <ul className="space-y-3 p-2">
         {logs.map((log, index) => (
           <LogRow key={log.timestamp} log={log} index={index} />
         ))}

@@ -28,7 +28,7 @@ export const FavoritesList = ({
       ref={listRef}
       style={maxHeight != null ? { maxHeight } : undefined}
     >
-      <ul className="space-y-3">
+      <ul className="space-y-3 p-2">
         {favorites.map((f, index) => {
           const diff = getRateWithDiff(f)
           return (

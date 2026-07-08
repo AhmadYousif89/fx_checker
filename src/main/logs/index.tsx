@@ -47,8 +47,8 @@ export const LogsSection = () => {
   }
 
   return (
-    <div className="grid grow place-content-start justify-normal gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-      <header className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+    <div className="grid grow place-content-start justify-normal gap-2 md:gap-3 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5">
+      <header className="flex flex-col justify-between gap-2 px-2 md:flex-row md:items-center">
         <h3 className="text-body-lg-medium uppercase">conversion logs</h3>
         <div className="flex items-center justify-between gap-4">
           <span className="text-caption uppercase text-foreground-darker">
@@ -94,7 +94,7 @@ export const LogsSection = () => {
                   <AlertDialogAction
                     onClick={clearLogs}
                     variant="destructive"
-                    className="text-body"
+                    className="text-[white]! text-body"
                   >
                     Yes, clear all
                   </AlertDialogAction>
