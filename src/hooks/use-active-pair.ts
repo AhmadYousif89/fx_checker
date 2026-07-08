@@ -20,6 +20,7 @@ export function useActivePair() {
         from: prev.to ?? 'EUR',
         to: prev.from ?? 'USD',
       }),
+      replace: true,
     })
   }, [navigate, setLoading])
 

@@ -21,9 +21,8 @@ import { Button } from './ui/button'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
 
 import {
-  POPULAR_CODES,
-  parseCurrency,
   getFlagUrl,
+  POPULAR_CODES,
   abbreviateCurrencyName,
 } from '#/lib/currency'
 import { ArrowDropDown } from './icons/arrow-drop-down'
@@ -39,10 +38,13 @@ type CurrencyPickerProps = {
 }
 
 export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
-  const updateUrl = useUpdateUrl()
   const { from = 'USD', to = 'EUR' } = useSearch({ from: '/' })
   const selectedValue = isSender ? from : to
   const oppositeValue = isSender ? to : from
+
+  const updateUrl = useUpdateUrl()
+  const { currencies, isLoading, isError } = useCurrenciesQuery()
+
   const recent = useCurrencyStore((s) =>
     isSender ? s.recent.from : s.recent.to,
   )
@@ -51,37 +53,29 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
     ? activePicker === 'sender'
     : activePicker === 'receiver'
 
-  const currenciesQuery = useCurrenciesQuery()
-
-  const codeToName = useMemo(() => {
-    if (!currenciesQuery.currencies.length) return new Map<string, string>()
-    return new Map(currenciesQuery.currencies.map((c) => [c.iso_code, c.name]))
-  }, [currenciesQuery.currencies])
-
   const groups = useMemo(() => {
-    if (!currenciesQuery.currencies.length) return []
+    if (!currencies.length) return []
 
-    const excludeOpposite = (item: string) =>
-      !item.startsWith(`${oppositeValue}-`)
-
-    const recentItems = recent
-      .filter((code) => codeToName.has(code))
-      .map((code) => `${code}-${codeToName.get(code)}`)
-      .filter(excludeOpposite)
-
-    const popularItems = currenciesQuery.currencies
-      .filter((item) => POPULAR_CODES.includes(item.iso_code))
-      .map(({ iso_code, name }) => `${iso_code}-${name}`)
-      .filter(excludeOpposite)
-
-    const otherItems = currenciesQuery.currencies
-      .filter((item) => !POPULAR_CODES.includes(item.iso_code))
-      .map(({ iso_code, name }) => `${iso_code}-${name}`)
-      .filter(excludeOpposite)
+    const recentItems = currencies.filter(
+      (c) => recent.includes(c.iso_code) && c.iso_code !== oppositeValue,
+    )
+    const popularItems = currencies.filter(
+      (c) => POPULAR_CODES.includes(c.iso_code) && c.iso_code !== oppositeValue,
+    )
+    const otherItems = currencies.filter(
+      (c) =>
+        !POPULAR_CODES.includes(c.iso_code) && c.iso_code !== oppositeValue,
+    )
 
     return [
       ...(recentItems.length > 0
-        ? [{ icon: <HistoryIcon />, value: 'Recent', items: recentItems }]
+        ? [
+            {
+              icon: <HistoryIcon />,
+              value: 'Recent',
+              items: recentItems,
+            },
+          ]
         : []),
       { icon: <TrendingUpIcon />, value: 'Popular', items: popularItems },
       ...(otherItems.length > 0
@@ -94,9 +88,9 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
           ]
         : []),
     ]
-  }, [currenciesQuery.currencies, recent, codeToName, oppositeValue])
+  }, [currencies, recent, oppositeValue])
 
-  if (currenciesQuery.isError) {
+  if (isError) {
     return (
       <div className="text-overline text-red rounded-8 p-2.5 min-h-10 whitespace-nowrap flex items-center">
         Failed to load
@@ -116,21 +110,20 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
           setActivePicker(null)
         }
       }}
-      onValueChange={(value) => {
-        if (value) pushToRecent(isSender ? 'from' : 'to', value)
-        updateUrl({
-          [isSender ? 'from' : 'to']: value,
-        })
+      onValueChange={(code) => {
+        if (!code) return
+        pushToRecent(isSender ? 'from' : 'to', code)
+        updateUrl({ [isSender ? 'from' : 'to']: code })
       }}
     >
       <ComboboxTrigger
         className="flex items-center gap-2 shrink-0 border text-body p-2.5 rounded-8 ml-auto"
-        render={currenciesQuery.isLoading ? <TriggerSkeleton /> : <Button />}
+        render={isLoading ? <TriggerSkeleton /> : <Button />}
       >
         {selectedValue && (
           <Image
-            src={getFlagUrl(parseCurrency(selectedValue).code)}
-            alt={abbreviateCurrencyName(parseCurrency(selectedValue).name)}
+            src={getFlagUrl(selectedValue)}
+            alt={abbreviateCurrencyName(selectedValue)}
             layout="fullWidth"
             className="size-5 rounded-full"
           />
@@ -142,11 +135,11 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
           showTrigger={false}
           renderIcon={<Search className="size-5" />}
           placeholder="Search currencies..."
-          className="min-h-11.5 rounded-6 placeholder:text-overline"
+          className="min-h-11.5 rounded-6 placeholder:text-overline sticky top-0 bg-popover z-10"
         />
         <ComboboxEmpty>No currencies found.</ComboboxEmpty>
-        <ComboboxList className="scrollbar-none mt-2 pb-10">
-          {(group) => (
+        <ComboboxList className="scrollbar-none py-2">
+          {(group: (typeof groups)[number]) => (
             <ComboboxGroup key={group.value} items={group.items}>
               <ComboboxLabel className="text-caption text-muted uppercase flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 [&>svg]:size-4">
@@ -158,25 +151,24 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
               <ComboboxSeparator />
               <ComboboxCollection>
                 {(item) => {
-                  const { code, name } = parseCurrency(item)
-                  const flagUrl = getFlagUrl(code)
+                  const flagUrl = getFlagUrl(item.iso_code)
                   return (
                     <ComboboxItem
-                      key={name}
-                      value={code}
+                      key={item.iso_code}
+                      value={item.iso_code}
                       className="min-h-11.5 rounded-4"
                     >
                       {flagUrl && (
                         <Image
                           src={flagUrl}
-                          alt={code}
+                          alt={item.iso_code}
                           layout="fullWidth"
                           className="size-5 rounded-full"
                         />
                       )}
-                      <span className="text-body">{code}</span>
+                      <span className="text-body">{item.iso_code}</span>
                       <span className="text-caption text-muted">
-                        {abbreviateCurrencyName(name)}
+                        {abbreviateCurrencyName(item.name)}
                       </span>
                     </ComboboxItem>
                   )

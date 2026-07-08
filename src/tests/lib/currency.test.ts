@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import {
   getFlagUrl,
-  parseCurrency,
   abbreviateCurrencyName,
   restrictNumeric,
   timeAgo,
@@ -36,26 +35,6 @@ describe('getFlagUrl', () => {
 
   it('handles longer codes by slicing first 2 chars', () => {
     expect(getFlagUrl('USDT')).toBe('/assets/images/flags/us.webp')
-  })
-})
-
-describe('parseCurrency', () => {
-  it('splits code and name by dash', () => {
-    expect(parseCurrency('USD-United States Dollar')).toEqual({
-      code: 'USD',
-      name: 'United States Dollar',
-    })
-  })
-
-  it('handles multi-word names', () => {
-    expect(parseCurrency('KPW-North Korean Won')).toEqual({
-      code: 'KPW',
-      name: 'North Korean Won',
-    })
-  })
-
-  it('handles code only', () => {
-    expect(parseCurrency('EUR')).toEqual({ code: 'EUR', name: '' })
   })
 })
 

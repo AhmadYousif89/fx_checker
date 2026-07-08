@@ -1,8 +1,3 @@
-export function parseCurrency(value: string) {
-  const [code, ...rest] = value.split('-')
-  return { code, name: rest.join(' ') }
-}
-
 export function abbreviateCurrencyName(name: string): string {
   const words = name.split(' ')
   if (words.length < 3) return name
