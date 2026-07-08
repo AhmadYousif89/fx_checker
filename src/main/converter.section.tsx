@@ -27,6 +27,7 @@ import { cn } from '#/lib/utils'
 import { SendField } from './converter/send.field'
 import { ReceiverField } from './converter/receiver.field'
 import { BaseExchangeRate } from './converter/base-rate'
+import { ConverterActionsMenu } from './converter/actions.menu'
 
 type EditSide = 'send' | 'receive'
 type LogStatus = 'idle' | 'created' | 'updated'
@@ -274,7 +275,7 @@ export const RateConverter = () => {
               />
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center justify-center gap-3 max-lg:w-full">
             <Button
               type="button"
               size="sm"
@@ -285,6 +286,7 @@ export const RateConverter = () => {
               <StarIcon className="group-aria-pressed:fill-background" />
               <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
             </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -309,6 +311,8 @@ export const RateConverter = () => {
                 <span className="uppercase">Log conversion</span>
               )}
             </Button>
+
+            <ConverterActionsMenu />
           </div>
         </div>
       </form>

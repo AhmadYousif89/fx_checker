@@ -28,6 +28,7 @@ import {
 } from '#/components/ui/tooltip'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
+import { ScreenshotAction } from './screenshot'
 
 const HistoryChart = lazy(() =>
   import('./chart').then((m) => ({ default: m.HistoryChart })),
@@ -219,7 +220,7 @@ export const HistorySection = () => {
         {/* Stats */}
         <HistoryStats stats={stats} isLoading={isFetching} />
         {/* Time range */}
-        <div className="relative mt-5 w-fit lg:self-end">
+        <div className="relative mt-5 w-full lg:self-end">
           {rateLimiterData?.isWaiting && (
             <Tooltip>
               <div className="absolute max-sm:left-0 max-sm:-top-5 sm:-right-6 sm:inset-y-0 flex items-center justify-center">
@@ -239,29 +240,33 @@ export const HistorySection = () => {
               </TooltipContent>
             </Tooltip>
           )}
-          <ToggleGroup
-            type="single"
-            spacing={0.25}
-            value={selectedTime}
-            onValueChange={(value) => {
-              if (value) updateUrl({ view: value })
-            }}
-            disabled={rateLimiterData?.isWaiting}
-            className={cn(
-              'bg-surface p-0.5',
-              rateLimiterData?.isWaiting && 'ring ring-accent/50 animate-pulse',
-            )}
-          >
-            {rangeKeys.map((rk) => (
-              <ToggleGroupItem
-                key={rk}
-                value={rk}
-                onPointerOver={() => prefetchRange(rk)}
-              >
-                {rk.toUpperCase()}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
+          <div className="flex items-center justify-between lg:justify-end gap-2">
+            <ToggleGroup
+              type="single"
+              spacing={0.25}
+              value={selectedTime}
+              onValueChange={(value) => {
+                if (value) updateUrl({ view: value })
+              }}
+              disabled={rateLimiterData?.isWaiting}
+              className={cn(
+                'bg-surface p-0.5',
+                rateLimiterData?.isWaiting &&
+                  'ring ring-accent/50 animate-pulse',
+              )}
+            >
+              {rangeKeys.map((rk) => (
+                <ToggleGroupItem
+                  key={rk}
+                  value={rk}
+                  onPointerOver={() => prefetchRange(rk)}
+                >
+                  {rk.toUpperCase()}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <ScreenshotAction />
+          </div>
         </div>
       </div>
       {/* Chart */}
