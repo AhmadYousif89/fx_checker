@@ -12,7 +12,7 @@ export function useActivePair() {
   const amount = useSearch({ from: '/', select: (s) => s.amount ?? '1' })
 
   const swap = useCallback(() => {
-    setLoading(true)
+    setLoading({ isLoading: true })
     navigate({
       to: '/',
       search: (prev) => ({

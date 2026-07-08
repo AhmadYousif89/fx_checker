@@ -35,6 +35,14 @@ type LogStatus = 'idle' | 'created' | 'updated'
 export const RateConverter = () => {
   const updateUrl = useUpdateUrl()
   const { sender, receiver, amount: urlAmount, swap } = useActivePair()
+  const [showCopiedPopup, setShowCopiedPopup] = useState(false)
+
+  useEffect(() => {
+    if (!showCopiedPopup) return
+    const timer = setTimeout(() => setShowCopiedPopup(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showCopiedPopup])
+
   const isFavorited = useIsFavorited(sender, receiver)
   const activePicker = useCurrencyStore((s) => s.activePicker)
   const lastActivePicker = useCurrencyStore((s) => s.lastActivePicker)
@@ -213,7 +221,7 @@ export const RateConverter = () => {
   return (
     <section
       aria-labelledby="converter-heading"
-      className="flex flex-col gap-4"
+      className="relative flex flex-col gap-4"
     >
       <header>
         <h2 id="converter-heading" className="uppercase text-heading">
@@ -224,7 +232,7 @@ export const RateConverter = () => {
       <form
         onSubmit={(e) => e.preventDefault()}
         autoComplete="off"
-        className="bg-surface rounded-20"
+        className="bg-surface rounded-20 relative"
       >
         <FieldGroup className="gap-4 p-4 md:p-5 md:gap-6 md:flex-row">
           <SendField
@@ -312,10 +320,21 @@ export const RateConverter = () => {
               )}
             </Button>
 
-            <ConverterActionsMenu />
+            <ConverterActionsMenu onCopy={() => setShowCopiedPopup(true)} />
           </div>
         </div>
       </form>
+      <div
+        aria-hidden={!showCopiedPopup}
+        className={cn(
+          'absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-background z-10 transition-all duration-300',
+          showCopiedPopup
+            ? 'animate-fade-in visible'
+            : 'animate-fade-out invisible',
+        )}
+      >
+        Link copied to clipboard
+      </div>
     </section>
   )
 }

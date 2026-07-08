@@ -1,11 +1,23 @@
 import { create } from 'zustand'
 
+type LoadingOptions = {
+  isLoading: boolean
+  keepAlive?: boolean
+}
+
 type LoadingStore = {
   isLoading: boolean
-  setLoading: (loading: boolean) => void
+  setLoading: (options: LoadingOptions) => void
+  keepAlive: boolean
 }
 
 export const useLoadingStore = create<LoadingStore>((set) => ({
   isLoading: false,
-  setLoading: (loading) => set({ isLoading: loading }),
+  setLoading: ({ isLoading, keepAlive }) =>
+    set(
+      keepAlive !== undefined
+        ? { isLoading, keepAlive }
+        : { isLoading, keepAlive: false },
+    ),
+  keepAlive: false,
 }))

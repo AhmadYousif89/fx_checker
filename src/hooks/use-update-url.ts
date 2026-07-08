@@ -16,7 +16,7 @@ export function useUpdateUrl() {
       tab?: string
     }) => {
       if ('from' in updates || 'to' in updates) {
-        setLoading(true)
+        setLoading({ isLoading: true })
       }
 
       navigate({

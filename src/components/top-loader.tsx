@@ -19,6 +19,8 @@ export const TopLoader = () => {
   const hasFetched = useRef(false)
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
+  const keepAlive = useLoadingStore((s) => s.keepAlive)
+
   // settle the loading state after a small delay to avoid flickering when switching between pairs
   useEffect(() => {
     if (!isLoading) {
@@ -26,25 +28,30 @@ export const TopLoader = () => {
       return
     }
 
+    if (keepAlive) return
+
     if (isFetching > 0) {
       hasFetched.current = true
       return
     }
 
     if (hasFetched.current) {
-      settleTimer.current = setTimeout(() => setLoading(false), 100)
+      settleTimer.current = setTimeout(
+        () => setLoading({ isLoading: false }),
+        100,
+      )
       return () => clearTimeout(settleTimer.current)
     }
-  }, [isLoading, isFetching])
+  }, [isLoading, isFetching, keepAlive])
 
   // fallback in case the query is stuck in a loading state
   useEffect(() => {
-    if (!isLoading) return
+    if (!isLoading || keepAlive) return
     const fallback = setTimeout(() => {
-      if (!hasFetched.current) setLoading(false)
+      if (!hasFetched.current) setLoading({ isLoading: false })
     }, 100)
     return () => clearTimeout(fallback)
-  }, [isLoading, setLoading])
+  }, [isLoading, setLoading, keepAlive])
 
   // show the loader after a small delay to avoid flickering when switching between pairs
   useEffect(() => {
