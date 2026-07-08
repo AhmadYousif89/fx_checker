@@ -11,7 +11,6 @@ export {
   formatAmount,
   formatInputAmount,
   shortTimeAgo,
-  parseCurrency,
   restrictNumeric,
   abbreviateCurrencyName,
 } from './format'
