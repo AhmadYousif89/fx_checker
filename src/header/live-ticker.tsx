@@ -1,6 +1,7 @@
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLiveTicker } from '#/hooks/use-live-ticker'
 import { useMarqueeDrag } from '#/hooks/use-marquee-drag'
+import { RateDiff } from '#/components/rate-diff'
 
 export const LiveTicker = () => {
   const { sender } = useActivePair()
@@ -63,27 +64,11 @@ export const LiveTicker = () => {
                         maximumFractionDigits: rate.rate < 10 ? 4 : 2,
                       })}
                     </span>
-                    <span
-                      className={`flex items-center gap-0.5 text-overline md:text-caption-medium ${
-                        rate.direction === 'up'
-                          ? 'text-green'
-                          : rate.direction === 'down'
-                            ? 'text-red'
-                            : 'text-muted'
-                      }`}
-                    >
-                      <span>
-                        {rate.direction === 'up'
-                          ? '▲'
-                          : rate.direction === 'down'
-                            ? '▼'
-                            : ''}
-                      </span>
-                      <span>
-                        {rate.difference >= 0 ? '+' : ''}
-                        {rate.difference.toFixed(3)}%
-                      </span>
-                    </span>
+                    <RateDiff
+                      difference={rate.difference}
+                      direction={rate.direction}
+                      className="text-overline md:text-caption-medium"
+                    />
                   </li>
                 )
               })}
@@ -110,27 +95,11 @@ export const LiveTicker = () => {
                         maximumFractionDigits: rate.rate < 10 ? 4 : 2,
                       })}
                     </span>
-                    <span
-                      className={`flex items-center gap-0.5 text-overline md:text-caption-medium ${
-                        rate.direction === 'up'
-                          ? 'text-green'
-                          : rate.direction === 'down'
-                            ? 'text-red'
-                            : 'text-muted'
-                      }`}
-                    >
-                      <span>
-                        {rate.direction === 'up'
-                          ? '▲'
-                          : rate.direction === 'down'
-                            ? '▼'
-                            : ''}
-                      </span>
-                      <span>
-                        {rate.difference >= 0 ? '+' : ''}
-                        {rate.difference.toFixed(3)}%
-                      </span>
-                    </span>
+                    <RateDiff
+                      difference={rate.difference}
+                      direction={rate.direction}
+                      className="text-overline md:text-caption-medium"
+                    />
                   </li>
                 )
               })}

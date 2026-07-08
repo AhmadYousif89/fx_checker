@@ -47,7 +47,7 @@ export const LogsSection = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
+    <div className="grid grow place-content-start justify-normal gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
       <header className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
         <h3 className="text-body-lg-medium uppercase">conversion logs</h3>
         <div className="flex items-center justify-between gap-4">
@@ -122,7 +122,7 @@ const LogsSkeleton = () => {
         </div>
       </div>
       <div className="space-y-3">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
         ))}
       </div>
