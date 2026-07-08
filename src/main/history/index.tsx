@@ -10,17 +10,18 @@ import { InfoIcon } from 'lucide-react'
 
 import { rangeKeys } from '#/lib/currency/time-ranges'
 import type { RangeKey } from '#/lib/currency/time-ranges'
-import { computeHistoryStats } from '#/lib/history-helpers'
+import {
+  computeHistoryStats,
+  computeHistoryYAxisDomain,
+} from '#/lib/history-helpers'
 import { TIME_RANGES, RANGE_INTERVALS, getCrossRate } from '#/lib/currency'
 
-import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
-import { useActivePair } from '#/hooks/use-active-pair'
 import { useUpdateUrl } from '#/hooks/use-update-url'
+import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useRateLimiterStatus } from '#/hooks/use-rate-limiter'
+import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 
-import { cn } from '#/lib/utils'
-import { HistoryStats } from './stats'
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +30,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
 import { ScreenshotAction } from './screenshot'
+import { HistoryStats } from './stats'
 
 const HistoryChart = lazy(() =>
   import('./chart').then((m) => ({ default: m.HistoryChart })),
@@ -141,17 +143,13 @@ export const HistorySection = () => {
     }
 
     const pointsToAdd = Math.min(Math.floor(diffMinutes / intervalMinutes), 144)
-    const lastCloseVal = last.close
-    const totalSteps = pointsToAdd + 1
 
     const interpolated: typeof data = []
     for (let i = 1; i <= pointsToAdd; i++) {
-      const t = i / totalSteps
-      const close = lastCloseVal + (liveRate - lastCloseVal) * t
       const time = formatTS(
         new Date(lastDate.getTime() + i * intervalMinutes * 60 * 1000),
       )
-      interpolated.push({ ...last, close, time })
+      interpolated.push({ ...last, time })
     }
 
     return [
@@ -182,6 +180,12 @@ export const HistorySection = () => {
       gcTime: 1000 * 60 * 60 * 24,
     })
   }
+
+  const yDomain = useMemo(
+    () =>
+      data ? computeHistoryYAxisDomain(data) : ([0, 1] as [number, number]),
+    [data],
+  )
 
   const stats = computeHistoryStats(patchedData)
   const hasData = data && data.length > 0
@@ -220,52 +224,52 @@ export const HistorySection = () => {
         {/* Stats */}
         <HistoryStats stats={stats} isLoading={isFetching} />
         {/* Time range */}
-        <div className="relative mt-5 w-full lg:self-end">
-          {rateLimiterData?.isWaiting && (
-            <Tooltip>
-              <div className="absolute max-sm:left-0 max-sm:-top-5 sm:-right-6 sm:inset-y-0 flex items-center justify-center">
-                <TooltipTrigger asChild>
-                  <InfoIcon className="size-4 text-accent" />
-                </TooltipTrigger>
-              </div>
-              <TooltipContent align="end" sideOffset={6}>
-                <p className="text-caption text-balance text-center flex flex-col gap-1">
-                  <span className="text-red uppercase">
-                    Rate limit exceeded!
-                  </span>
-                  <span>
-                    Please wait a few seconds before switching time ranges.
-                  </span>
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+        <div className="mt-5 w-full lg:self-end">
           <div className="flex items-center justify-between lg:justify-end gap-2">
-            <ToggleGroup
-              type="single"
-              spacing={0.25}
-              value={selectedTime}
-              onValueChange={(value) => {
-                if (value) updateUrl({ view: value })
-              }}
-              disabled={rateLimiterData?.isWaiting}
-              className={cn(
-                'bg-surface p-0.5',
-                rateLimiterData?.isWaiting &&
-                  'ring ring-accent/50 animate-pulse',
+            <div className="flex items-center gap-2">
+              <ToggleGroup
+                type="single"
+                spacing={0.25}
+                value={selectedTime}
+                disabled={rateLimiterData?.isWaiting}
+                onValueChange={(value) => {
+                  if (value) updateUrl({ view: value })
+                }}
+                className="bg-surface p-0.5"
+              >
+                {rangeKeys.map((rk) => (
+                  <ToggleGroupItem
+                    key={rk}
+                    value={rk}
+                    onPointerOver={() => prefetchRange(rk)}
+                  >
+                    {rk.toUpperCase()}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              {rateLimiterData?.isWaiting && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="size-4 text-red" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    align="end"
+                    sideOffset={6}
+                    className="max-w-xs"
+                  >
+                    <p className="text-caption text-balance text-center flex flex-col gap-1">
+                      <span className="text-red uppercase">
+                        Rate limit exceeded!
+                      </span>
+                      <span>
+                        Please wait a few seconds before switching time ranges.
+                      </span>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               )}
-            >
-              {rangeKeys.map((rk) => (
-                <ToggleGroupItem
-                  key={rk}
-                  value={rk}
-                  onPointerOver={() => prefetchRange(rk)}
-                >
-                  {rk.toUpperCase()}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            <ScreenshotAction />
+            </div>
+            <ScreenshotAction disabled={rateLimiterData?.isWaiting} />
           </div>
         </div>
       </div>
@@ -282,6 +286,7 @@ export const HistorySection = () => {
             sender={sender}
             receiver={receiver}
             selectedTime={selectedTime}
+            yDomain={yDomain}
           />
         </Suspense>
       </div>

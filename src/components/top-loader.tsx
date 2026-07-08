@@ -8,6 +8,7 @@ export const TopLoader = () => {
   const [shouldShow, setShouldShow] = useState(false)
   const isLoading = useLoadingStore((s) => s.isLoading)
   const setLoading = useLoadingStore((s) => s.setLoading)
+  const keepAlive = useLoadingStore((s) => s.keepAlive)
 
   const ratesFetching = useIsFetching({ queryKey: ['rates'] })
   const latestFetching = useIsFetching({ queryKey: ['latest-rates'] })
@@ -18,8 +19,6 @@ export const TopLoader = () => {
 
   const hasFetched = useRef(false)
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  const keepAlive = useLoadingStore((s) => s.keepAlive)
 
   // settle the loading state after a small delay to avoid flickering when switching between pairs
   useEffect(() => {
@@ -53,7 +52,6 @@ export const TopLoader = () => {
     return () => clearTimeout(fallback)
   }, [isLoading, setLoading, keepAlive])
 
-  // show the loader after a small delay to avoid flickering when switching between pairs
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => setShouldShow(true), 200)
@@ -63,20 +61,22 @@ export const TopLoader = () => {
   }, [isLoading])
 
   return (
-    <div
-      className={cn(
-        'w-full h-0.5 overflow-hidden transition-opacity duration-500',
-        shouldShow ? 'opacity-100' : 'opacity-0 pointer-events-none',
-      )}
-      role="progressbar"
-      aria-label="Loading"
-    >
+    <div className="w-full h-0.5">
       <div
         className={cn(
-          'h-full bg-accent origin-left',
-          shouldShow ? 'animate-loader-grow' : '',
+          'size-full overflow-hidden transition-opacity duration-500',
+          shouldShow ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
-      />
+        role="progressbar"
+        aria-label="Loading"
+      >
+        <div
+          className={cn(
+            'h-full bg-accent origin-left',
+            shouldShow && 'animate-loader-grow',
+          )}
+        />
+      </div>
     </div>
   )
 }

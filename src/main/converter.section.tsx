@@ -327,7 +327,7 @@ export const RateConverter = () => {
       <div
         aria-hidden={!showCopiedPopup}
         className={cn(
-          'absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-background z-10 transition-all duration-300',
+          'absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-[black] z-10 transition-all duration-300',
           showCopiedPopup
             ? 'animate-fade-in visible'
             : 'animate-fade-out invisible',

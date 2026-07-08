@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useSearch } from '@tanstack/react-router'
+import { useHotkey } from '@tanstack/react-hotkeys'
 import { domToPng } from 'modern-screenshot'
 import { CameraIcon } from 'lucide-react'
 
@@ -12,7 +13,7 @@ import {
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLoadingStore } from '#/store/loading.store'
 
-export const ScreenshotAction = () => {
+export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
   const { sender, receiver } = useActivePair()
   const isLoading = useLoadingStore((s) => s.isLoading)
   const setLoading = useLoadingStore((s) => s.setLoading)
@@ -20,7 +21,6 @@ export const ScreenshotAction = () => {
 
   const handleScreenshot = useCallback(async () => {
     setLoading({ isLoading: true, keepAlive: true })
-
     try {
       await new Promise((r) => setTimeout(r, 400))
 
@@ -38,7 +38,6 @@ export const ScreenshotAction = () => {
       const h = Math.max(1, document.documentElement.scrollHeight)
 
       const dataUrl = await domToPng(document.documentElement, {
-        scale: 2,
         width: w,
         height: h,
         backgroundColor: bg,
@@ -60,6 +59,11 @@ export const ScreenshotAction = () => {
     }
   }, [sender, receiver, selectedTime, setLoading])
 
+  useHotkey('Shift+H', handleScreenshot, {
+    requireReset: true,
+    enabled: !isLoading && !disabled,
+  })
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -67,7 +71,7 @@ export const ScreenshotAction = () => {
           size="icon-sm"
           variant="ghost"
           onClick={handleScreenshot}
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           className="h-9 w-auto aspect-square"
         >
           <CameraIcon className="size-4.5" />

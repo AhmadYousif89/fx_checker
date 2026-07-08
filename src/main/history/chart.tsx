@@ -30,6 +30,7 @@ type HistoyChartProps = {
   sender: string
   receiver: string
   selectedTime: string
+  yDomain?: [number, number]
 }
 
 export const HistoryChart = ({
@@ -37,6 +38,7 @@ export const HistoryChart = ({
   sender,
   receiver,
   selectedTime,
+  yDomain: yDomainProp,
 }: HistoyChartProps) => {
   const [range, setRange] = useState(() => getRange(data.length))
   const storedDateRangeRef = useRef<{
@@ -86,7 +88,7 @@ export const HistoryChart = ({
 
   const reducedMotion = useReducedMotion()
   const lastData = data[data.length - 1]
-  const yDomain = computeHistoryYAxisDomain(data)
+  const yDomain = yDomainProp ?? computeHistoryYAxisDomain(data)
 
   const headerDate =
     selectedTime === '5y'
