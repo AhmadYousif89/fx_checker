@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { motion } from 'framer-motion'
 import { Image } from '@unpic/react'
 import { StarIcon } from 'lucide-react'
 
@@ -14,17 +15,21 @@ import {
   abbreviateCurrencyName,
 } from '#/lib/currency'
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 4 },
+  visible: { opacity: 1, y: 0 },
+}
+
 type CompareItemProps = {
   sender: string
   quote: string
   amount: number
   rates: Map<string, number> | undefined
   name: string
-  index: number
 }
 
 export const CompareItem = memo((props: CompareItemProps) => {
-  const { sender, quote, amount, rates, name, index } = props
+  const { sender, quote, amount, rates, name } = props
   const updateUrl = useUpdateUrl()
   const isFavorited = useIsFavorited(sender, quote)
 
@@ -37,7 +42,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
   const handleClick = () => updateUrl({ from: sender, to: quote })
 
   return (
-    <li
+    <motion.li
       onClick={handleClick}
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return
@@ -48,10 +53,10 @@ export const CompareItem = memo((props: CompareItemProps) => {
       }}
       tabIndex={0}
       role="button"
-      style={{ animationDelay: `${index * 80}ms` }}
+      variants={itemVariants}
       className={cn(
         'h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
-        'hover:border-surface-300 active:border-surface-300 transition-colors opacity-0 animate-fade-in',
+        'hover:border-surface-300 active:border-surface-300 transition-colors',
         'outline-none focus-visible:ring focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       )}
     >
@@ -99,6 +104,6 @@ export const CompareItem = memo((props: CompareItemProps) => {
           </Button>
         </div>
       </div>
-    </li>
+    </motion.li>
   )
 })

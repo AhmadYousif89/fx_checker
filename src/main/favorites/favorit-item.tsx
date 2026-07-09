@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { toggleFavorite } from '#/store/currencies.store'
@@ -7,17 +8,20 @@ import { ArrowRightIcon, StarIcon } from 'lucide-react'
 import { RateDiff } from '#/components/rate-diff'
 import { cn } from '#/lib/utils'
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 4 },
+  visible: { opacity: 1, y: 0 },
+}
+
 export const FavoritesItem = memo(
   ({
     item,
     rate,
-    index,
     difference,
     direction,
   }: {
     item: CurrencyPair
     rate: string
-    index: number
     difference?: number
     direction?: RateWithDiff['direction']
   }) => {
@@ -27,8 +31,7 @@ export const FavoritesItem = memo(
       updateUrl({ from: item.sender, to: item.receiver })
 
     return (
-      <li
-        style={{ animationDelay: `${index * 80}ms` }}
+      <motion.li
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.target !== e.currentTarget) return
@@ -39,9 +42,10 @@ export const FavoritesItem = memo(
         }}
         tabIndex={0}
         role="button"
+        variants={itemVariants}
         className={cn(
           'h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
-          'hover:border-surface-300 active:border-surface-300 transition-colors opacity-0 animate-fade-in',
+          'hover:border-surface-300 active:border-surface-300 transition-colors',
           'outline-none focus-visible:ring focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         )}
       >
@@ -73,7 +77,7 @@ export const FavoritesItem = memo(
             <StarIcon className="fill-accent stroke-accent" />
           </Button>
         </div>
-      </li>
+      </motion.li>
     )
   },
 )

@@ -9,6 +9,8 @@ import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
 
+let compSectionDidPlay = false
+
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
   const recent = useCurrencyStore((s) => s.recent)
@@ -16,6 +18,26 @@ export const CompareSection = () => {
   const comparePicks = useCurrencyStore((s) => s.comparePicks)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError } = useLatestRates()
+  const didPlay = compSectionDidPlay
+
+  useEffect(() => {
+    let id: number | null = null
+    id = setTimeout(() => {
+      compSectionDidPlay = true
+    }, 1000)
+    return () => {
+      if (id) clearTimeout(id)
+    }
+  }, [])
+
+  const containerVariants = {
+    visible: {
+      transition: {
+        staggerChildren: didPlay ? 0 : 0.08,
+        default: { duration: 0.35, ease: 'easeOut' },
+      },
+    },
+  }
 
   const amount = parseFloat(urlAmount.replace(/,/g, '')) || 1
 
@@ -94,8 +116,12 @@ export const CompareSection = () => {
           </div>
         }
       />
-      <InsightCard.Body>
-        {validPicks.map((quote, index) => (
+      <InsightCard.Body
+        variants={containerVariants}
+        initial={didPlay ? 'visible' : 'hidden'}
+        animate="visible"
+      >
+        {validPicks.map((quote) => (
           <CompareItem
             key={quote}
             quote={quote}
@@ -103,7 +129,6 @@ export const CompareSection = () => {
             amount={amount}
             rates={rates}
             name={codeToName.get(quote) ?? quote}
-            index={index}
           />
         ))}
       </InsightCard.Body>

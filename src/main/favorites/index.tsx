@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { getCrossRate, formatRate } from '#/lib/currency'
@@ -10,10 +10,32 @@ import { getRates } from '#/server/functions/rates'
 import { InsightCard } from '#/components/insight-card'
 import { FavoritesItem } from './favorit-item'
 
+let favSectionDidPlay = false
+
 export const FavoritesSection = () => {
   const favorites = useCurrencyStore((s) => s.favorites)
   const favoritesCount = favorites.length
   const { sender } = useActivePair()
+  const didPlay = favSectionDidPlay
+
+  useEffect(() => {
+    let id: number | null = null
+    id = setTimeout(() => {
+      favSectionDidPlay = true
+    }, 1000)
+    return () => {
+      if (id) clearTimeout(id)
+    }
+  }, [])
+
+  const containerVariants = {
+    visible: {
+      transition: {
+        staggerChildren: didPlay ? 0 : 0.08,
+        default: { duration: 0.35, ease: 'easeOut' },
+      },
+    },
+  }
 
   const { data: ratesData, isLoading, isError } = useLatestRates()
   const { data: diffData } = useQuery({
@@ -88,14 +110,17 @@ export const FavoritesSection = () => {
           </span>
         }
       />
-      <InsightCard.Body>
-        {favorites.map((f, index) => {
+      <InsightCard.Body
+        variants={containerVariants}
+        initial={didPlay ? 'visible' : 'hidden'}
+        animate="visible"
+      >
+        {favorites.map((f) => {
           const diff = getRateWithDiff(f)
           return (
             <FavoritesItem
               key={`${f.sender}-${f.receiver}`}
               item={f}
-              index={index}
               rate={formatRate(diff?.rate ?? 0)}
               difference={diff?.difference}
               direction={diff?.direction}

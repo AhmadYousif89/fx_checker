@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { DownloadIcon } from 'lucide-react'
 import { useHydrated } from '@tanstack/react-router'
 
@@ -24,10 +25,32 @@ import { clearLogs, useCurrencyStore } from '#/store/currencies.store'
 import { InsightCard } from '#/components/insight-card'
 import { LogRow } from './log-row'
 
+let logsSectionDidPlay = false
+
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
   const logCount = logs.length
   const hydrated = useHydrated()
+  const didPlay = logsSectionDidPlay
+
+  useEffect(() => {
+    let id: number | null = null
+    id = setTimeout(() => {
+      logsSectionDidPlay = true
+    }, 1000)
+    return () => {
+      if (id) clearTimeout(id)
+    }
+  }, [])
+
+  const containerVariants = {
+    visible: {
+      transition: {
+        staggerChildren: didPlay ? 0 : 0.08,
+        default: { duration: 0.35, ease: 'easeOut' },
+      },
+    },
+  }
 
   if (!hydrated) {
     return <InsightCard.Skeleton hasActions={2} />
@@ -107,9 +130,13 @@ export const LogsSection = () => {
           </>
         }
       />
-      <InsightCard.Body>
-        {logs.map((log, index) => (
-          <LogRow key={log.timestamp} log={log} index={index} />
+      <InsightCard.Body
+        variants={containerVariants}
+        initial={didPlay ? 'visible' : 'hidden'}
+        animate="visible"
+      >
+        {logs.map((log) => (
+          <LogRow key={log.timestamp} log={log} />
         ))}
       </InsightCard.Body>
     </InsightCard.Root>

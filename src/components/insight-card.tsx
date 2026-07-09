@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import type { Variants } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 import { cn } from '#/lib/utils'
 import { ScrollArea } from '#/components/ui/scroll-area'
@@ -44,7 +46,17 @@ function Header({
   )
 }
 
-function Body({ children }: { children: ReactNode }) {
+function Body({
+  children,
+  variants,
+  initial,
+  animate,
+}: {
+  children: ReactNode
+  variants?: Variants
+  initial?: string
+  animate?: string
+}) {
   const [paddingBottom, setPaddingBottom] = useState(68)
   const [listRef, maxHeight] = useElementMaxHeight(paddingBottom)
 
@@ -58,7 +70,14 @@ function Body({ children }: { children: ReactNode }) {
       ref={listRef}
       style={maxHeight != null ? { maxHeight } : undefined}
     >
-      <ul className="space-y-3 p-2">{children}</ul>
+      <motion.ul
+        className="space-y-3 p-2"
+        variants={variants}
+        initial={initial}
+        animate={animate}
+      >
+        {children}
+      </motion.ul>
     </ScrollArea>
   )
 }
