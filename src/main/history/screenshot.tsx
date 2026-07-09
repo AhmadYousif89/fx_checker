@@ -15,12 +15,13 @@ import { useLoadingStore } from '#/store/loading.store'
 
 export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
   const { sender, receiver } = useActivePair()
-  const isLoading = useLoadingStore((s) => s.isLoading)
-  const setLoading = useLoadingStore((s) => s.setLoading)
+  const isActive = useLoadingStore((s) => 'screenshot' in s.loaders)
+  const startLoading = useLoadingStore((s) => s.startLoading)
+  const stopLoading = useLoadingStore((s) => s.stopLoading)
   const selectedTime = useSearch({ from: '/', select: (s) => s.view ?? '3m' })
 
   const handleScreenshot = useCallback(async () => {
-    setLoading({ isLoading: true, keepAlive: true })
+    startLoading('screenshot', { keepAlive: true })
     try {
       await new Promise((r) => setTimeout(r, 400))
 
@@ -55,13 +56,13 @@ export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
     } catch (err) {
       console.error('Screenshot failed', err)
     } finally {
-      setLoading({ isLoading: false })
+      stopLoading('screenshot')
     }
-  }, [sender, receiver, selectedTime, setLoading])
+  }, [sender, receiver, selectedTime, startLoading, stopLoading])
 
   useHotkey('Shift+H', handleScreenshot, {
     requireReset: true,
-    enabled: !isLoading && !disabled,
+    enabled: !isActive && !disabled,
   })
 
   return (
@@ -71,7 +72,7 @@ export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
           size="icon-sm"
           variant="ghost"
           onClick={handleScreenshot}
-          disabled={isLoading || disabled}
+          disabled={isActive || disabled}
           className="h-9 w-auto aspect-square"
         >
           <CameraIcon className="size-4.5" />

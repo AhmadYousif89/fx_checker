@@ -5,14 +5,16 @@ import { useLoadingStore } from '#/store/loading.store'
 
 export function useActivePair() {
   const navigate = useNavigate()
-  const setLoading = useLoadingStore((s) => s.setLoading)
+  const startLoading = useLoadingStore((s) => s.startLoading)
+  const isSwapping = useLoadingStore((s) => 'swap' in s.loaders)
 
   const sender = useSearch({ from: '/', select: (s) => s.from ?? 'USD' })
   const receiver = useSearch({ from: '/', select: (s) => s.to ?? 'EUR' })
   const amount = useSearch({ from: '/', select: (s) => s.amount ?? '1' })
 
   const swap = useCallback(() => {
-    setLoading({ isLoading: true })
+    if (isSwapping) return
+    startLoading('swap')
     navigate({
       to: '/',
       search: (prev) => ({
@@ -22,7 +24,7 @@ export function useActivePair() {
       }),
       replace: true,
     })
-  }, [navigate, setLoading])
+  }, [navigate, startLoading, isSwapping])
 
   return { sender, receiver, amount, swap }
 }

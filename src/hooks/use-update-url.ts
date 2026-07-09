@@ -5,7 +5,7 @@ import { useLoadingStore } from '#/store/loading.store'
 
 export function useUpdateUrl() {
   const navigate = useNavigate()
-  const setLoading = useLoadingStore((s) => s.setLoading)
+  const startLoading = useLoadingStore((s) => s.startLoading)
 
   return useCallback(
     (updates: {
@@ -16,7 +16,7 @@ export function useUpdateUrl() {
       tab?: string
     }) => {
       if ('from' in updates || 'to' in updates) {
-        setLoading({ isLoading: true })
+        startLoading('url-update')
       }
 
       navigate({
@@ -25,6 +25,6 @@ export function useUpdateUrl() {
         replace: true,
       })
     },
-    [navigate, setLoading],
+    [navigate, startLoading],
   )
 }

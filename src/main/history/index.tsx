@@ -181,10 +181,13 @@ export const HistorySection = () => {
     })
   }
 
+  const charData = patchedData ?? data
   const yDomain = useMemo(
     () =>
-      data ? computeHistoryYAxisDomain(data) : ([0, 1] as [number, number]),
-    [data],
+      charData
+        ? computeHistoryYAxisDomain(charData)
+        : ([0, 1] as [number, number]),
+    [charData],
   )
 
   const stats = computeHistoryStats(patchedData)

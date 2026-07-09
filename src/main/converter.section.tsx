@@ -56,7 +56,7 @@ export const RateConverter = () => {
 
   const sendInputRef = useRef<HTMLInputElement>(null)
   const receiveInputRef = useRef<HTMLInputElement>(null)
-  const isSwapping = useLoadingStore((s) => s.isLoading)
+  const isSwapping = useLoadingStore((s) => 'swap' in s.loaders)
 
   const {
     data: ratesData,

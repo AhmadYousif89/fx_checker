@@ -6,9 +6,9 @@ import { useLoadingStore } from '#/store/loading.store'
 
 export const TopLoader = () => {
   const [shouldShow, setShouldShow] = useState(false)
-  const isLoading = useLoadingStore((s) => s.isLoading)
-  const setLoading = useLoadingStore((s) => s.setLoading)
-  const keepAlive = useLoadingStore((s) => s.keepAlive)
+  const anyActive = useLoadingStore((s) => s.anyActive)
+  const hasKeepAlive = useLoadingStore((s) => s.hasKeepAlive)
+  const settleNonKeepAlive = useLoadingStore((s) => s.settleNonKeepAlive)
 
   const ratesFetching = useIsFetching({ queryKey: ['rates'] })
   const latestFetching = useIsFetching({ queryKey: ['latest-rates'] })
@@ -20,14 +20,14 @@ export const TopLoader = () => {
   const hasFetched = useRef(false)
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  // settle the loading state after a small delay to avoid flickering when switching between pairs
+  // settle non-keepAlive loaders after a small delay to avoid flickering
   useEffect(() => {
-    if (!isLoading) {
+    if (!anyActive) {
       hasFetched.current = false
       return
     }
 
-    if (keepAlive) return
+    if (hasKeepAlive) return
 
     if (isFetching > 0) {
       hasFetched.current = true
@@ -35,30 +35,29 @@ export const TopLoader = () => {
     }
 
     if (hasFetched.current) {
-      settleTimer.current = setTimeout(
-        () => setLoading({ isLoading: false }),
-        100,
-      )
+      settleTimer.current = setTimeout(() => {
+        settleNonKeepAlive()
+      }, 100)
       return () => clearTimeout(settleTimer.current)
     }
-  }, [isLoading, isFetching, keepAlive])
+  }, [anyActive, isFetching, hasKeepAlive, settleNonKeepAlive])
 
   // fallback in case the query is stuck in a loading state
   useEffect(() => {
-    if (!isLoading || keepAlive) return
+    if (!anyActive || hasKeepAlive) return
     const fallback = setTimeout(() => {
-      if (!hasFetched.current) setLoading({ isLoading: false })
+      if (!hasFetched.current) settleNonKeepAlive()
     }, 100)
     return () => clearTimeout(fallback)
-  }, [isLoading, setLoading, keepAlive])
+  }, [anyActive, settleNonKeepAlive, hasKeepAlive])
 
   useEffect(() => {
-    if (isLoading) {
+    if (anyActive) {
       const timer = setTimeout(() => setShouldShow(true), 200)
       return () => clearTimeout(timer)
     }
     setShouldShow(false)
-  }, [isLoading])
+  }, [anyActive])
 
   return (
     <div className="w-full h-0.5">
