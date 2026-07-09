@@ -99,8 +99,7 @@
   --color-red: var(--red);
 
   --animate-flash: flash 1s ease-out;
-  --animate-fade-in: fade-in 0.35s ease-out forwards;
-  --animate-fade-out: fade-out 0.35s ease-out forwards;
+  --animate-flash: flash 1s ease-out;
   --animate-loader-grow: loader-grow 2s ease-out forwards;
 
   @keyframes flash {
@@ -111,28 +110,6 @@
     100% {
       background-color: var(--color-surface-600);
       border-color: var(--color-surface-500);
-    }
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(4px);
     }
   }
 

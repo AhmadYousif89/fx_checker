@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ArrowDownUp, Check, StarIcon } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowDownUp, Check, LoaderCircle, StarIcon } from 'lucide-react'
 import { useHotkey } from '@tanstack/react-hotkeys'
 
 import { Button } from '#/components/ui/button'
@@ -16,6 +17,7 @@ import {
   setActivePicker,
   useCurrencyStore,
 } from '#/store/currencies.store'
+import { useLoadingStore } from '#/store/loading.store'
 import {
   restrictNumeric,
   getCrossRate,
@@ -54,6 +56,7 @@ export const RateConverter = () => {
 
   const sendInputRef = useRef<HTMLInputElement>(null)
   const receiveInputRef = useRef<HTMLInputElement>(null)
+  const isSwapping = useLoadingStore((s) => s.isLoading)
 
   const {
     data: ratesData,
@@ -79,6 +82,11 @@ export const RateConverter = () => {
   const sendNum = parseFloat(sendValue)
   const isAmountValid = !Number.isNaN(sendNum) && sendNum > 0
 
+  const handleSwap = useCallback(() => {
+    swap()
+    setEditSide('send')
+  }, [swap])
+
   useHotkey(
     '/',
     () => {
@@ -88,14 +96,7 @@ export const RateConverter = () => {
     { requireReset: true, ignoreInputs: false },
   )
 
-  useHotkey(
-    'Shift+S',
-    () => {
-      swap()
-      setEditSide('send')
-    },
-    { requireReset: true },
-  )
+  useHotkey('Shift+S', handleSwap, { enabled: !isSwapping, requireReset: true })
 
   // Handle switching between send and receive inputs with arrow keys
   useEffect(() => {
@@ -245,13 +246,34 @@ export const RateConverter = () => {
             type="button"
             size="icon-lg"
             aria-label="Swap send and receive currencies"
-            className="self-center"
-            onClick={() => {
-              swap()
-              setEditSide('send')
-            }}
+            className="relative self-center"
+            onClick={handleSwap}
           >
-            <ArrowDownUp className="size-5 md:rotate-90" />
+            <AnimatePresence mode="popLayout">
+              {isSwapping ? (
+                <motion.div
+                  key="loader"
+                  className="absolute inset-0 flex items-center justify-center"
+                  initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <LoaderCircle className="size-5 animate-spin text-accent" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="icon"
+                  className="absolute inset-0 flex items-center justify-center"
+                  initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <ArrowDownUp className="size-5 md:rotate-90" />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Button>
 
           <ReceiverField
@@ -324,17 +346,20 @@ export const RateConverter = () => {
           </div>
         </div>
       </form>
-      <div
-        aria-hidden={!showCopiedPopup}
-        className={cn(
-          'absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-[black] z-10 transition-all duration-300',
-          showCopiedPopup
-            ? 'animate-fade-in visible'
-            : 'animate-fade-out invisible',
+      <AnimatePresence>
+        {showCopiedPopup && (
+          <motion.div
+            key="copy-popup"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35 }}
+            className="absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-[black] -z-10"
+          >
+            Link copied to clipboard
+          </motion.div>
         )}
-      >
-        Link copied to clipboard
-      </div>
+      </AnimatePresence>
     </section>
   )
 }
