@@ -11,12 +11,13 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-import { useReducedMotion } from '#/hooks/use-reduced-motion'
+import { SMA_PERIODS } from '#/lib/history/config'
+import { formatAxisDate, formatRate } from '#/lib/currency'
 import { computeSMA, computeHistoryYAxisDomain } from '#/lib/history/helpers'
-import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
 
 import { SmaToggle } from './sma-toggle'
-import { SMA_PERIODS } from '#/lib/history/config'
+import { TooltipChart } from './tooltip-chart'
+import { useReducedMotion } from '#/hooks/use-reduced-motion'
 
 type HistoyChartProps = {
   data: {
@@ -100,9 +101,7 @@ export const HistoryChart = ({
           </span>
           <SmaToggle smaEnabled={smaEnabled} onToggle={onSmaToggle} />
           {smaEnabled && smaPeriod > 0 && (
-            <span className="text-caption text-muted font-normal">
-              SMA {smaPeriod}
-            </span>
+            <span className="text-caption text-amber">SMA {smaPeriod}</span>
           )}
         </span>
         <span className="text-foreground-darker text-caption">
@@ -157,28 +156,15 @@ export const HistoryChart = ({
               dy={-8}
             />
             <Tooltip
-              content={({ active, payload, label }) => {
-                if (!active || !payload.length) return null
-                const dateStr = label as string
-                const close = payload.find((p) => p.dataKey === 'close')
-                  ?.value as number
-                const sma = payload.find((p) => p.dataKey === 'sma')?.value as
-                  | number
-                  | undefined
-                return (
-                  <div className="bg-surface rounded-10 px-3 py-1.5 text-body text-foreground space-y-0.5 flex flex-col gap-1">
-                    <span>{formatTooltipDate(dateStr, selectedTime)}</span>
-                    <div className="text-accent uppercase">
-                      close {formatRate(close)}
-                    </div>
-                    {sma != null && (
-                      <div className="text-[#f59e0b]">
-                        SMA {smaPeriod}: {formatRate(sma)}
-                      </div>
-                    )}
-                  </div>
-                )
-              }}
+              content={({ active, payload, label }) => (
+                <TooltipChart
+                  selectedTime={selectedTime}
+                  smaPeriod={smaPeriod}
+                  active={active}
+                  payload={payload}
+                  label={label}
+                />
+              )}
             />
             <Area
               type="monotone"

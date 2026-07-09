@@ -25,6 +25,7 @@
   /* Status */
   --color-green-500: #42eb05;
   --color-red-500: #ff4141;
+  --color-amber: #f59e0b;
 }
 
 :root {
@@ -51,6 +52,7 @@
 
   --green: var(--color-green-500);
   --red: var(--color-red-500);
+  --amber: var(--color-amber);
 }
 
 .light {
@@ -97,6 +99,7 @@
 
   --color-green: var(--green);
   --color-red: var(--red);
+  --color-amber: var(--amber);
 
   --animate-flash: flash 1s ease-out;
   --animate-flash: flash 1s ease-out;
