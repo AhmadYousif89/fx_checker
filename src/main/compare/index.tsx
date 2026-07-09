@@ -1,9 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
-import { useCurrencyStore } from '#/store/currencies.store'
+import { useCurrencyStore, seedComparePicks } from '#/store/currencies.store'
 import { formatAmount, orderCompareCurrencies } from '#/lib/currency'
 import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
@@ -13,6 +13,7 @@ export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
   const recent = useCurrencyStore((s) => s.recent)
   const favorites = useCurrencyStore((s) => s.favorites)
+  const comparePicks = useCurrencyStore((s) => s.comparePicks)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError } = useLatestRates()
 
@@ -27,7 +28,7 @@ export const CompareSection = () => {
     return new Set([...ratesData.rates.keys(), 'EUR'])
   }, [ratesData])
 
-  const comparePairs = useMemo(
+  const defaultPairs = useMemo(
     () =>
       orderCompareCurrencies({
         sender,
@@ -37,6 +38,21 @@ export const CompareSection = () => {
         availableCodes,
       }),
     [sender, receiver, favorites, recent, availableCodes],
+  )
+
+  // Seed comparePicks once on first load when defaults are ready
+  useEffect(() => {
+    if (comparePicks.length === 0 && defaultPairs.length > 0) {
+      seedComparePicks(defaultPairs)
+    }
+  }, [defaultPairs, comparePicks.length])
+
+  const validPicks = useMemo(
+    () =>
+      comparePicks.filter(
+        (c) => availableCodes.has(c) && c !== sender && c !== receiver,
+      ),
+    [comparePicks, availableCodes, sender, receiver],
   )
 
   const rates = ratesData?.rates
@@ -67,14 +83,19 @@ export const CompareSection = () => {
         headerChildren={
           <div className="flex items-center justify-between gap-2 md:gap-4 w-full">
             <span className="text-caption uppercase text-foreground-darker">
-              {comparePairs.length} pairs
+              {validPicks.length} pairs
             </span>
-            <ComparePicker />
+            <ComparePicker
+              availableCodes={availableCodes}
+              sender={sender}
+              receiver={receiver}
+              existingCodes={validPicks}
+            />
           </div>
         }
       />
       <InsightCard.Body>
-        {comparePairs.map((quote, index) => (
+        {validPicks.map((quote, index) => (
           <CompareItem
             key={quote}
             quote={quote}

@@ -81,21 +81,23 @@ export const CompareItem = memo((props: CompareItemProps) => {
           <span className="text-body-lg">{formatAmount(converted)}</span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>
         </div>
-        <Button
-          size="icon-sm"
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleFavorite(sender, quote)
-          }}
-          className="hover:bg-surface-500 active:bg-surface-500"
-        >
-          <StarIcon
-            className={
-              isFavorited ? 'fill-accent stroke-accent' : 'stroke-muted'
-            }
-          />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            size="icon-sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleFavorite(sender, quote)
+            }}
+            className="hover:bg-surface-500 active:bg-surface-500"
+          >
+            <StarIcon
+              className={
+                isFavorited ? 'fill-accent stroke-accent' : 'stroke-muted'
+              }
+            />
+          </Button>
+        </div>
       </div>
     </li>
   )

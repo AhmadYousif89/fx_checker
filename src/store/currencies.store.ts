@@ -15,6 +15,7 @@ type CurrencyStore = {
   }
   activePicker: ActivePicker
   lastActivePicker: ActivePicker
+  comparePicks: string[]
 }
 
 const initialState: CurrencyStore = {
@@ -24,6 +25,7 @@ const initialState: CurrencyStore = {
   recent: { from: [], to: [] },
   activePicker: null,
   lastActivePicker: null,
+  comparePicks: [],
 }
 
 export const useCurrencyStore = create(
@@ -115,5 +117,22 @@ export function setActivePicker(picker: ActivePicker) {
   useCurrencyStore.setState(() => ({
     activePicker: picker,
     ...(picker !== null ? { lastActivePicker: picker } : {}),
+  }))
+}
+
+export function seedComparePicks(codes: string[]) {
+  useCurrencyStore.setState({ comparePicks: codes })
+}
+
+export function addComparePick(code: string) {
+  useCurrencyStore.setState((state) => {
+    if (state.comparePicks.includes(code)) return state
+    return { comparePicks: [...state.comparePicks, code] }
+  })
+}
+
+export function removeComparePick(code: string) {
+  useCurrencyStore.setState((state) => ({
+    comparePicks: state.comparePicks.filter((c) => c !== code),
   }))
 }
