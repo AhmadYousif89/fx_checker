@@ -1,23 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AreaChart,
   Area,
   XAxis,
   YAxis,
+  Brush,
+  Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip,
-  Brush,
 } from 'recharts'
 
-import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
-import { computeHistoryYAxisDomain } from '#/lib/history-helpers'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
-
-const getRange = (length: number) => ({
-  startIndex: 0,
-  endIndex: Math.max(length - 1, 0),
-})
+import { computeHistoryYAxisDomain } from '#/lib/history-helpers'
+import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
 
 type HistoyChartProps = {
   data: {
@@ -40,52 +34,6 @@ export const HistoryChart = ({
   selectedTime,
   yDomain: yDomainProp,
 }: HistoyChartProps) => {
-  const [range, setRange] = useState(() => getRange(data.length))
-  const storedDateRangeRef = useRef<{
-    startTime: string
-    endTime: string
-  } | null>(null)
-
-  const handleChange = useCallback(
-    ({ startIndex, endIndex }: { startIndex: number; endIndex: number }) => {
-      setRange((prev) => {
-        if (prev.startIndex === startIndex && prev.endIndex === endIndex)
-          return prev
-        return { startIndex, endIndex }
-      })
-    },
-    [],
-  )
-
-  useEffect(() => {
-    if (storedDateRangeRef.current) {
-      const { startTime, endTime } = storedDateRangeRef.current
-      const startIndex = data.findIndex((d) => d.time === startTime)
-      const endIndex =
-        data.length -
-        1 -
-        [...data].reverse().findIndex((d) => d.time === endTime)
-      if (startIndex !== -1 && endIndex !== -1) {
-        setRange({ startIndex, endIndex })
-        return
-      }
-    }
-    storedDateRangeRef.current = null
-    setRange(getRange(data.length))
-  }, [data])
-
-  useEffect(() => {
-    if (brushStartIndex === 0 && brushEndIndex === maxIndex) return
-    storedDateRangeRef.current = {
-      startTime: data[range.startIndex]?.time,
-      endTime: data[range.endIndex]?.time,
-    }
-  }, [range.startIndex, range.endIndex, data])
-
-  const maxIndex = Math.max(data.length - 1, 0)
-  const brushStartIndex = Math.min(range.startIndex, maxIndex)
-  const brushEndIndex = Math.min(range.endIndex, maxIndex)
-
   const reducedMotion = useReducedMotion()
   const lastData = data[data.length - 1]
   const yDomain = yDomainProp ?? computeHistoryYAxisDomain(data)
@@ -189,9 +137,6 @@ export const HistoryChart = ({
             />
             <Brush
               dataKey="time"
-              startIndex={brushStartIndex}
-              endIndex={brushEndIndex}
-              onChange={handleChange}
               fill="transparent"
               stroke="var(--muted)"
               travellerWidth={8}
