@@ -137,7 +137,7 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
           placeholder="Search currencies..."
           className="min-h-11.5 rounded-6 placeholder:text-overline sticky top-0 bg-popover z-10"
         />
-        <ComboboxEmpty>No currencies found.</ComboboxEmpty>
+        <ComboboxEmpty className="p-4">No currencies found.</ComboboxEmpty>
         <ComboboxList className="scrollbar-none py-2">
           {(group: (typeof groups)[number]) => (
             <ComboboxGroup key={group.value} items={group.items}>

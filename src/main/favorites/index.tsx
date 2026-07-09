@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { getCrossRate } from '#/lib/currency'
+import { getCrossRate, formatRate } from '#/lib/currency'
 import type { CurrencyPair, RateWithDiff } from '#/types/currency'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useCurrencyStore } from '#/store/currencies.store'
 import { getRates } from '#/server/functions/rates'
-import { FavoritesList } from './favorites-list'
+import { InsightCard } from '#/components/insight-card'
+import { FavoritesItem } from './favorit-item'
 
 export const FavoritesSection = () => {
   const favorites = useCurrencyStore((s) => s.favorites)
@@ -52,7 +53,7 @@ export const FavoritesSection = () => {
   }, [diffData, ratesData])
 
   if (isLoading) {
-    return <FavoritesSkeleton />
+    return <InsightCard.Skeleton />
   }
 
   if (isError || !ratesData) {
@@ -78,31 +79,30 @@ export const FavoritesSection = () => {
   }
 
   return (
-    <div className="grid grow place-content-start justify-normal gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5">
-      <header className="flex items-center justify-between gap-2 px-2">
-        <h3 className="text-body-lg-medium uppercase">pinned pairs</h3>
-        <p className="text-foreground-darker text-caption uppercase">
-          <span>{favoritesCount} </span>
-          <span>favorites</span>
-        </p>
-      </header>
-      <FavoritesList favorites={favorites} getRateWithDiff={getRateWithDiff} />
-    </div>
-  )
-}
-
-const FavoritesSkeleton = () => {
-  return (
-    <div className="grid gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-      <div className="flex items-center justify-between">
-        <div className="h-5 w-36 rounded bg-muted/10 animate-pulse" />
-        <div className="h-4 w-24 rounded bg-muted/10 animate-pulse" />
-      </div>
-      <div className="space-y-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
-        ))}
-      </div>
-    </div>
+    <InsightCard.Root>
+      <InsightCard.Header
+        title="pinned pairs"
+        headerChildren={
+          <span className="text-caption uppercase text-foreground-darker">
+            {favoritesCount} favorites
+          </span>
+        }
+      />
+      <InsightCard.Body>
+        {favorites.map((f, index) => {
+          const diff = getRateWithDiff(f)
+          return (
+            <FavoritesItem
+              key={`${f.sender}-${f.receiver}`}
+              item={f}
+              index={index}
+              rate={formatRate(diff?.rate ?? 0)}
+              difference={diff?.difference}
+              direction={diff?.direction}
+            />
+          )
+        })}
+      </InsightCard.Body>
+    </InsightCard.Root>
   )
 }

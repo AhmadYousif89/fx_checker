@@ -19,7 +19,9 @@ export const RateDiff = ({
         : 'text-muted'
 
   return (
-    <span className={`flex items-center gap-0.5 ${colorClass}${className ? ` ${className}` : ''}`}>
+    <span
+      className={`flex items-center gap-0.5 ${colorClass}${className ? ` ${className}` : ''}`}
+    >
       <span>
         {direction === 'up' ? '\u25B2' : direction === 'down' ? '\u25BC' : ''}
       </span>

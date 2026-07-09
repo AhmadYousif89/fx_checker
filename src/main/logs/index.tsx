@@ -21,7 +21,8 @@ import {
 } from '#/components/ui/dropdown-menu'
 import { exportLogsAsCsv, exportLogsAsJson } from '#/lib/export'
 import { clearLogs, useCurrencyStore } from '#/store/currencies.store'
-import { LogList } from './log-list'
+import { InsightCard } from '#/components/insight-card'
+import { LogRow } from './log-row'
 
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
@@ -29,7 +30,7 @@ export const LogsSection = () => {
   const hydrated = useHydrated()
 
   if (!hydrated) {
-    return <LogsSkeleton />
+    return <InsightCard.Skeleton hasActions={2} />
   }
 
   if (logCount === 0) {
@@ -47,14 +48,16 @@ export const LogsSection = () => {
   }
 
   return (
-    <div className="grid grow place-content-start justify-normal gap-2 md:gap-3 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5">
-      <header className="flex flex-col justify-between gap-2 px-2 md:flex-row md:items-center">
-        <h3 className="text-body-lg-medium uppercase">conversion logs</h3>
-        <div className="flex items-center justify-between gap-4">
+    <InsightCard.Root>
+      <InsightCard.Header
+        title="conversion logs"
+        headerChildren={
           <span className="text-caption uppercase text-foreground-darker">
             {logCount} logged
           </span>
-          <div className="flex items-center gap-2 md:gap-4">
+        }
+        actions={
+          <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -101,31 +104,14 @@ export const LogsSection = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
-        </div>
-      </header>
-
-      <LogList logs={logs} />
-    </div>
-  )
-}
-
-const LogsSkeleton = () => {
-  return (
-    <div className="flex flex-col gap-4 md:gap-5 bg-surface border border-surface-600 rounded-16 p-4 md:p-5">
-      <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
-        <div className="h-5 w-40 rounded-8 bg-muted/10 animate-pulse" />
-        <div className="h-full flex items-center gap-4">
-          <div className="h-5 w-16 rounded-8 bg-muted/10 animate-pulse" />
-          <div className="h-7.5 w-24 rounded-8 bg-muted/10 animate-pulse" />
-          <div className="h-7.5 w-24 rounded-8 bg-muted/10 animate-pulse" />
-        </div>
-      </div>
-      <div className="space-y-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
+          </>
+        }
+      />
+      <InsightCard.Body>
+        {logs.map((log, index) => (
+          <LogRow key={log.timestamp} log={log} index={index} />
         ))}
-      </div>
-    </div>
+      </InsightCard.Body>
+    </InsightCard.Root>
   )
 }
