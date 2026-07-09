@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
@@ -8,13 +8,13 @@ import {
 } from '@tanstack/react-query'
 import { InfoIcon } from 'lucide-react'
 
-import { rangeKeys } from '#/lib/currency/time-ranges'
-import type { RangeKey } from '#/lib/currency/time-ranges'
+import type { RangeKey } from '#/lib/history/config'
+import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
 import {
   computeHistoryStats,
   computeHistoryYAxisDomain,
-} from '#/lib/history-helpers'
-import { TIME_RANGES, RANGE_INTERVALS, getCrossRate } from '#/lib/currency'
+} from '#/lib/history/helpers'
+import { getCrossRate } from '#/lib/currency'
 
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { useActivePair } from '#/hooks/use-active-pair'
@@ -40,9 +40,16 @@ export const HistorySection = () => {
   const queryClient = useQueryClient()
 
   const search = useSearch({ from: '/' })
-  const updateUrl = useUpdateUrl()
+  const smaEnabled = search.sma
   const selectedTime = (search.view ?? '3m') as RangeKey
+
   const { sender, receiver } = useActivePair()
+
+  const updateUrl = useUpdateUrl()
+  const handleSmaToggle = useCallback(
+    () => updateUrl({ sma: !smaEnabled }),
+    [smaEnabled, updateUrl],
+  )
 
   const hotkeys = rangeKeys.map((rangeKey, i) => ({
     hotkey: { key: `${i + 1}` },
@@ -290,6 +297,8 @@ export const HistorySection = () => {
             receiver={receiver}
             selectedTime={selectedTime}
             yDomain={yDomain}
+            smaEnabled={!!smaEnabled}
+            onSmaToggle={handleSmaToggle}
           />
         </Suspense>
       </div>

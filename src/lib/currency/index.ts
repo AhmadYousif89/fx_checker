@@ -4,7 +4,6 @@ export {
   POPULAR_CODES,
   GLOBAL_PRIORITY,
 } from './lists'
-export { TIME_RANGES, RANGE_INTERVALS } from './time-ranges'
 export {
   timeAgo,
   formatRate,

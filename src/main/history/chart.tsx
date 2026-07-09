@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import {
   AreaChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   Brush,
@@ -10,8 +12,11 @@ import {
 } from 'recharts'
 
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
-import { computeHistoryYAxisDomain } from '#/lib/history-helpers'
+import { computeSMA, computeHistoryYAxisDomain } from '#/lib/history/helpers'
 import { formatAxisDate, formatTooltipDate, formatRate } from '#/lib/currency'
+
+import { SmaToggle } from './sma-toggle'
+import { SMA_PERIODS } from '#/lib/history/config'
 
 type HistoyChartProps = {
   data: {
@@ -25,6 +30,8 @@ type HistoyChartProps = {
   receiver: string
   selectedTime: string
   yDomain?: [number, number]
+  smaEnabled: boolean
+  onSmaToggle: () => void
 }
 
 export const HistoryChart = ({
@@ -33,10 +40,38 @@ export const HistoryChart = ({
   receiver,
   selectedTime,
   yDomain: yDomainProp,
+  smaEnabled,
+  onSmaToggle,
 }: HistoyChartProps) => {
   const reducedMotion = useReducedMotion()
   const lastData = data[data.length - 1]
-  const yDomain = yDomainProp ?? computeHistoryYAxisDomain(data)
+
+  const smaPeriod = smaEnabled ? (SMA_PERIODS[selectedTime] ?? 0) : 0
+
+  const smaSeries = useMemo(
+    () => (smaPeriod > 0 ? computeSMA(data, smaPeriod) : null),
+    [data, smaPeriod],
+  )
+
+  const chartData = useMemo(
+    () =>
+      smaSeries ? data.map((d, i) => ({ ...d, sma: smaSeries[i] })) : data,
+    [data, smaSeries],
+  )
+
+  const yDomain = useMemo(() => {
+    if (smaSeries && yDomainProp) {
+      const smaValues = smaSeries.filter((v): v is number => v !== null)
+      if (smaValues.length > 0) {
+        const all = [
+          ...data.map((d) => ({ close: d.close })),
+          ...smaValues.map((v) => ({ close: v })),
+        ]
+        return computeHistoryYAxisDomain(all)
+      }
+    }
+    return yDomainProp ?? computeHistoryYAxisDomain(data)
+  }, [data, smaSeries, yDomainProp])
 
   const headerDate =
     selectedTime === '5y'
@@ -59,8 +94,16 @@ export const HistoryChart = ({
     <div className="min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16 flex flex-col gap-5">
       <style>{`.recharts-brush-texts { font-size: 14px !important; font-weight: 100; stroke: var(--foreground-darker) }`}</style>
       <div className="flex justify-between items-center uppercase">
-        <span className="text-body-lg-medium text-foreground">
-          {sender}/{receiver}
+        <span className="text-body-lg-medium text-foreground flex items-center gap-2">
+          <span>
+            {sender}/{receiver}
+          </span>
+          <SmaToggle smaEnabled={smaEnabled} onToggle={onSmaToggle} />
+          {smaEnabled && smaPeriod > 0 && (
+            <span className="text-caption text-muted font-normal">
+              SMA {smaPeriod}
+            </span>
+          )}
         </span>
         <span className="text-foreground-darker text-caption">
           {formatRate(lastData.close)} &bull; {headerDateStr}
@@ -75,7 +118,7 @@ export const HistoryChart = ({
         >
           <AreaChart
             key={selectedTime}
-            data={data}
+            data={chartData}
             margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
           >
             <defs>
@@ -117,11 +160,22 @@ export const HistoryChart = ({
               content={({ active, payload, label }) => {
                 if (!active || !payload.length) return null
                 const dateStr = label as string
-                const value = payload[0].value as number
+                const close = payload.find((p) => p.dataKey === 'close')
+                  ?.value as number
+                const sma = payload.find((p) => p.dataKey === 'sma')?.value as
+                  | number
+                  | undefined
                 return (
-                  <div className="bg-surface-600 rounded-10 px-3 py-1.5 text-body text-foreground">
-                    <span>{formatTooltipDate(dateStr, selectedTime)}</span>{' '}
-                    &mdash; <span>{formatRate(value)}</span>
+                  <div className="bg-surface rounded-10 px-3 py-1.5 text-body text-foreground space-y-0.5 flex flex-col gap-1">
+                    <span>{formatTooltipDate(dateStr, selectedTime)}</span>
+                    <div className="text-accent uppercase">
+                      close {formatRate(close)}
+                    </div>
+                    {sma != null && (
+                      <div className="text-[#f59e0b]">
+                        SMA {smaPeriod}: {formatRate(sma)}
+                      </div>
+                    )}
                   </div>
                 )
               }}
@@ -135,6 +189,17 @@ export const HistoryChart = ({
               fill="url(#colorRate)"
               isAnimationActive={!reducedMotion}
             />
+            {smaSeries && smaPeriod > 0 && (
+              <Line
+                type="monotone"
+                dataKey="sma"
+                stroke="#f59e0b"
+                strokeWidth={1.5}
+                dot={false}
+                isAnimationActive={false}
+                connectNulls={false}
+              />
+            )}
             <Brush
               dataKey="time"
               fill="transparent"

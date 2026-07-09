@@ -1,5 +1,14 @@
 import type { HistoryInput } from '#/server/functions/history'
 
+export const SMA_PERIODS: Record<string, number> = {
+  '1d': 12,
+  '1w': 7,
+  '1m': 7,
+  '3m': 20,
+  '1y': 12,
+  '5y': 12,
+}
+
 export const rangeKeys = ['1d', '1w', '1m', '3m', '1y', '5y'] as const
 
 export type RangeKey = (typeof rangeKeys)[number]

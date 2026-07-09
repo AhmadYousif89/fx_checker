@@ -1,6 +1,6 @@
 import z from 'zod'
-import { rangeKeys } from '#/lib/currency/time-ranges'
-import type { RangeKey } from '#/lib/currency/time-ranges'
+import { rangeKeys } from '#/lib/history/config'
+import type { RangeKey } from '#/lib/history/config'
 import type { CurrencyDetails, CurrencySearch } from '#/types/currency'
 
 const FALLBACK_FROM = 'USD'
@@ -57,4 +57,8 @@ export const searchSchema = z.object({
     if (typeof v !== 'string') return 'history'
     return TAB_VALUES.includes(v as (typeof TAB_VALUES)[number]) ? v : 'history'
   }, z.string().optional()),
+  sma: z.preprocess((v) => {
+    if (v == null) return undefined
+    return v === 'true' || v === '1' || v === true
+  }, z.boolean().optional()),
 })

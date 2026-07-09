@@ -5,10 +5,10 @@ import { Header } from '#/header'
 import { Footer } from '#/footer'
 import { TopLoader } from '#/components/top-loader'
 import { getRates } from '#/server/functions/rates'
-import { getFrankfurterHistory } from '#/server/functions/history'
 import { getCurrencies } from '#/server/functions/currencies'
-import { TIME_RANGES } from '#/lib/currency'
-import { sanitizeCurrencySearch, searchSchema } from '#/lib/currency/search'
+import { getFrankfurterHistory } from '#/server/functions/history'
+import { sanitizeCurrencySearch, searchSchema } from '#/lib/search'
+import { TIME_RANGES } from '#/lib/history/config'
 
 export const Route = createFileRoute('/')({
   validateSearch: searchSchema,

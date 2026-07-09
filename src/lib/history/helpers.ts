@@ -68,6 +68,28 @@ export function computeHistoryCrossRate(
   })
 }
 
+export function computeSMA(
+  data: { close: number }[],
+  period: number,
+): (number | null)[] {
+  if (data.length < period) return data.map(() => null)
+
+  const result: (number | null)[] = []
+  let sum = 0
+
+  for (let i = 0; i < data.length; i++) {
+    sum += data[i].close
+    if (i >= period - 1) {
+      result.push(sum / period)
+      sum -= data[i - period + 1].close
+    } else {
+      result.push(null)
+    }
+  }
+
+  return result
+}
+
 export function computeHistoryStats(
   data: { open: number; close: number }[] | undefined,
 ): {

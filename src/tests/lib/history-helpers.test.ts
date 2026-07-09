@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import {
-  computeHistoryYAxisDomain,
-  computePointsPerDay,
-  computeOutputSize,
   invertData,
+  computeSMA,
+  computeOutputSize,
+  computePointsPerDay,
   computeHistoryCrossRate,
-} from '#/lib/history-helpers'
-import type { HistoryEntry } from '#/lib/history-helpers'
+  computeHistoryYAxisDomain,
+} from '#/lib/history/helpers'
+import type { HistoryEntry } from '#/lib/history/helpers'
 
 describe('computePointsPerDay', () => {
   it('returns 288 for 5min interval', () => {
@@ -152,5 +153,56 @@ describe('computeHistoryCrossRate', () => {
     const result = computeHistoryCrossRate(baseData, baseData.slice(0, 1))
     expect(result).toHaveLength(1)
     expect(result[0].close).toBeCloseTo(1.1 / 1.1, 6)
+  })
+})
+
+describe('computeSMA', () => {
+  it('returns correct SMA for 3-period', () => {
+    const data = [
+      { close: 1 },
+      { close: 2 },
+      { close: 3 },
+      { close: 4 },
+      { close: 5 },
+    ]
+    const result = computeSMA(data, 3)
+
+    expect(result[0]).toBeNull()
+    expect(result[1]).toBeNull()
+    expect(result[2]).toBeCloseTo(2, 6)
+    expect(result[3]).toBeCloseTo(3, 6)
+    expect(result[4]).toBeCloseTo(4, 6)
+  })
+
+  it('returns null for first period-1 entries', () => {
+    const data = [{ close: 10 }, { close: 20 }, { close: 30 }]
+    const result = computeSMA(data, 3)
+
+    expect(result[0]).toBeNull()
+    expect(result[1]).toBeNull()
+    expect(result[2]).not.toBeNull()
+  })
+
+  it('returns all null when period exceeds data length', () => {
+    const data = [{ close: 10 }, { close: 20 }]
+    const result = computeSMA(data, 5)
+
+    expect(result).toHaveLength(2)
+    expect(result[0]).toBeNull()
+    expect(result[1]).toBeNull()
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(computeSMA([], 3)).toEqual([])
+  })
+
+  it('sliding window recomputes correctly for each step', () => {
+    const data = [{ close: 10 }, { close: 20 }, { close: 30 }, { close: 40 }]
+    const result = computeSMA(data, 2)
+
+    expect(result[0]).toBeNull()
+    expect(result[1]).toBeCloseTo(15, 6)
+    expect(result[2]).toBeCloseTo(25, 6)
+    expect(result[3]).toBeCloseTo(35, 6)
   })
 })

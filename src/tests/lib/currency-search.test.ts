@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { sanitizeCurrencySearch } from '#/lib/currency/search'
+import { sanitizeCurrencySearch } from '#/lib/search'
 
 describe('sanitizeCurrencySearch', () => {
   const currencies = [

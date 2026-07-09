@@ -17,7 +17,7 @@ import {
   formatAxisDate,
   orderCompareCurrencies,
 } from '#/lib/currency'
-import { computeHistoryStats } from '#/lib/history-helpers'
+import { computeHistoryStats } from '#/lib/history/helpers'
 import type { FrankfurterApiRate } from '#/types/currency'
 
 describe('getFlagUrl', () => {
