@@ -40,8 +40,8 @@ export function useDragZoom(
     (clientX: number) => {
       const el = containerRef.current
       if (!el) return null
-      const rect = el.getBoundingClientRect()
       const s = stateRef.current
+      const rect = el.getBoundingClientRect()
       const currentIndex = pixelToIndex(clientX)
       const startIndex = Math.min(s.startIndex, currentIndex)
       const endIndex = Math.max(s.startIndex, currentIndex)
@@ -74,7 +74,7 @@ export function useDragZoom(
 
       const dx = Math.abs(e.clientX - s.startX)
 
-      if (!s.isDragging && dx > 4) {
+      if (!s.isDragging && dx > 10) {
         s.isDragging = true
         s.captured = true
         setIsDragging(true)
@@ -108,7 +108,12 @@ export function useDragZoom(
     setSelection(null)
     lastSelectionRef.current = null
 
-    if (wasDragging && result && result.endIndex - result.startIndex >= 2) {
+    const minSpan = e.pointerType === 'touch' ? 8 : 4
+    if (
+      result &&
+      wasDragging &&
+      result.endIndex - result.startIndex >= minSpan
+    ) {
       return result
     }
 

@@ -6,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '#/components/ui/tooltip'
+import { cn } from '#/lib/utils'
 
 type SmaToggleProps = {
   smaEnabled: boolean
@@ -20,7 +21,10 @@ export const SmaToggle = ({ smaEnabled, onToggle }: SmaToggleProps) => (
         variant="ghost"
         onClick={onToggle}
         aria-pressed={smaEnabled}
-        className={smaEnabled ? 'text-accent' : 'text-muted'}
+        className={cn(
+          'max-sm:size-6 max-sm:rounded-4 max-sm:border max-sm:border-accent-darker max-sm:aria-pressed:border-accent',
+          smaEnabled ? 'text-accent' : 'text-muted',
+        )}
       >
         <TrendingUp className="size-4" />
       </Button>

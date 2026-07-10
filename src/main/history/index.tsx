@@ -201,7 +201,14 @@ export const HistorySection = () => {
 
   const handleZoom = useCallback(
     (range: { startIndex: number; endIndex: number }) => {
-      setZoomRange({ start: range.startIndex, end: range.endIndex })
+      setZoomRange((prev) => {
+        // If already zoomed, offset the new range by the previous start index
+        const offset = prev?.start ?? 0
+        return {
+          start: range.startIndex + offset,
+          end: range.endIndex + offset,
+        }
+      })
     },
     [],
   )

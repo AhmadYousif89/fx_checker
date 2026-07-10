@@ -20,6 +20,7 @@ import { BrushChart } from './brush-chart'
 import { TooltipChart } from './tooltip-chart'
 import { useDragZoom } from '#/hooks/use-drag-zoom'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
+import { Button } from '#/components/ui/button'
 
 type HistoyChartProps = {
   data: {
@@ -121,27 +122,30 @@ export const HistoryChart = memo(
     return (
       <div className="flex flex-col min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16">
         <style>{`.recharts-brush-texts { font-size: 14px !important; font-weight: 100; stroke: var(--foreground-darker) }`}</style>
-        <div className="flex justify-between items-center uppercase mb-5">
-          <span className="text-body-lg-medium text-foreground flex items-center gap-2">
-            <span>
-              {sender}/{receiver}
-            </span>
-            <SmaToggle smaEnabled={smaEnabled} onToggle={onSmaToggle} />
-            {smaEnabled && smaPeriod > 0 && (
-              <span className="text-caption text-amber">SMA {smaPeriod}</span>
-            )}
+        <div className="flex justify-between items-baseline uppercase mb-5">
+          <span className="text-body-lg-medium text-foreground flex items-center gap-1">
+            <div className="flex flex-col items-start sm:flex-row sm:items-center gap-1">
+              <span className="whitespace-nowrap">
+                {sender}/{receiver}
+              </span>
+              <div className="flex items-center gap-2">
+                <SmaToggle smaEnabled={smaEnabled} onToggle={onSmaToggle} />
+                {smaEnabled && smaPeriod > 0 && (
+                  <span className="text-caption text-amber">
+                    SMA {smaPeriod}
+                  </span>
+                )}
+              </div>
+            </div>
           </span>
-          <span className="text-foreground-darker text-caption">
-            {formatRate(lastData.close)} &bull; {headerDateStr}
+          <span className="whitespace-nowrap text-foreground-darker text-caption">
+            {formatRate(lastData.close)} • {headerDateStr}
           </span>
         </div>
         <div
           ref={chartAreaRef}
-          className="grow relative"
-          style={{
-            touchAction: 'none',
-            cursor: drag.isDragging ? 'col-resize' : undefined,
-          }}
+          className="grow relative mb-2"
+          style={{ touchAction: 'none' }}
           onPointerDown={drag.handlers.onPointerDown}
           onPointerMove={drag.handlers.onPointerMove}
           onPointerUp={(e) => {
@@ -249,18 +253,19 @@ export const HistoryChart = memo(
                 left: drag.selection.left,
                 width: Math.max(drag.selection.width, 2),
               }}
-              className="absolute top-3 bottom-6 pointer-events-none z-20 rounded-4 bg-linear-to-b from-accent/10 to-surface-600/50"
+              className="absolute top-5.5 bottom-8 pointer-events-none z-20 rounded-4 bg-linear-to-b from-accent/10 to-surface-600/50"
             />
           )}
           {zoomed && (
-            <button
+            <Button
               type="button"
-              className="absolute -top-2 right-0 z-20 flex items-center gap-1 px-2 py-1 text-caption rounded-md bg-surface border border-surface-600 text-foreground hover:bg-surface-600 transition-colors uppercase"
+              size="xs"
+              className="absolute -top-4 right-0 z-20 rounded-sm md:gap-2 text-overline md:text-caption bg-surface uppercase"
               onClick={onResetZoom}
             >
               <RotateCcw className="size-3.5" />
               Reset zoom
-            </button>
+            </Button>
           )}
         </div>
         {fullData && (

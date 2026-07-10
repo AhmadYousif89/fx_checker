@@ -20,7 +20,7 @@ export const TooltipChart = memo(
       | undefined
 
     return (
-      <div className="bg-surface rounded-10 px-3 py-1.5 text-body text-foreground space-y-0.5 flex flex-col gap-1 border">
+      <div className="bg-surface rounded-10 px-3 py-1.5 text-caption md:text-body text-foreground space-y-0.5 flex flex-col gap-1 border">
         <span>{formatTooltipDate(dateStr, selectedTime)}</span>
         <div className="text-accent uppercase">close {formatRate(close)}</div>
         {sma != null && (
