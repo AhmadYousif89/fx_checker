@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 import { HistorySection } from '#/main/history'
@@ -11,7 +12,11 @@ vi.mock('#/hooks/use-update-url', () => ({
 
 function renderWithQuery(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+  return render(
+    <QueryClientProvider client={qc}>
+      <TooltipProvider>{ui}</TooltipProvider>
+    </QueryClientProvider>,
+  )
 }
 
 afterEach(cleanup)
@@ -47,7 +52,7 @@ describe('HistorySection', () => {
     expect(screen.getByText('1D')).toBeInTheDocument()
     expect(screen.getByText('1W')).toBeInTheDocument()
     expect(screen.getByText('1M')).toBeInTheDocument()
-    expect(screen.getByText('6M')).toBeInTheDocument()
+    expect(screen.getByText('3M')).toBeInTheDocument()
     expect(screen.getByText('1Y')).toBeInTheDocument()
     expect(screen.getByText('5Y')).toBeInTheDocument()
   })

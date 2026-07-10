@@ -85,7 +85,9 @@ describe('CompareSection', () => {
   it('shows error when rates fail to load', async () => {
     vi.mocked(getLatestRates).mockRejectedValue(new Error('fail'))
     renderWithQuery(<CompareSection />)
-    expect(await screen.findByText('Failed to load rates')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Something went wrong, try again later'),
+    ).toBeInTheDocument()
   })
 
   it('shows loading skeleton initially', () => {

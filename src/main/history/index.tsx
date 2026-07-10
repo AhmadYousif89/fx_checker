@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
@@ -188,13 +188,29 @@ export const HistorySection = () => {
     })
   }
 
+  const [zoomRange, setZoomRange] = useState<{
+    start: number
+    end: number
+  } | null>(null)
+
   const charData = patchedData ?? data
+  const displayData =
+    zoomRange && charData
+      ? charData.slice(zoomRange.start, zoomRange.end + 1)
+      : (charData ?? [])
+
+  const handleZoom = useCallback(
+    (range: { startIndex: number; endIndex: number }) => {
+      setZoomRange({ start: range.startIndex, end: range.endIndex })
+    },
+    [],
+  )
+
+  const handleResetZoom = useCallback(() => setZoomRange(null), [])
+
   const yDomain = useMemo(
-    () =>
-      charData
-        ? computeHistoryYAxisDomain(charData)
-        : ([0, 1] as [number, number]),
-    [charData],
+    () => computeHistoryYAxisDomain(displayData),
+    [displayData],
   )
 
   const stats = computeHistoryStats(patchedData)
@@ -243,7 +259,10 @@ export const HistorySection = () => {
                 value={selectedTime}
                 disabled={rateLimiterData?.isWaiting}
                 onValueChange={(value) => {
-                  if (value) updateUrl({ view: value })
+                  if (value) {
+                    setZoomRange(null)
+                    updateUrl({ view: value })
+                  }
                 }}
                 className="bg-surface p-0.5"
               >
@@ -292,13 +311,19 @@ export const HistorySection = () => {
         )}
         <Suspense fallback={<ChartSkeleton />}>
           <HistoryChart
-            data={patchedData ?? data}
+            data={displayData}
+            fullData={charData}
             sender={sender}
             receiver={receiver}
             selectedTime={selectedTime}
             yDomain={yDomain}
             smaEnabled={!!smaEnabled}
             onSmaToggle={handleSmaToggle}
+            zoomed={zoomRange !== null}
+            zoomStart={zoomRange?.start}
+            zoomEnd={zoomRange?.end}
+            onZoom={handleZoom}
+            onResetZoom={handleResetZoom}
           />
         </Suspense>
       </div>
