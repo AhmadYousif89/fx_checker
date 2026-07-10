@@ -99,7 +99,7 @@ function Skeleton({ hasActions = 0 }: { hasActions?: number }) {
       </header>
       <div className="space-y-3 p-2">
         {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="h-15 rounded-10 animate-pulse bg-muted/10" />
+          <div key={i} className="h-14 rounded-10 animate-pulse bg-muted/10" />
         ))}
       </div>
     </Root>

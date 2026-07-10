@@ -14,6 +14,7 @@ import { HistorySection } from './history'
 import { FavoritesSection } from './favorites'
 import { CompareSection } from './compare'
 import { LogsSection } from './logs'
+import { cn } from '#/lib/utils'
 
 const tabs = [
   {
@@ -21,6 +22,7 @@ const tabs = [
     label: 'History',
     id: 'tab-history',
     controls: 'panel-history',
+    className: 'min-w-[109px]',
     Component: HistorySection,
   },
   {
@@ -28,6 +30,7 @@ const tabs = [
     label: 'Favorites',
     id: 'tab-favorites',
     controls: 'panel-favorites',
+    className: 'min-w-[156px]',
     Component: FavoritesSection,
   },
   {
@@ -35,6 +38,7 @@ const tabs = [
     label: 'Compare',
     id: 'tab-compare',
     controls: 'panel-compare',
+    className: 'min-w-[109px]',
     Component: CompareSection,
   },
   {
@@ -42,6 +46,7 @@ const tabs = [
     label: 'Logs',
     id: 'tab-logs',
     controls: 'panel-logs',
+    className: 'min-w-[103px]',
     Component: LogsSection,
   },
 ] as const
@@ -61,8 +66,7 @@ export const InsightsSection = () => {
     logs: logsCount,
   }
 
-  const renderCounters = (v: string) =>
-    (v in counts && !hydrated) || counts[v] > 0
+  const renderCounters = (v: string) => counts[v] > 0 && hydrated
 
   return (
     <div className="grow flex flex-col">
@@ -79,7 +83,7 @@ export const InsightsSection = () => {
             {tabs.map((tab) => (
               <SelectItem key={tab.value} value={tab.value}>
                 {tab.label}
-                {counts[tab.value] > 0 && (
+                {renderCounters(tab.value) && (
                   <span className="aspect-square bg-accent-darker text-accent text-overline size-5 rounded-full flex items-center justify-center">
                     {counts[tab.value]}
                   </span>
@@ -96,7 +100,7 @@ export const InsightsSection = () => {
               key={tab.value}
               value={tab.value}
               aria-controls={tab.controls}
-              className="hover:border-b-accent"
+              className={cn('hover:border-b-accent', tab.className)}
             >
               {tab.label}
               {renderCounters(tab.value) && (

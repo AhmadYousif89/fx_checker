@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 
 import { getCrossRate, formatRate } from '#/lib/currency'
@@ -10,40 +11,28 @@ import { getRates } from '#/server/functions/rates'
 import { InsightCard } from '#/components/insight-card'
 import { FavoritesItem } from './favorit-item'
 
-let favSectionDidPlay = false
+let favsDidMount = false
 
 export const FavoritesSection = () => {
   const favorites = useCurrencyStore((s) => s.favorites)
+  const lastAddedFavKey = useCurrencyStore((s) => s.lastAddedFavKey)
   const favoritesCount = favorites.length
+  const shouldAnimateOnMount = !favsDidMount
+
   const { sender } = useActivePair()
-  const didPlay = favSectionDidPlay
-
-  useEffect(() => {
-    let id: number | null = null
-    id = setTimeout(() => {
-      favSectionDidPlay = true
-    }, 1000)
-    return () => {
-      if (id) clearTimeout(id)
-    }
-  }, [])
-
-  const containerVariants = {
-    visible: {
-      transition: {
-        staggerChildren: didPlay ? 0 : 0.08,
-        default: { duration: 0.35, ease: 'easeOut' },
-      },
-    },
-  }
-
   const { data: ratesData, isLoading, isError } = useLatestRates()
+
   const { data: diffData } = useQuery({
     queryKey: ['favorites-diff', sender],
     queryFn: () => getRates({ data: { base: sender } }),
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60,
   })
+
+  useEffect(() => {
+    if (isLoading || isError || favoritesCount === 0) return
+    favsDidMount = true
+  }, [favoritesCount, isError, isLoading])
 
   const getRateWithDiff = useMemo(() => {
     const diffMap = new Map<string, RateWithDiff>()
@@ -110,23 +99,24 @@ export const FavoritesSection = () => {
           </span>
         }
       />
-      <InsightCard.Body
-        variants={containerVariants}
-        initial={didPlay ? 'visible' : 'hidden'}
-        animate="visible"
-      >
-        {favorites.map((f) => {
-          const diff = getRateWithDiff(f)
-          return (
-            <FavoritesItem
-              key={`${f.sender}-${f.receiver}`}
-              item={f}
-              rate={formatRate(diff?.rate ?? 0)}
-              difference={diff?.difference}
-              direction={diff?.direction}
-            />
-          )
-        })}
+      <InsightCard.Body>
+        <AnimatePresence mode="popLayout" initial={shouldAnimateOnMount}>
+          {favorites.map((f, idx) => {
+            const diff = getRateWithDiff(f)
+            const key = `${f.sender}_${f.receiver}`
+            return (
+              <FavoritesItem
+                key={key}
+                item={f}
+                rate={formatRate(diff?.rate ?? 0)}
+                difference={diff?.difference}
+                direction={diff?.direction}
+                staggerDelay={shouldAnimateOnMount ? idx * 80 : 0}
+                isNew={favsDidMount && key === lastAddedFavKey}
+              />
+            )
+          })}
+        </AnimatePresence>
       </InsightCard.Body>
     </InsightCard.Root>
   )

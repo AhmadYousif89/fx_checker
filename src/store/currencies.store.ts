@@ -9,6 +9,7 @@ type CurrencyStore = {
   favorites: CurrencyPair[]
   logs: ConversionLog[]
   lastLogTimestamp: number | null
+  lastAddedFavKey: string | null
   recent: {
     from: string[]
     to: string[]
@@ -22,6 +23,7 @@ const initialState: CurrencyStore = {
   favorites: [],
   logs: [],
   lastLogTimestamp: null,
+  lastAddedFavKey: null,
   recent: { from: [], to: [] },
   activePicker: null,
   lastActivePicker: null,
@@ -61,6 +63,7 @@ export function toggleFavorite(sender: string, receiver: string) {
             (f) => f.sender !== sender || f.receiver !== receiver,
           )
         : [{ sender, receiver }, ...state.favorites],
+      ...(exists ? {} : { lastAddedFavKey: `${sender}_${receiver}` }),
     }
   })
 }
