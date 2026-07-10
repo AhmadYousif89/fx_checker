@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRightIcon, TrashIcon } from 'lucide-react'
 
@@ -9,18 +9,16 @@ import { formatAmount, shortTimeAgo } from '#/lib/currency'
 import { removeLog } from '#/store/currencies.store'
 import type { ConversionLog } from '#/types/currency'
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 4 },
-  visible: { opacity: 1, y: 0 },
-}
-
 type LogRowProps = {
   log: ConversionLog
+  staggerDelay: number
+  isNew: boolean
 }
 
-export const LogRow = memo(({ log }: LogRowProps) => {
+export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
   const updateUrl = useUpdateUrl()
   const logTime = shortTimeAgo(log.timestamp)
+  const [showFlash, setShowFlash] = useState(false)
 
   const handleClick = () => {
     updateUrl({
@@ -42,11 +40,27 @@ export const LogRow = memo(({ log }: LogRowProps) => {
       }}
       tabIndex={0}
       role="button"
-      variants={itemVariants}
+      layout
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { zIndex: -1, opacity: 0 },
+        visible: {
+          zIndex: 1,
+          opacity: 1,
+          transition: {
+            delay: staggerDelay / 1000,
+            duration: 0.35,
+            ease: 'easeOut',
+          },
+        },
+      }}
+      onAnimationStart={() => isNew && setShowFlash(true)}
       className={cn(
-        'h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
+        'relative h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
         'hover:border-surface-300 active:border-surface-300 transition-colors',
         'outline-none focus-visible:ring focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+        showFlash && 'animate-flash',
       )}
     >
       <div className="flex grow md:items-center flex-col md:flex-row gap-1 md:gap-4">
@@ -57,7 +71,6 @@ export const LogRow = memo(({ log }: LogRowProps) => {
           {log.receiver}
         </span>
       </div>
-
       <div
         className={cn(
           'flex grow items-end md:items-center md:justify-end flex-col md:flex-row gap-1 md:gap-4',

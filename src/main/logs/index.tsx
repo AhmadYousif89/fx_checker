@@ -1,57 +1,28 @@
-import { useEffect } from 'react'
-import { DownloadIcon } from 'lucide-react'
+import { useCallback, useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { useHydrated } from '@tanstack/react-router'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '#/components/ui/alert-dialog'
-import { Button } from '#/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
 import { exportLogsAsCsv, exportLogsAsJson } from '#/lib/export'
-import { clearLogs, useCurrencyStore } from '#/store/currencies.store'
+import { useCurrencyStore } from '#/store/currencies.store'
 import { InsightCard } from '#/components/insight-card'
+import { ExportMenu } from './export-menu'
 import { LogRow } from './log-row'
 
-let logsSectionDidPlay = false
+let logsDidMount = false
 
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
+  const lastLogTimestamp = useCurrencyStore.getState().lastLogTimestamp
   const logCount = logs.length
-  const hydrated = useHydrated()
-  const didPlay = logsSectionDidPlay
 
   useEffect(() => {
-    let id: number | null = null
-    id = setTimeout(() => {
-      logsSectionDidPlay = true
-    }, 1000)
-    return () => {
-      if (id) clearTimeout(id)
-    }
-  }, [])
+    logsDidMount = logCount > 0
+  }, [logCount])
 
-  const containerVariants = {
-    visible: {
-      transition: {
-        staggerChildren: didPlay ? 0 : 0.08,
-        default: { duration: 0.35, ease: 'easeOut' },
-      },
-    },
-  }
+  const handleExportCsv = useCallback(() => exportLogsAsCsv(logs), [logs])
+  const handleExportJson = useCallback(() => exportLogsAsJson(logs), [logs])
 
+  const hydrated = useHydrated()
   if (!hydrated) {
     return <InsightCard.Skeleton hasActions={2} />
   }
@@ -80,64 +51,23 @@ export const LogsSection = () => {
           </span>
         }
         actions={
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  className="h-7.5 md:w-auto px-3 py-2 text-caption"
-                >
-                  <DownloadIcon />
-                  <span className="hidden md:inline">Export</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportLogsAsCsv(logs)}>
-                  Export as CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportLogsAsJson(logs)}>
-                  Export as JSON
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="h-7.5 px-3 py-2 text-caption hover:text-[white] hover:bg-red hover:border-red focus-visible:ring-red">
-                  Clear All
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Clear all logs?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete all conversion logs.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="text-body">
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={clearLogs}
-                    variant="destructive"
-                    className="text-[white]! text-body"
-                  >
-                    Yes, clear all
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+          <ExportMenu
+            handleExportCsv={handleExportCsv}
+            handleExportJson={handleExportJson}
+          />
         }
       />
-      <InsightCard.Body
-        variants={containerVariants}
-        initial={didPlay ? 'visible' : 'hidden'}
-        animate="visible"
-      >
-        {logs.map((log) => (
-          <LogRow key={log.timestamp} log={log} />
-        ))}
+      <InsightCard.Body>
+        <AnimatePresence mode="popLayout" initial={logsDidMount ? false : true}>
+          {logs.map((log, idx) => (
+            <LogRow
+              key={log.timestamp}
+              log={log}
+              staggerDelay={logsDidMount ? 0 : idx * 80}
+              isNew={logsDidMount && log.timestamp === lastLogTimestamp}
+            />
+          ))}
+        </AnimatePresence>
       </InsightCard.Body>
     </InsightCard.Root>
   )
