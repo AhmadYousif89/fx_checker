@@ -27,7 +27,13 @@ beforeEach(() => {
         difference: -0.2,
         direction: 'down',
       },
-      { base: 'EUR', quote: 'USD', rate: 1.1, difference: 0, direction: 'flat' },
+      {
+        base: 'EUR',
+        quote: 'USD',
+        rate: 1.1,
+        difference: 0,
+        direction: 'flat',
+      },
     ],
     degraded: false,
   })

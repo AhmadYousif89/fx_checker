@@ -15,7 +15,11 @@ import {
   TTL_BY_INTERVAL,
   TDI,
 } from '../config'
-import { currencyCode, daysParam, TwelveDataResponseSchema } from '../validation'
+import {
+  currencyCode,
+  daysParam,
+  TwelveDataResponseSchema,
+} from '../validation'
 
 class UnsupportedPairError extends Error {
   constructor(symbol: string) {
@@ -122,7 +126,7 @@ export const getTweleveHistory = createServerFn()
 
     const cacheKey = `history:${base}/${quote}/${days}/${interval}`
 
-      return getOrFetch<HistoryEntry[]>(
+    return getOrFetch<HistoryEntry[]>(
       cacheKey,
       async () => {
         // Try direct pair first, fall back to inverted on unsupported-symbol

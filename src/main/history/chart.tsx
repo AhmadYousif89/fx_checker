@@ -41,13 +41,13 @@ export const HistoryChart = memo(() => {
   } = useHistoryUI()
 
   const reducedMotion = useReducedMotion()
+  const chartAreaRef = useRef<HTMLDivElement>(null)
+
+  const drag = useDragZoom(chartAreaRef, data.length)
 
   if (data.length === 0) return null
 
   const lastData = data[data.length - 1]
-  const chartAreaRef = useRef<HTMLDivElement>(null)
-
-  const drag = useDragZoom(chartAreaRef, data.length)
 
   const smaPeriod = smaEnabled ? (SMA_PERIODS[selectedTime] ?? 0) : 0
 

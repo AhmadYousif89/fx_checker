@@ -8,9 +8,12 @@ export const getCurrencies = createServerFn().handler(async () => {
   return getOrFetch<CurrencyDetails[]>(
     'currencies',
     async () => {
-      const response = await fetch('https://api.frankfurter.dev/v2/currencies', {
-        signal: AbortSignal.timeout(10_000),
-      })
+      const response = await fetch(
+        'https://api.frankfurter.dev/v2/currencies',
+        {
+          signal: AbortSignal.timeout(10_000),
+        },
+      )
 
       if (!response.ok) {
         throw new Error('Failed to fetch currencies')
