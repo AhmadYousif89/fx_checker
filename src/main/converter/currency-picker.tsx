@@ -16,8 +16,8 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
   ComboboxValue,
-} from './ui/combobox'
-import { Button } from './ui/button'
+} from '../../components/ui/combobox'
+import { Button } from '../../components/ui/button'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
 
 import {
@@ -25,7 +25,7 @@ import {
   POPULAR_CODES,
   abbreviateCurrencyName,
 } from '#/lib/currency'
-import { ArrowDropDown } from './icons/arrow-drop-down'
+import { ArrowDropDown } from '../../components/icons/arrow-drop-down'
 import {
   useCurrencyStore,
   pushToRecent,

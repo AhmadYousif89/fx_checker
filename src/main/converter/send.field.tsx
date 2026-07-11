@@ -1,6 +1,6 @@
-import { Field, FieldLabel, FieldLegend, FieldSet } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
-import { CurrencyPicker } from '#/components/currency-picker'
+import { Field, FieldLabel, FieldLegend, FieldSet } from '#/components/ui/field'
+import { CurrencyPicker } from '#/main/converter/currency-picker'
 
 type SendFieldProps = {
   value: string
