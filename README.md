@@ -75,9 +75,7 @@ All other features work using the free Frankfurter API.
 
 ### AI Collaboration
 
-It was the first time using the [Opencode](https://opencode.ai/) CLI it's a free ai coding agent, it provides multiple free models or you can connect to any model from any provider you want.
-
-I was mainly developing with `DeepSeek V4 Flash Free` provided in the opencode `Zen` tier. it's a free coding agent with some decent reasoning and coding skills albit some limitations to a number of features you get with the current frontier AI models.
+This project was developed with [Opencode](https://opencode.ai/), a CLI-based AI coding agent. Opencode supports multiple models out of the box and allows connecting to any provider, making it a flexible alternative to hosted AI coding tools. Development was done using the `DeepSeek V4 Flash Free` model on Opencode's free tier, which provided solid reasoning and code generation throughout the project.
 
 ### Author
 
