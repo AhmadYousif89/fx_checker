@@ -32,8 +32,15 @@ npm-debug.log*
 *.swp
 *.swo
 
+# Cache
+/var
+
 # Misc
 *.log
 *.pem
 .DS_Store
 Thumbs.db
+
+#AI
+agents.md
+claude.md
