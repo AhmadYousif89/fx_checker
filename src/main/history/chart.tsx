@@ -41,6 +41,7 @@ type HistoyChartProps = {
   zoomStart?: number
   zoomEnd?: number
   onZoom: (range: { startIndex: number; endIndex: number }) => void
+  onBrushZoom: (range: { startIndex: number; endIndex: number }) => void
   onResetZoom: () => void
 }
 
@@ -58,9 +59,13 @@ export const HistoryChart = memo(
     zoomStart,
     zoomEnd,
     onZoom,
+    onBrushZoom,
     onResetZoom,
   }: HistoyChartProps) => {
     const reducedMotion = useReducedMotion()
+
+    if (data.length === 0) return null
+
     const lastData = data[data.length - 1]
     const chartAreaRef = useRef<HTMLDivElement>(null)
 
@@ -69,10 +74,10 @@ export const HistoryChart = memo(
     const handleBrushChange = useCallback(
       (range: { startIndex?: number; endIndex?: number }) => {
         if (range.startIndex != null && range.endIndex != null) {
-          onZoom({ startIndex: range.startIndex, endIndex: range.endIndex })
+          onBrushZoom({ startIndex: range.startIndex, endIndex: range.endIndex })
         }
       },
-      [onZoom],
+      [onBrushZoom],
     )
 
     const smaPeriod = smaEnabled ? (SMA_PERIODS[selectedTime] ?? 0) : 0

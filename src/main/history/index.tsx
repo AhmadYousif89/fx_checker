@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
@@ -193,6 +193,10 @@ export const HistorySection = () => {
     end: number
   } | null>(null)
 
+  useEffect(() => {
+    setZoomRange(null)
+  }, [sender, receiver])
+
   const charData = patchedData ?? data
   const displayData =
     zoomRange && charData
@@ -209,6 +213,13 @@ export const HistorySection = () => {
           end: range.endIndex + offset,
         }
       })
+    },
+    [],
+  )
+
+  const handleBrushZoom = useCallback(
+    (range: { startIndex: number; endIndex: number }) => {
+      setZoomRange({ start: range.startIndex, end: range.endIndex })
     },
     [],
   )
@@ -330,6 +341,7 @@ export const HistorySection = () => {
             zoomStart={zoomRange?.start}
             zoomEnd={zoomRange?.end}
             onZoom={handleZoom}
+            onBrushZoom={handleBrushZoom}
             onResetZoom={handleResetZoom}
           />
         </Suspense>
