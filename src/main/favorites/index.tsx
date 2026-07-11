@@ -5,9 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getCrossRate, formatRate } from '#/lib/currency'
 import type { CurrencyPair, RateWithDiff } from '#/types/currency'
 import { useLatestRates } from '#/hooks/use-latest-rates'
-import { useActivePair } from '#/hooks/use-active-pair'
 import { useCurrencyStore } from '#/store/currencies.store'
-import { getRates } from '#/server/functions/rates'
+import { getFavoriteRates } from '#/server/functions/favorite-rates'
 import { InsightCard } from '#/components/insight-card'
 import { FavoritesItem } from './favorit-item'
 
@@ -19,14 +18,27 @@ export const FavoritesSection = () => {
   const favoritesCount = favorites.length
   const shouldAnimateOnMount = !favsDidMount
 
-  const { sender } = useActivePair()
   const { data: ratesData, isLoading, isError } = useLatestRates()
 
-  const { data: diffData } = useQuery({
-    queryKey: ['favorites-diff', sender],
-    queryFn: () => getRates({ data: { base: sender } }),
+  const favKey = useMemo(
+    () =>
+      favorites
+        .map((f) => `${f.sender}_${f.receiver}`)
+        .sort()
+        .join(','),
+    [favorites],
+  )
+
+  const {
+    data: diffData,
+    isLoading: isLoadingFavDiff,
+    isFetching,
+  } = useQuery({
+    queryKey: ['favorites-diff', favKey],
+    queryFn: () => getFavoriteRates({ data: favorites }),
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60,
+    enabled: favorites.length > 0,
   })
 
   useEffect(() => {
@@ -63,7 +75,7 @@ export const FavoritesSection = () => {
     }
   }, [diffData, ratesData])
 
-  if (isLoading) {
+  if (isLoading || isLoadingFavDiff || isFetching) {
     return <InsightCard.Skeleton />
   }
 

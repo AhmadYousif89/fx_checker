@@ -26,6 +26,10 @@ vi.mock('#/server/functions/rates', () => ({
   getRates: vi.fn(),
 }))
 
+vi.mock('#/server/functions/favorite-rates', () => ({
+  getFavoriteRates: vi.fn(),
+}))
+
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual('@tanstack/react-router')
   return {

@@ -11,6 +11,15 @@ import tailwindcss from '@tailwindcss/vite'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
+    {
+      name: 'econnreset-handler',
+      configureServer(server) {
+        server.httpServer?.on('error', (err: NodeJS.ErrnoException) => {
+          if (err.code === 'ECONNRESET' || err.code === 'ECONNABORTED') return
+          console.error('[server error]', err)
+        })
+      },
+    },
     devtools(),
     tailwindcss(),
     nitro(),
