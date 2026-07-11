@@ -1,3 +1,15 @@
+/**
+ * Approximate token-bucket rate limiter.
+ *
+ * Provides ~N req/min on average with an initial burst of up to N.
+ * This is NOT a strict rolling-window limit — a full bucket allows N
+ * immediate calls, then refills one token every `refillInterval / maxTokens`
+ * milliseconds, so up to ~2N calls can land in the first rolling minute.
+ *
+ * The bucket is a module-level singleton per Node process. It is NOT
+ * distributed-safe: each worker, container, or serverless isolate starts
+ * with a fresh bucket and independent quota.
+ */
 type NowFn = () => number
 
 export class TokenBucket {

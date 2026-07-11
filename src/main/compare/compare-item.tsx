@@ -7,6 +7,7 @@ import { cn } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { toggleFavorite, useIsFavorited } from '#/store/currencies.store'
+import type { LatestRatesEntry } from '#/types/currency'
 import {
   getFlagUrl,
   formatRate,
@@ -24,7 +25,7 @@ type CompareItemProps = {
   sender: string
   quote: string
   amount: number
-  rates: Map<string, number> | undefined
+  rates: Map<string, LatestRatesEntry> | undefined
   name: string
 }
 

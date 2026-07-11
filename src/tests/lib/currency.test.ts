@@ -119,9 +119,9 @@ describe('shortTimeAgo', () => {
 
 describe('getCrossRate', () => {
   const rates = new Map([
-    ['USD', 1.1],
-    ['GBP', 0.85],
-    ['JPY', 130],
+    ['USD', { rate: 1.1, date: '2026-07-01' }],
+    ['GBP', { rate: 0.85, date: '2026-07-01' }],
+    ['JPY', { rate: 130, date: '2026-07-01' }],
   ])
 
   it('returns 1 for same base and quote', () => {
@@ -150,6 +150,14 @@ describe('getCrossRate', () => {
 
   it('returns null when quote is missing from rates', () => {
     expect(getCrossRate({ rates, base: 'USD', quote: 'XYZ' })).toBeNull()
+  })
+
+  it('returns null when base and quote have different dates', () => {
+    const mismatched = new Map(rates)
+    mismatched.set('USD', { rate: 1.1, date: '2026-06-30' })
+    expect(
+      getCrossRate({ rates: mismatched, base: 'USD', quote: 'JPY' }),
+    ).toBeNull()
   })
 })
 

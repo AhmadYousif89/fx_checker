@@ -134,8 +134,8 @@ describe('computeHistoryCrossRate', () => {
     expect(result).toHaveLength(2)
     expect(result[0].close).toBeCloseTo(1.1 / 1.3, 6)
     expect(result[0].open).toBeCloseTo(1.09 / 1.29, 6)
-    expect(result[0].high).toBeCloseTo(1.12 / 1.31, 6)
-    expect(result[0].low).toBeCloseTo(1.08 / 1.28, 6)
+    expect(result[0].high).toBeCloseTo(1.12 / 1.28, 6)
+    expect(result[0].low).toBeCloseTo(1.08 / 1.31, 6)
   })
 
   it('uses base timestamps', () => {
@@ -149,10 +149,47 @@ describe('computeHistoryCrossRate', () => {
     expect(computeHistoryCrossRate([], [])).toEqual([])
   })
 
-  it('handles length mismatch by using shorter array', () => {
-    const result = computeHistoryCrossRate(baseData, baseData.slice(0, 1))
+  it('joins by timestamp, not by array index', () => {
+    const outOfOrderBase = [
+      { time: '2024-01-16', close: 1.11, open: 1.1, high: 1.13, low: 1.09 },
+      { time: '2024-01-15', close: 1.1, open: 1.09, high: 1.12, low: 1.08 },
+    ]
+    const result = computeHistoryCrossRate(outOfOrderBase, quoteData)
+
+    expect(result).toHaveLength(2)
+    expect(result[0].time).toBe('2024-01-15')
+    expect(result[1].time).toBe('2024-01-16')
+  })
+
+  it('skips timestamps missing from one side', () => {
+    const baseWithGap = [
+      { time: '2024-01-15', close: 1.1, open: 1.09, high: 1.12, low: 1.08 },
+      { time: '2024-01-17', close: 1.12, open: 1.11, high: 1.14, low: 1.1 },
+    ]
+    const quoteWithGap = [
+      { time: '2024-01-15', close: 1.3, open: 1.29, high: 1.31, low: 1.28 },
+      { time: '2024-01-16', close: 1.31, open: 1.3, high: 1.32, low: 1.29 },
+    ]
+    const result = computeHistoryCrossRate(baseWithGap, quoteWithGap)
+
+    // Only 2024-01-15 appears in both
     expect(result).toHaveLength(1)
-    expect(result[0].close).toBeCloseTo(1.1 / 1.1, 6)
+    expect(result[0].time).toBe('2024-01-15')
+  })
+
+  it('deduplicates duplicate timestamps', () => {
+    const dupBase = [...baseData, { ...baseData[0] }]
+    const result = computeHistoryCrossRate(dupBase, quoteData)
+
+    expect(result).toHaveLength(2)
+  })
+
+  it('guarantees high >= low for every output entry', () => {
+    const result = computeHistoryCrossRate(baseData, quoteData)
+
+    for (const entry of result) {
+      expect(entry.high).toBeGreaterThanOrEqual(entry.low)
+    }
   })
 })
 

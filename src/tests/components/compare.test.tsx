@@ -19,17 +19,16 @@ function renderWithQuery(ui: React.ReactElement) {
 afterEach(cleanup)
 
 beforeEach(() => {
-  vi.mocked(getLatestRates).mockResolvedValue({
-    date: '2024-01-15',
-    rates: new Map([
-      ['USD', 1.1],
-      ['GBP', 0.85],
-      ['JPY', 130],
-      ['CHF', 0.95],
-      ['CAD', 1.25],
-      ['AUD', 1.35],
+  vi.mocked(getLatestRates).mockResolvedValue(
+    new Map([
+      ['USD', { rate: 1.1, date: '2024-01-15' }],
+      ['GBP', { rate: 0.85, date: '2024-01-15' }],
+      ['JPY', { rate: 130, date: '2024-01-15' }],
+      ['CHF', { rate: 0.95, date: '2024-01-15' }],
+      ['CAD', { rate: 1.25, date: '2024-01-15' }],
+      ['AUD', { rate: 1.35, date: '2024-01-15' }],
     ]),
-  })
+  )
   vi.mocked(getCurrencies).mockResolvedValue([
     {
       name: 'US Dollar',

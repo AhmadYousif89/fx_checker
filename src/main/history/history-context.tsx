@@ -6,28 +6,29 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { useSearch } from '@tanstack/react-router'
-import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
   useQuery,
   useQueryClient,
   keepPreviousData,
 } from '@tanstack/react-query'
+import { useSearch } from '@tanstack/react-router'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 
-import type { RangeKey } from '#/lib/history/config'
-import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
 import {
   computeHistoryStats,
   computeHistoryYAxisDomain,
 } from '#/lib/history/helpers'
-import type { HistoryEntry } from '#/lib/history/helpers'
 import { getCrossRate } from '#/lib/currency'
+import type { RangeKey } from '#/lib/history/config'
+import type { HistoryEntry } from '#/lib/history/helpers'
+import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
 
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useRateLimiterStatus } from '#/hooks/use-rate-limiter'
-import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
+import { getTweleveHistory } from '#/server/functions/twelve-history'
+import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
 
 type HistoryStatsData = {
   open: number
@@ -115,7 +116,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     queryKey,
     queryFn: () =>
       isIntraday
-        ? getHistory({
+        ? getTweleveHistory({
             data: { base: sender, quote: receiver, days, interval },
           })
         : getFrankfurterHistory({
@@ -132,8 +133,8 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
 
   const { data: latestRates } = useLatestRates()
 
-  const liveRate = latestRates?.rates
-    ? getCrossRate({ rates: latestRates.rates, base: sender, quote: receiver })
+  const liveRate = latestRates
+    ? getCrossRate({ rates: latestRates, base: sender, quote: receiver })
     : null
 
   const prefetchRange = useCallback(
@@ -147,7 +148,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
           : ['frankfurter-history', sender, receiver, rangeKey],
         queryFn: () =>
           intraday
-            ? getHistory({
+            ? getTweleveHistory({
                 data: { base: sender, quote: receiver, days: d, interval: i },
               })
             : getFrankfurterHistory({

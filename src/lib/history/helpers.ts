@@ -55,17 +55,46 @@ export function computeHistoryCrossRate(
   baseData: HistoryEntry[],
   quoteData: HistoryEntry[],
 ): HistoryEntry[] {
-  const len = Math.min(baseData.length, quoteData.length)
-  return baseData.slice(0, len).map((base, i) => {
-    const quote = quoteData[i]
-    return {
-      time: base.time,
-      close: base.close / quote.close,
-      open: base.open / quote.open,
-      high: base.high / quote.high,
-      low: base.low / quote.low,
+  const map = new Map<
+    string,
+    { base: HistoryEntry | null; quote: HistoryEntry | null }
+  >()
+
+  for (const b of baseData) {
+    map.set(b.time, { base: b, quote: map.get(b.time)?.quote ?? null })
+  }
+
+  for (const q of quoteData) {
+    const existing = map.get(q.time)
+    if (existing) {
+      existing.quote = q
+    } else {
+      map.set(q.time, { base: null, quote: q })
     }
-  })
+  }
+
+  const times = Array.from(map.keys()).sort()
+  const result: HistoryEntry[] = []
+
+  for (const time of times) {
+    const { base, quote } = map.get(time)!
+    if (!base || !quote) continue
+
+    const close = base.close / quote.close
+    const open = base.open / quote.open
+    const high = base.high / quote.low
+    const low = base.low / quote.high
+
+    result.push({
+      time,
+      close,
+      open,
+      high: Math.max(high, low),
+      low: Math.min(high, low),
+    })
+  }
+
+  return result
 }
 
 export function computeSMA(

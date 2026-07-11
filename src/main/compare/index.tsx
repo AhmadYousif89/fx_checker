@@ -47,7 +47,7 @@ export const CompareSection = () => {
 
   const availableCodes = useMemo(() => {
     if (!ratesData) return new Set<string>()
-    return new Set([...ratesData.rates.keys(), 'EUR'])
+    return new Set([...ratesData.keys(), 'EUR'])
   }, [ratesData])
 
   const defaultPairs = useMemo(
@@ -76,8 +76,6 @@ export const CompareSection = () => {
       ),
     [comparePicks, availableCodes, sender, receiver],
   )
-
-  const rates = ratesData?.rates
 
   if (isLoading) {
     return <InsightCard.Skeleton />
@@ -127,7 +125,7 @@ export const CompareSection = () => {
             quote={quote}
             sender={sender}
             amount={amount}
-            rates={rates}
+            rates={ratesData}
             name={codeToName.get(quote) ?? quote}
           />
         ))}

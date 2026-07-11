@@ -50,6 +50,11 @@ export type ConversionLog = {
   timestamp: number
 }
 
+export type LatestRatesEntry = {
+  rate: number
+  date: string
+}
+
 export type TwelveDataApiRate = {
   meta: {
     symbol: string

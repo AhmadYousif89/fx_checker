@@ -1,3 +1,6 @@
+import { z } from 'zod'
+import { currencyCode, daysParam } from './validation'
+
 export const OPEN_API_URL = 'https://api.frankfurter.dev'
 export const TWELVE_DATA_API_KEY = process.env.TWELVE_DATA_API_KEY
 export const TWELVE_DATA_API_URL = 'https://api.twelvedata.com'
@@ -31,3 +34,10 @@ export const TTL_BY_INTERVAL: Record<string, number> = {
   '1week': 24 * 60 * 60 * 1000,
   '1month': 24 * 60 * 60 * 1000,
 }
+
+export const schema = z.object({
+  base: currencyCode,
+  quote: currencyCode,
+  days: daysParam.default(30),
+  interval: z.enum(TDI).default('1day'),
+})

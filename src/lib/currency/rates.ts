@@ -1,26 +1,37 @@
-import type { FrankfurterApiRate, RateWithDiff } from '#/types/currency'
+import type {
+  FrankfurterApiRate,
+  LatestRatesEntry,
+  RateWithDiff,
+} from '#/types/currency'
 
 /**
  * Compute live cross rate from Frankfurter's latest EUR-anchored rates map.
  * E.g. base=USD, quote=EUR → EUR/USD = 1 / USD_rate.
+ *
+ * Each rate entry carries its own date. The function verifies both legs
+ * share the same date to avoid combining observations from different
+ * trading sessions (e.g. Friday rate ÷ Saturday rate).
  */
 export function getCrossRate({
   rates,
   base,
   quote,
 }: {
-  rates: Map<string, number>
+  rates: Map<string, LatestRatesEntry>
   base: string
   quote: string
 }): number | null {
   if (base === quote) return 1
-  if (base !== 'EUR' && !rates.has(base)) return null
-  if (quote !== 'EUR' && !rates.has(quote)) return null
-  const rBase = base === 'EUR' ? 1 : rates.get(base)
+
+  const rBase = base === 'EUR' ? { rate: 1, date: '' } : rates.get(base)
   if (rBase == null) return null
-  const rQuote = quote === 'EUR' ? 1 : rates.get(quote)
+  const rQuote = quote === 'EUR' ? { rate: 1, date: '' } : rates.get(quote)
   if (rQuote == null) return null
-  return rQuote / rBase
+
+  // Only cross-rate from the same date to avoid stale-data mixing
+  if (rBase.date && rQuote.date && rBase.date !== rQuote.date) return null
+
+  return rQuote.rate / rBase.rate
 }
 
 /** Look up a single EUR-anchored quote rate at a specific date. */

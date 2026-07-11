@@ -1,17 +1,18 @@
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
-import { OPEN_API_URL } from '../config'
 import { FLAG_CODE_SET } from '#/lib/currency'
-import type { RateWithDiff, FrankfurterApiRate } from '#/types/currency'
+import type { RateWithDiff } from '#/types/currency'
 import {
   generateFallbackPairs,
   getCrossRateAtDate,
   getRateAtDate,
 } from '#/lib/currency/rates'
+import { currencyCode } from '../validation'
+import { getHistoricalRates } from './history-rates'
 
 export const getRates = createServerFn()
-  .validator(z.object({ base: z.string() }).optional())
+  .validator(z.object({ base: currencyCode }).optional())
   .handler(async ({ data }) => {
     const base = data ? data.base : 'USD'
     const rates = await getHistoricalRates()
@@ -82,26 +83,3 @@ export const getRates = createServerFn()
 
     return ratesWithDiff
   })
-
-// Fetch historical rates from the Frankfurter API for the last 5 days
-async function getHistoricalRates() {
-  const now = new Date()
-  const endDate = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  )
-  const startDate = new Date(endDate)
-  startDate.setUTCDate(endDate.getUTCDate() - 5)
-
-  const format = (d: Date) => d.toISOString().split('T')[0]
-
-  const response = await fetch(
-    `${OPEN_API_URL}/v2/rates?from=${format(startDate)}&to=${format(endDate)}`,
-  )
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch historical rates')
-  }
-
-  const result = await response.json()
-  return result as FrankfurterApiRate[]
-}

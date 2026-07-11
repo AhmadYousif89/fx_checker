@@ -6,7 +6,7 @@ import { Footer } from '#/footer'
 import { TopLoader } from '#/components/top-loader'
 import { getRates } from '#/server/functions/rates'
 import { getCurrencies } from '#/server/functions/currencies'
-import { getFrankfurterHistory } from '#/server/functions/history'
+import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
 import { sanitizeCurrencySearch, searchSchema } from '#/lib/search'
 import { TIME_RANGES } from '#/lib/history/config'
 

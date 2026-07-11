@@ -8,24 +8,37 @@ import {
   computeHistoryCrossRate,
 } from '#/lib/history/helpers'
 import type { HistoryEntry } from '#/lib/history/helpers'
-import type { FrankfurterApiRate, TwelveDataApiRate } from '#/types/currency'
+import type { TwelveDataApiRate } from '#/types/currency'
 import { twelveDataBucket } from '../rate-limiter'
 import {
   TWELVE_DATA_API_URL,
   TWELVE_DATA_API_KEY,
   TTL_BY_INTERVAL,
-  OPEN_API_URL,
   TDI,
 } from '../config'
+import { currencyCode, daysParam } from '../validation'
 
 const schema = z.object({
-  base: z.string(),
-  quote: z.string(),
-  days: z.number().min(1).default(30),
+  base: currencyCode,
+  quote: currencyCode,
+  days: daysParam.default(30),
   interval: z.enum(TDI).default('1day'),
 })
 
 export type HistoryInput = z.infer<typeof schema>
+
+async function fetchWithRetry(url: URL, maxRetries = 3): Promise<Response> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res = await fetch(url)
+    if (res.status !== 429) return res
+    const retryAfter = res.headers.get('Retry-After')
+    const delayMs = retryAfter
+      ? parseInt(retryAfter, 10) * 1000
+      : Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10_000)
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+  return fetch(url)
+}
 
 async function fetchSymbolTimeSeries(
   symbol: string,
@@ -40,9 +53,13 @@ async function fetchSymbolTimeSeries(
     cacheKey,
     async () => {
       await twelveDataBucket.acquire()
-      const res = await fetch(
-        `${TWELVE_DATA_API_URL}/time_series?symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=${outputsize}&timezone=UTC&apikey=${TWELVE_DATA_API_KEY}`,
-      )
+      const tdUrl = new URL(`${TWELVE_DATA_API_URL}/time_series`)
+      tdUrl.searchParams.set('symbol', symbol)
+      tdUrl.searchParams.set('interval', interval)
+      tdUrl.searchParams.set('outputsize', String(outputsize))
+      tdUrl.searchParams.set('timezone', 'UTC')
+      tdUrl.searchParams.set('apikey', TWELVE_DATA_API_KEY ?? '')
+      const res = await fetchWithRetry(tdUrl)
 
       if (!res.ok) {
         throw new Error(`Failed to fetch history for ${symbol}`)
@@ -86,7 +103,7 @@ async function fetchCurrencyVsUSD(
   }
 }
 
-export const getHistory = createServerFn()
+export const getTweleveHistory = createServerFn()
   .validator(schema)
   .handler(async ({ data: input }) => {
     const { base, quote, days, interval } = input
@@ -125,45 +142,6 @@ export const getHistory = createServerFn()
           fetchCurrencyVsUSD(quote, days, interval, ttl),
         ])
         return computeHistoryCrossRate(baseData, quoteData)
-      },
-      ttl,
-    )
-  })
-
-export const getFrankfurterHistory = createServerFn()
-  .validator(schema)
-  .handler(async ({ data: input }) => {
-    const { base, quote, days } = input
-
-    const endDate = new Date()
-    const startDate = new Date(endDate)
-    startDate.setDate(startDate.getDate() - days)
-
-    const fmt = (d: Date) => d.toISOString().split('T')[0]
-
-    const cacheKey = `frankfurter:history:${base}/${quote}/${days}`
-    const ttl = 24 * 60 * 60 * 1000 // 1 day
-
-    return getOrFetch<HistoryEntry[]>(
-      cacheKey,
-      async () => {
-        const res = await fetch(
-          `${OPEN_API_URL}/v2/rates?base=${base}&quotes=${quote}&from=${fmt(startDate)}&to=${fmt(endDate)}`,
-        )
-
-        if (!res.ok) {
-          throw new Error(`Failed to fetch history for ${base}/${quote}`)
-        }
-
-        const data = (await res.json()) as FrankfurterApiRate[]
-
-        return data.map((entry) => ({
-          time: entry.date,
-          close: entry.rate,
-          open: entry.rate,
-          high: entry.rate,
-          low: entry.rate,
-        }))
       },
       ttl,
     )

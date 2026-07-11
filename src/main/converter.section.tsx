@@ -68,7 +68,7 @@ export const RateConverter = () => {
 
   const rate = ratesData
     ? getCrossRate({
-        rates: ratesData.rates,
+        rates: ratesData,
         base: sender,
         quote: receiver,
       })

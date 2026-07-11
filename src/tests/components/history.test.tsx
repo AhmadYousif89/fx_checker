@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { TooltipProvider } from '@/components/ui/tooltip'
 
-import { getHistory, getFrankfurterHistory } from '#/server/functions/history'
 import { HistorySection } from '#/main/history'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { getTweleveHistory } from '#/server/functions/twelve-history'
+import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
 
 vi.mock('#/hooks/use-update-url', () => ({
   useUpdateUrl: () => vi.fn(),
@@ -27,20 +28,20 @@ beforeEach(() => {
     { time: '2024-01-08', close: 1.15, open: 1.1, high: 1.16, low: 1.09 },
     { time: '2024-01-15', close: 1.2, open: 1.15, high: 1.21, low: 1.14 },
   ]
-  vi.mocked(getHistory).mockResolvedValue(mockData)
+  vi.mocked(getTweleveHistory).mockResolvedValue(mockData)
   vi.mocked(getFrankfurterHistory).mockResolvedValue(mockData)
 })
 
 describe('HistorySection', () => {
   it('renders loading spinner initially', () => {
-    vi.mocked(getHistory).mockImplementation(() => new Promise(() => {}))
+    vi.mocked(getTweleveHistory).mockImplementation(() => new Promise(() => {}))
     renderWithQuery(<HistorySection />)
     const spinner = document.querySelector('.animate-spin')
     expect(spinner).toBeInTheDocument()
   })
 
   it('shows error state on failure', async () => {
-    vi.mocked(getHistory).mockRejectedValue(new Error('fail'))
+    vi.mocked(getTweleveHistory).mockRejectedValue(new Error('fail'))
     vi.mocked(getFrankfurterHistory).mockRejectedValue(new Error('fail'))
     renderWithQuery(<HistorySection />)
     expect(await screen.findByText(/Something went wrong/)).toBeInTheDocument()

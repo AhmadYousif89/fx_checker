@@ -25,7 +25,7 @@ beforeAll(async () => {
   const { tmpdir } = await import('node:os')
   const { mkdtempSync } = await import('node:fs')
   testDir = mkdtempSync(join(tmpdir(), 'fx-checker-cache-test-'))
-  resetCache(testDir)
+  await resetCache(testDir)
 })
 
 afterAll(async () => {
@@ -39,33 +39,33 @@ beforeEach(() => {
 
 describe('cache', () => {
   describe('getCached / setCache', () => {
-    it('returns undefined for missing key', () => {
-      expect(getCached('nonexistent')).toBeUndefined()
+    it('returns undefined for missing key', async () => {
+      await expect(getCached('nonexistent')).resolves.toBeUndefined()
     })
 
-    it('returns data for cached key', () => {
-      setCache('test:1', { foo: 'bar' }, 60_000)
-      expect(getCached('test:1')).toEqual({ foo: 'bar' })
+    it('returns data for cached key', async () => {
+      await setCache('test:1', { foo: 'bar' }, 60_000)
+      await expect(getCached('test:1')).resolves.toEqual({ foo: 'bar' })
     })
 
-    it('returns undefined after TTL expires', () => {
+    it('returns undefined after TTL expires', async () => {
       vi.useFakeTimers()
-      setCache('test:2', 'expired-data', 10_000)
-      expect(getCached('test:2')).toBe('expired-data')
+      await setCache('test:2', 'expired-data', 10_000)
+      await expect(getCached('test:2')).resolves.toBe('expired-data')
       vi.advanceTimersByTime(10_001)
-      expect(getCached('test:2')).toBeUndefined()
+      await expect(getCached('test:2')).resolves.toBeUndefined()
       vi.useRealTimers()
     })
 
-    it('stores with custom TTL', () => {
-      setCache('test:3', 42, 10_000)
-      expect(getCached('test:3')).toBe(42)
+    it('stores with custom TTL', async () => {
+      await setCache('test:3', 42, 10_000)
+      await expect(getCached('test:3')).resolves.toBe(42)
     })
 
-    it('overwrites existing key', () => {
-      setCache('test:4', 'first', 60_000)
-      setCache('test:4', 'second', 60_000)
-      expect(getCached('test:4')).toBe('second')
+    it('overwrites existing key', async () => {
+      await setCache('test:4', 'first', 60_000)
+      await setCache('test:4', 'second', 60_000)
+      await expect(getCached('test:4')).resolves.toBe('second')
     })
   })
 
@@ -110,8 +110,8 @@ describe('cache', () => {
   })
 
   describe('file persistence', () => {
-    it('writes data to disk on set', () => {
-      setCache('file:1', 'disk-data', 60_000)
+    it('writes data to disk on set', async () => {
+      await setCache('file:1', 'disk-data', 60_000)
       const files = readdirSync(testDir).filter((f) => f.endsWith('.json'))
       expect(files.length).toBeGreaterThan(0)
       const contents = files.map((f) =>
@@ -122,18 +122,18 @@ describe('cache', () => {
       ).toBe(true)
     })
 
-    it('survives in-memory clear via disk fallback', () => {
-      setCache('file:2', 'persisted', 60_000)
+    it('survives in-memory clear via disk fallback', async () => {
+      await setCache('file:2', 'persisted', 60_000)
       clearCache()
-      expect(getCached('file:2')).toBe('persisted')
+      await expect(getCached('file:2')).resolves.toBe('persisted')
     })
 
-    it('cleans up expired files on read', () => {
+    it('cleans up expired files on read', async () => {
       vi.useFakeTimers()
-      setCache('file:3', 'stale', 10_000)
+      await setCache('file:3', 'stale', 10_000)
       vi.advanceTimersByTime(10_001)
       clearCache()
-      expect(getCached('file:3')).toBeUndefined()
+      await expect(getCached('file:3')).resolves.toBeUndefined()
       vi.useRealTimers()
       const files = readdirSync(testDir).filter((f) => f.endsWith('.json'))
       expect(
@@ -146,52 +146,51 @@ describe('cache', () => {
   })
 
   describe('clearCache', () => {
-    it('clears in-memory store but disk-persisted data survives', () => {
-      setCache('clear:1', 'a', 60_000)
+    it('clears in-memory store but disk-persisted data survives', async () => {
+      await setCache('clear:1', 'a', 60_000)
       clearCache()
-      // Disk fallback re-populates in-memory from file
-      expect(getCached('clear:1')).toBe('a')
+      await expect(getCached('clear:1')).resolves.toBe('a')
     })
   })
 
   describe('multiple keys', () => {
-    it('handles multiple keys independently', () => {
-      setCache('multi:a', 1, 60_000)
-      setCache('multi:b', 2, 60_000)
-      setCache('multi:c', 3, 60_000)
-      expect(getCached('multi:a')).toBe(1)
-      expect(getCached('multi:b')).toBe(2)
-      expect(getCached('multi:c')).toBe(3)
+    it('handles multiple keys independently', async () => {
+      await setCache('multi:a', 1, 60_000)
+      await setCache('multi:b', 2, 60_000)
+      await setCache('multi:c', 3, 60_000)
+      await expect(getCached('multi:a')).resolves.toBe(1)
+      await expect(getCached('multi:b')).resolves.toBe(2)
+      await expect(getCached('multi:c')).resolves.toBe(3)
     })
   })
 
   describe('eviction', () => {
-    it('evicts oldest entry when cache exceeds MAX_CACHE_SIZE', () => {
+    it('evicts oldest entry when cache exceeds MAX_CACHE_SIZE', async () => {
       for (let i = 0; i < 501; i++) {
-        setCache(`evict:${i}`, i, 60_000)
+        await setCache(`evict:${i}`, i, 60_000)
       }
-      expect(getCached('evict:0')).toBeUndefined()
-      expect(getCached('evict:500')).toBe(500)
-    })
+      await expect(getCached('evict:0')).resolves.toBeUndefined()
+      await expect(getCached('evict:500')).resolves.toBe(500)
+    }, 30_000)
 
-    it('evicts expired entries before oldest entry', () => {
+    it('evicts expired entries before oldest entry', async () => {
       vi.useFakeTimers()
       for (let i = 0; i < 500; i++) {
-        setCache(`expired:${i}`, i, -1)
+        await setCache(`expired:${i}`, i, -1)
       }
       vi.advanceTimersByTime(1)
-      setCache('fresh', 'value', 60_000)
-      expect(getCached('expired:0')).toBeUndefined()
-      expect(getCached('fresh')).toBe('value')
+      await setCache('fresh', 'value', 60_000)
+      await expect(getCached('expired:0')).resolves.toBeUndefined()
+      await expect(getCached('fresh')).resolves.toBe('value')
       vi.useRealTimers()
-    })
+    }, 30_000)
 
-    it('does not evict when cache is below MAX_CACHE_SIZE', () => {
+    it('does not evict when cache is below MAX_CACHE_SIZE', async () => {
       for (let i = 0; i < 499; i++) {
-        setCache(`below:${i}`, i, 60_000)
+        await setCache(`below:${i}`, i, 60_000)
       }
-      expect(getCached('below:0')).toBe(0)
-      expect(getCached('below:498')).toBe(498)
-    })
+      await expect(getCached('below:0')).resolves.toBe(0)
+      await expect(getCached('below:498')).resolves.toBe(498)
+    }, 30_000)
   })
 })

@@ -27,14 +27,13 @@ function renderWithProviders(ui: React.ReactElement) {
 afterEach(cleanup)
 
 beforeEach(() => {
-  vi.mocked(getLatestRates).mockResolvedValue({
-    date: '2024-01-15',
-    rates: new Map([
-      ['USD', 1.1],
-      ['GBP', 0.85],
-      ['JPY', 130],
+  vi.mocked(getLatestRates).mockResolvedValue(
+    new Map([
+      ['USD', { rate: 1.1, date: '2024-01-15' }],
+      ['GBP', { rate: 0.85, date: '2024-01-15' }],
+      ['JPY', { rate: 130, date: '2024-01-15' }],
     ]),
-  })
+  )
   useCurrencyStore.setState({
     favorites: [],
     logs: [],

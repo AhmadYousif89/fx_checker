@@ -60,7 +60,7 @@ export const FavoritesSection = () => {
 
       if (!ratesData) return undefined
       const rate = getCrossRate({
-        rates: ratesData.rates,
+        rates: ratesData,
         base: f.sender,
         quote: f.receiver,
       })
