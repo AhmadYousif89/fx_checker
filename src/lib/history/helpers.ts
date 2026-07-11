@@ -46,8 +46,8 @@ export function invertData(data: HistoryEntry[]): HistoryEntry[] {
     ...d,
     close: 1 / d.close,
     open: 1 / d.open,
-    high: 1 / d.high,
-    low: 1 / d.low,
+    high: 1 / d.low,
+    low: 1 / d.high,
   }))
 }
 

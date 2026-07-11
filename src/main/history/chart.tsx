@@ -24,7 +24,12 @@ import { Button } from '#/components/ui/button'
 import { useHistoryData, useHistoryUI } from './history-context'
 
 export const HistoryChart = memo(() => {
-  const { displayData: data, fullData, yDomain: yDomainProp } = useHistoryData()
+  const {
+    displayData: data,
+    fullData,
+    yDomain: yDomainProp,
+    liveRate,
+  } = useHistoryData()
   const {
     sender,
     receiver,
@@ -106,7 +111,7 @@ export const HistoryChart = memo(() => {
           </div>
         </span>
         <span className="whitespace-nowrap text-foreground-darker text-caption">
-          {formatRate(lastData.close)} • {headerDateStr}
+          {formatRate(liveRate ?? lastData.close)} • {headerDateStr}
         </span>
       </div>
       <div

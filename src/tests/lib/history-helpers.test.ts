@@ -101,8 +101,8 @@ describe('invertData', () => {
     expect(result).toHaveLength(2)
     expect(result[0].close).toBeCloseTo(1 / 0.0067, 6)
     expect(result[0].open).toBeCloseTo(1 / 0.0066, 6)
-    expect(result[0].high).toBeCloseTo(1 / 0.0068, 6)
-    expect(result[0].low).toBeCloseTo(1 / 0.0065, 6)
+    expect(result[0].high).toBeCloseTo(1 / 0.0065, 6)
+    expect(result[0].low).toBeCloseTo(1 / 0.0068, 6)
   })
 
   it('preserves time values', () => {

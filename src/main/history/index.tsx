@@ -12,7 +12,11 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
 import { ScreenshotAction } from './screenshot'
 import { HistoryStats } from './stats'
-import { HistoryProvider, useHistoryData, useHistoryUI } from './history-context'
+import {
+  HistoryProvider,
+  useHistoryData,
+  useHistoryUI,
+} from './history-context'
 
 const HistoryChart = lazy(() =>
   import('./chart').then((m) => ({ default: m.HistoryChart })),

@@ -45,6 +45,7 @@ type HistoryDataContextValue = {
   isFetching: boolean
   isError: boolean
   hasData: boolean
+  liveRate: number | null
 }
 
 type HistoryUIContextValue = {
@@ -125,91 +126,15 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     placeholderData: keepPreviousData,
   })
 
-  const { data: latestRates } = useLatestRates()
   const { data: rateLimiterData } = useRateLimiterStatus(
     isIntraday && isFetching,
   )
 
+  const { data: latestRates } = useLatestRates()
+
   const liveRate = latestRates?.rates
     ? getCrossRate({ rates: latestRates.rates, base: sender, quote: receiver })
     : null
-
-  const patchedData = useMemo(() => {
-    if (!data || data.length === 0 || liveRate == null) return data
-
-    const lastClose = data[data.length - 1].close
-    const needsFix =
-      Math.abs(lastClose - 1 / liveRate) < Math.abs(lastClose - liveRate)
-    const points = needsFix
-      ? data.map((d) => ({
-          time: d.time,
-          close: 1 / d.close,
-          open: 1 / d.open,
-          high: 1 / d.high,
-          low: 1 / d.low,
-        }))
-      : data
-
-    const last = points[points.length - 1]
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    const useTime = last.time.includes(' ')
-    const formatTS = (d: Date) => {
-      const datePart = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
-      if (!useTime) return datePart
-      const timePart = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`
-      return `${datePart} ${timePart}`
-    }
-
-    const intervalMinutes = interval.endsWith('min')
-      ? parseInt(interval)
-      : interval.endsWith('h')
-        ? parseInt(interval) * 60
-        : null
-
-    if (!intervalMinutes) {
-      const now = new Date()
-      return [
-        ...points.slice(0, -1),
-        { ...last, close: liveRate, time: formatTS(now) },
-      ]
-    }
-
-    const lastDate = new Date(last.time.replace(' ', 'T') + 'Z')
-    if (Number.isNaN(lastDate.getTime())) {
-      const now = new Date()
-      return [
-        ...points.slice(0, -1),
-        { ...last, close: liveRate, time: formatTS(now) },
-      ]
-    }
-
-    const now = new Date()
-    const diffMinutes = (now.getTime() - lastDate.getTime()) / (1000 * 60)
-
-    if (diffMinutes < intervalMinutes) {
-      return [
-        ...points.slice(0, -1),
-        { ...last, close: liveRate, time: formatTS(now) },
-      ]
-    }
-
-    const pointsToAdd = Math.min(Math.floor(diffMinutes / intervalMinutes), 144)
-
-    const interpolated: typeof data = []
-    for (let i = 1; i <= pointsToAdd; i++) {
-      const time = formatTS(
-        new Date(lastDate.getTime() + i * intervalMinutes * 60 * 1000),
-      )
-      interpolated.push({ ...last, time })
-    }
-
-    return [
-      ...points.slice(0, -1),
-      last,
-      ...interpolated,
-      { ...last, close: liveRate, time: formatTS(now) },
-    ]
-  }, [data, liveRate, interval])
 
   const prefetchRange = useCallback(
     (rangeKey: RangeKey) => {
@@ -244,11 +169,11 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     setZoomRange(null)
   }, [sender, receiver])
 
-  const charData = patchedData ?? data
+  const chartData = data
   const displayData =
-    zoomRange && charData
-      ? charData.slice(zoomRange.start, zoomRange.end + 1)
-      : (charData ?? [])
+    zoomRange && chartData
+      ? chartData.slice(zoomRange.start, zoomRange.end + 1)
+      : (chartData ?? [])
 
   const handleZoom = useCallback(
     (range: { startIndex: number; endIndex: number }) => {
@@ -277,30 +202,32 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     [displayData],
   )
 
-  const stats = useMemo(() => computeHistoryStats(patchedData), [patchedData])
+  const stats = useMemo(() => computeHistoryStats(data), [data])
 
   const hasData = !!(data && data.length > 0)
 
   const dataCtx = useMemo<HistoryDataContextValue>(
     () => ({
       displayData,
-      fullData: charData ?? [],
+      fullData: chartData ?? [],
       yDomain,
       stats,
       isLoading,
       isFetching,
       isError,
       hasData,
+      liveRate,
     }),
     [
       displayData,
-      charData,
+      chartData,
       yDomain,
       stats,
       isLoading,
       isFetching,
       isError,
       hasData,
+      liveRate,
     ],
   )
 

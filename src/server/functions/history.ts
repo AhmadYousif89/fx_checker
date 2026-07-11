@@ -98,7 +98,22 @@ export const getHistory = createServerFn()
       cacheKey,
       async () => {
         if (quote === 'USD') {
-          return fetchSymbolTimeSeries(`${quote}/${base}`, days, interval, ttl)
+          try {
+            return await fetchSymbolTimeSeries(
+              `${base}/${quote}`,
+              days,
+              interval,
+              ttl,
+            )
+          } catch {
+            const data = await fetchSymbolTimeSeries(
+              `${quote}/${base}`,
+              days,
+              interval,
+              ttl,
+            )
+            return invertData(data)
+          }
         }
 
         if (base === 'USD') {
