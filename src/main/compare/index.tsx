@@ -9,7 +9,7 @@ import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
 
-let compSectionDidPlay = false
+let compsDidPlay = false
 
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
@@ -17,18 +17,13 @@ export const CompareSection = () => {
   const favorites = useCurrencyStore((s) => s.favorites)
   const comparePicks = useCurrencyStore((s) => s.comparePicks)
   const { sender, receiver, amount: urlAmount } = useActivePair()
-  const { data: ratesData, isLoading, isError } = useLatestRates()
-  const didPlay = compSectionDidPlay
+  const { data: ratesData, isLoading, isError, isFetching } = useLatestRates()
+  const didPlay = compsDidPlay
 
   useEffect(() => {
-    let id: number | null = null
-    id = setTimeout(() => {
-      compSectionDidPlay = true
-    }, 1000)
-    return () => {
-      if (id) clearTimeout(id)
-    }
-  }, [])
+    if (isLoading || isError) return
+    compsDidPlay = true
+  }, [isLoading, isError])
 
   const containerVariants = {
     visible: {
@@ -77,7 +72,7 @@ export const CompareSection = () => {
     [comparePicks, availableCodes, sender, receiver],
   )
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return <InsightCard.Skeleton />
   }
 

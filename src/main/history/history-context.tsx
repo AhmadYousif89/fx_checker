@@ -97,9 +97,43 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     [smaEnabled, updateUrl],
   )
 
+  const [zoomRange, setZoomRange] = useState<{
+    start: number
+    end: number
+  } | null>(null)
+
+  useEffect(() => {
+    setZoomRange(null)
+  }, [sender, receiver, selectedTime])
+
+  const handleZoom = useCallback(
+    (range: { startIndex: number; endIndex: number }) => {
+      setZoomRange((prev) => {
+        const offset = prev?.start ?? 0
+        return {
+          start: range.startIndex + offset,
+          end: range.endIndex + offset,
+        }
+      })
+    },
+    [],
+  )
+
+  const handleBrushZoom = useCallback(
+    (range: { startIndex: number; endIndex: number }) => {
+      setZoomRange({ start: range.startIndex, end: range.endIndex })
+    },
+    [],
+  )
+
+  const handleResetZoom = useCallback(() => setZoomRange(null), [])
+
   const hotkeys = rangeKeys.map((rangeKey, i) => ({
     hotkey: { key: `${i + 1}` },
-    callback: () => updateUrl({ view: rangeKey }),
+    callback: () => {
+      handleResetZoom()
+      updateUrl({ view: rangeKey })
+    },
   }))
 
   useHotkeys(hotkeys, { requireReset: true })
@@ -109,7 +143,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const interval = RANGE_INTERVALS[selectedTime]
 
   const queryKey = isIntraday
-    ? ['history', sender, receiver, selectedTime]
+    ? ['tweleve-history', sender, receiver, selectedTime]
     : ['frankfurter-history', sender, receiver, selectedTime]
 
   const { data, isLoading, isFetching, isError } = useQuery({
@@ -144,7 +178,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
       const intraday = rangeKey === '1d' || rangeKey === '1w'
       queryClient.prefetchQuery({
         queryKey: intraday
-          ? ['history', sender, receiver, rangeKey]
+          ? ['tweleve-history', sender, receiver, rangeKey]
           : ['frankfurter-history', sender, receiver, rangeKey],
         queryFn: () =>
           intraday
@@ -161,42 +195,11 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     [queryClient, sender, receiver],
   )
 
-  const [zoomRange, setZoomRange] = useState<{
-    start: number
-    end: number
-  } | null>(null)
-
-  useEffect(() => {
-    setZoomRange(null)
-  }, [sender, receiver])
-
   const chartData = data
   const displayData =
     zoomRange && chartData
       ? chartData.slice(zoomRange.start, zoomRange.end + 1)
       : (chartData ?? [])
-
-  const handleZoom = useCallback(
-    (range: { startIndex: number; endIndex: number }) => {
-      setZoomRange((prev) => {
-        const offset = prev?.start ?? 0
-        return {
-          start: range.startIndex + offset,
-          end: range.endIndex + offset,
-        }
-      })
-    },
-    [],
-  )
-
-  const handleBrushZoom = useCallback(
-    (range: { startIndex: number; endIndex: number }) => {
-      setZoomRange({ start: range.startIndex, end: range.endIndex })
-    },
-    [],
-  )
-
-  const handleResetZoom = useCallback(() => setZoomRange(null), [])
 
   const yDomain = useMemo(
     () => computeHistoryYAxisDomain(displayData),

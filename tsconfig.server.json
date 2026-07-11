@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/server/**/*.ts",
+    "src/lib/currency/index.ts",
+    "src/lib/currency/rates.ts",
+    "src/lib/history/helpers.ts",
+    "src/types/**/*.ts"
+  ],
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2022"]
+  }
+}

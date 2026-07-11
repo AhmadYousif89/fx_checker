@@ -1,4 +1,4 @@
-import type { HistoryInput } from '#/server/functions/history'
+import type { TDI } from '#/server/config'
 
 export const SMA_PERIODS: Record<string, number> = {
   '1d': 12,
@@ -22,7 +22,7 @@ export const TIME_RANGES: Record<RangeKey, number> = {
   '5y': 1825,
 }
 
-export const RANGE_INTERVALS: Record<RangeKey, HistoryInput['interval']> = {
+export const RANGE_INTERVALS: Record<RangeKey, (typeof TDI)[number]> = {
   '1d': '5min',
   '1w': '1h',
   '1m': '1day',

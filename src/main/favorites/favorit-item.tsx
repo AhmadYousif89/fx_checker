@@ -20,7 +20,7 @@ export const FavoritesItem = memo(
   }: {
     item: CurrencyPair
     rate: string
-    difference?: number
+    difference?: number | null
     direction?: RateWithDiff['direction']
     staggerDelay: number
     isNew: boolean

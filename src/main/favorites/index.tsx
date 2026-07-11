@@ -29,11 +29,7 @@ export const FavoritesSection = () => {
     [favorites],
   )
 
-  const {
-    data: diffData,
-    isLoading: isLoadingFavDiff,
-    isFetching,
-  } = useQuery({
+  const { data: diffData } = useQuery({
     queryKey: ['favorites-diff', favKey],
     queryFn: () => getFavoriteRates({ data: favorites }),
     staleTime: 1000 * 60 * 10,
@@ -76,7 +72,7 @@ export const FavoritesSection = () => {
     }
   }, [diffData, ratesData])
 
-  if (isLoading || isLoadingFavDiff || isFetching) {
+  if (isLoading) {
     return <InsightCard.Skeleton />
   }
 

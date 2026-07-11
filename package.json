@@ -13,7 +13,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
-    "check": "prettier --check ."
+    "check": "prettier --check .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.server.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
