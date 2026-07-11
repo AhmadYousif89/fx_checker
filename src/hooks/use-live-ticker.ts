@@ -9,5 +9,6 @@ export const useLiveTicker = (base: string = 'USD') => {
     gcTime: 1000 * 60 * 60,
     refetchInterval: 1000 * 60 * 10,
     refetchIntervalInBackground: false,
+    select: (res) => res.data,
   })
 }

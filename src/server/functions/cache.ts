@@ -194,15 +194,12 @@ export async function getOrFetch<T>(
   if (existing) return existing as Promise<T>
 
   const promise = fetchFn()
-    .then((data) => {
-      return setCache(key, data, ttl).then(() => {
-        pending.delete(key)
-        return data
-      })
-    })
+    .then((data) => setCache(key, data, ttl).then(() => data))
     .catch((err) => {
-      pending.delete(key)
       throw err
+    })
+    .finally(() => {
+      pending.delete(key)
     })
 
   pending.set(key, promise)

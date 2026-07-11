@@ -1,7 +1,7 @@
 import type { HistoryEntry } from '#/lib/history/helpers'
-import type { FrankfurterApiRate } from '#/types/currency'
 import { createServerFn } from '@tanstack/react-start'
 import { OPEN_API_URL, schema } from '../config'
+import { FrankfurterRateSchema } from '../validation'
 import { getOrFetch } from './cache'
 
 export const getFrankfurterHistory = createServerFn()
@@ -15,8 +15,8 @@ export const getFrankfurterHistory = createServerFn()
 
     const fmt = (d: Date) => d.toISOString().split('T')[0]
 
-    const cacheKey = `frankfurter:history:${base}/${quote}/${days}`
-    const ttl = 24 * 60 * 60 * 1000 // 1 day
+    const cacheKey = `frankfurter:history:${base}/${quote}/${days}/${fmt(endDate)}`
+    const ttl = 60 * 60 * 1000 // 1 hour
 
     return getOrFetch<HistoryEntry[]>(
       cacheKey,
@@ -26,13 +26,15 @@ export const getFrankfurterHistory = createServerFn()
         ffUrl.searchParams.set('quotes', quote)
         ffUrl.searchParams.set('from', fmt(startDate))
         ffUrl.searchParams.set('to', fmt(endDate))
-        const res = await fetch(ffUrl)
+        const res = await fetch(ffUrl, { signal: AbortSignal.timeout(10_000) })
 
         if (!res.ok) {
           throw new Error(`Failed to fetch history for ${base}/${quote}`)
         }
 
-        const data = (await res.json()) as FrankfurterApiRate[]
+        const raw: unknown = await res.json()
+        if (!Array.isArray(raw)) throw new Error('Invalid Frankfurter history')
+        const data = raw.map((r) => FrankfurterRateSchema.parse(r))
 
         return data.map((entry) => ({
           time: entry.date,

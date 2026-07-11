@@ -1,4 +1,6 @@
 import { OPEN_API_URL } from '../config'
+import { FrankfurterRateSchema } from '../validation'
+import { getOrFetch } from './cache'
 import type { FrankfurterApiRate } from '#/types/currency'
 
 // Fetch historical rates from the Frankfurter API for the last 5 days
@@ -12,15 +14,27 @@ export async function getHistoricalRates() {
 
   const format = (d: Date) => d.toISOString().split('T')[0]
 
-  const url = new URL(`${OPEN_API_URL}/v2/rates`)
-  url.searchParams.set('from', format(startDate))
-  url.searchParams.set('to', format(endDate))
-  const response = await fetch(url)
+  const cacheKey = `historical-rates:${format(startDate)}:${format(endDate)}`
+  const ttl = 10 * 60 * 1000 // 10 minutes
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch historical rates')
-  }
+  return getOrFetch<FrankfurterApiRate[]>(
+    cacheKey,
+    async () => {
+      const url = new URL(`${OPEN_API_URL}/v2/rates`)
+      url.searchParams.set('from', format(startDate))
+      url.searchParams.set('to', format(endDate))
+      const response = await fetch(url, { signal: AbortSignal.timeout(10_000) })
 
-  const result = await response.json()
-  return result as FrankfurterApiRate[]
+      if (!response.ok) {
+        throw new Error('Failed to fetch historical rates')
+      }
+
+      const raw: unknown = await response.json()
+      if (!Array.isArray(raw)) {
+        throw new Error('Invalid historical rates response')
+      }
+      return raw.map((r) => FrankfurterRateSchema.parse(r)) as FrankfurterApiRate[]
+    },
+    ttl,
+  )
 }

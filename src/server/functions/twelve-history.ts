@@ -8,7 +8,6 @@ import {
   computeHistoryCrossRate,
 } from '#/lib/history/helpers'
 import type { HistoryEntry } from '#/lib/history/helpers'
-import type { TwelveDataApiRate } from '#/types/currency'
 import { twelveDataBucket } from '../rate-limiter'
 import {
   TWELVE_DATA_API_URL,
@@ -16,7 +15,14 @@ import {
   TTL_BY_INTERVAL,
   TDI,
 } from '../config'
-import { currencyCode, daysParam } from '../validation'
+import { currencyCode, daysParam, TwelveDataResponseSchema } from '../validation'
+
+class UnsupportedPairError extends Error {
+  constructor(symbol: string) {
+    super(`Unsupported pair: ${symbol}`)
+    this.name = 'UnsupportedPairError'
+  }
+}
 
 const schema = z.object({
   base: currencyCode,
@@ -27,9 +33,12 @@ const schema = z.object({
 
 export type HistoryInput = z.infer<typeof schema>
 
+const FETCH_TIMEOUT = 10_000
+
 async function fetchWithRetry(url: URL, maxRetries = 3): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const res = await fetch(url)
+    const signal = AbortSignal.timeout(FETCH_TIMEOUT)
+    const res = await fetch(url, { signal })
     if (res.status !== 429) return res
     const retryAfter = res.headers.get('Retry-After')
     const delayMs = retryAfter
@@ -37,7 +46,8 @@ async function fetchWithRetry(url: URL, maxRetries = 3): Promise<Response> {
       : Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10_000)
     await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
-  return fetch(url)
+  const signal = AbortSignal.timeout(FETCH_TIMEOUT)
+  return fetch(url, { signal })
 }
 
 async function fetchSymbolTimeSeries(
@@ -62,22 +72,20 @@ async function fetchSymbolTimeSeries(
       const res = await fetchWithRetry(tdUrl)
 
       if (!res.ok) {
+        if (res.status === 404) throw new UnsupportedPairError(symbol)
         throw new Error(`Failed to fetch history for ${symbol}`)
       }
 
-      const data = (await res.json()) as TwelveDataApiRate
-
-      if (!Array.isArray(data.values) || data.values.length === 0) {
-        throw new Error(`Failed to fetch history for ${symbol}`)
-      }
+      const raw: unknown = await res.json()
+      const data = TwelveDataResponseSchema.parse(raw)
 
       const values = data.values.reverse()
       return values.map((v) => ({
         time: v.datetime,
-        close: parseFloat(v.close),
-        open: parseFloat(v.open),
-        high: parseFloat(v.high),
-        low: parseFloat(v.low),
+        close: v.close,
+        open: v.open,
+        high: v.high,
+        low: v.low,
       }))
     },
     ttl,
@@ -92,14 +100,17 @@ async function fetchCurrencyVsUSD(
 ): Promise<HistoryEntry[]> {
   try {
     return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl)
-  } catch {
-    const data = await fetchSymbolTimeSeries(
-      `USD/${currency}`,
-      days,
-      interval,
-      ttl,
-    )
-    return invertData(data)
+  } catch (err) {
+    if (err instanceof UnsupportedPairError) {
+      const data = await fetchSymbolTimeSeries(
+        `USD/${currency}`,
+        days,
+        interval,
+        ttl,
+      )
+      return invertData(data)
+    }
+    throw err
   }
 }
 
@@ -111,10 +122,11 @@ export const getTweleveHistory = createServerFn()
 
     const cacheKey = `history:${base}/${quote}/${days}/${interval}`
 
-    return getOrFetch<HistoryEntry[]>(
+      return getOrFetch<HistoryEntry[]>(
       cacheKey,
       async () => {
-        if (quote === 'USD') {
+        // Try direct pair first, fall back to inverted on unsupported-symbol
+        const tryDirect = async () => {
           try {
             return await fetchSymbolTimeSeries(
               `${base}/${quote}`,
@@ -122,19 +134,22 @@ export const getTweleveHistory = createServerFn()
               interval,
               ttl,
             )
-          } catch {
-            const data = await fetchSymbolTimeSeries(
-              `${quote}/${base}`,
-              days,
-              interval,
-              ttl,
-            )
-            return invertData(data)
+          } catch (err) {
+            if (err instanceof UnsupportedPairError) {
+              const data = await fetchSymbolTimeSeries(
+                `${quote}/${base}`,
+                days,
+                interval,
+                ttl,
+              )
+              return invertData(data)
+            }
+            throw err
           }
         }
 
-        if (base === 'USD') {
-          return fetchSymbolTimeSeries(`${base}/${quote}`, days, interval, ttl)
+        if (quote === 'USD' || base === 'USD') {
+          return tryDirect()
         }
 
         const [baseData, quoteData] = await Promise.all([

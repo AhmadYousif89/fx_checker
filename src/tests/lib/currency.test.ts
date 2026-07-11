@@ -252,7 +252,7 @@ describe('generateFallbackPairs', () => {
       expect(entry).toHaveProperty('rate')
       expect(typeof entry.rate).toBe('number')
       expect(entry.rate).toBeGreaterThan(0)
-      expect(['up', 'down', 'flat']).toContain(entry.direction)
+      expect(['up', 'down', 'flat', 'unknown']).toContain(entry.direction)
     }
   })
 
@@ -260,11 +260,11 @@ describe('generateFallbackPairs', () => {
     expect(generateFallbackPairs(sampleRates, [])).toEqual([])
   })
 
-  it('computes flat direction when only one date is provided', () => {
+  it('uses unknown direction when only one date is provided', () => {
     const result = generateFallbackPairs(sampleRates, ['2026-07-02'])
     for (const entry of result) {
-      expect(entry.difference).toBe(0)
-      expect(entry.direction).toBe('flat')
+      expect(entry.difference).toBeNull()
+      expect(entry.direction).toBe('unknown')
     }
   })
 })

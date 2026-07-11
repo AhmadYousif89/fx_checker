@@ -63,28 +63,65 @@ export function getCrossRateAtDate(
 }
 
 /**
+ * For a given base/quote pair, find the latest and previous dates from
+ * `dates` (sorted descending) where both currencies have data.
+ */
+function getPairDates(
+  rates: FrankfurterApiRate[],
+  dates: string[],
+  base: string,
+  quote: string,
+): { latest: string | null; previous: string | null } {
+  let latest: string | null = null
+  let previous: string | null = null
+
+  for (const date of dates) {
+    if (
+      getRateAtDate(rates, date, base) !== null &&
+      getRateAtDate(rates, date, quote) !== null
+    ) {
+      if (latest === null) {
+        latest = date
+      } else {
+        previous = date
+        break
+      }
+    }
+  }
+
+  return { latest, previous }
+}
+
+/**
  * Generate a list of fallback currency pairs with their latest rates and
  * differences from the previous date, based on the Frankfurter API data.
+ * Each pair independently selects its best date window.
  */
 export function generateFallbackPairs(
   rates: FrankfurterApiRate[],
   completeDates: string[],
 ): RateWithDiff[] {
-  const latestDate = completeDates[0]
-  const previousDate = completeDates[1]
-  if (!latestDate) return []
+  if (completeDates.length === 0) return []
 
   const result: RateWithDiff[] = []
 
   for (const [base, quote] of FALLBACK_PAIRS) {
+    const { latest: latestDate, previous: previousDate } = getPairDates(
+      rates,
+      completeDates,
+      base,
+      quote,
+    )
+    if (!latestDate) continue
+
     const rBase = getRateAtDate(rates, latestDate, base)
     const rQuote = getRateAtDate(rates, latestDate, quote)
     if (rBase === null || rQuote === null) continue
 
     const latestRate = rQuote / rBase
 
-    let difference = 0
-    let direction: 'up' | 'down' | 'flat' = 'flat'
+    let difference: number | null = null
+    let direction: 'up' | 'down' | 'flat' | 'unknown' = 'unknown'
 
     if (previousDate) {
       const pBase = getRateAtDate(rates, previousDate, base)

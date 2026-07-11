@@ -39,6 +39,7 @@ export const FavoritesSection = () => {
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60,
     enabled: favorites.length > 0,
+    select: (res) => res.data,
   })
 
   useEffect(() => {
@@ -69,8 +70,8 @@ export const FavoritesSection = () => {
         base: f.sender,
         quote: f.receiver,
         rate,
-        difference: 0,
-        direction: 'flat',
+        difference: null,
+        direction: 'unknown',
       }
     }
   }, [diffData, ratesData])

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { FLAG_CODE_SET } from '#/lib/currency'
-import type { RateWithDiff } from '#/types/currency'
+import type { DegradedResponse, RateWithDiff } from '#/types/currency'
 import {
   generateFallbackPairs,
   getCrossRateAtDate,
@@ -13,7 +13,7 @@ import { getHistoricalRates } from './history-rates'
 
 export const getRates = createServerFn()
   .validator(z.object({ base: currencyCode }).optional())
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<DegradedResponse<RateWithDiff[]>> => {
     const base = data ? data.base : 'USD'
     const rates = await getHistoricalRates()
 
@@ -36,12 +36,11 @@ export const getRates = createServerFn()
     )
 
     if (!latestDate) {
-      return generateFallbackPairs(rates, completeDates)
+      return {
+        data: generateFallbackPairs(rates, completeDates),
+        degraded: true,
+      }
     }
-
-    const previousDate = completeDates.find(
-      (date) => date < latestDate && getRateAtDate(rates, date, base) !== null,
-    )
 
     const supportedQuotes = Array.from(
       new Set(rates.map((r) => r.quote)),
@@ -55,8 +54,17 @@ export const getRates = createServerFn()
       const latestRate = getCrossRateAtDate(rates, latestDate, base, quote)
       if (latestRate === null) continue
 
-      let difference = 0
-      let direction: 'up' | 'down' | 'flat' = 'flat'
+      // Per-pair previous date: find the date before latestDate where
+      // both base and quote have data.
+      const previousDate = completeDates.find(
+        (date) =>
+          date < latestDate &&
+          getRateAtDate(rates, date, base) !== null &&
+          getRateAtDate(rates, date, quote) !== null,
+      )
+
+      let difference: number | null = null
+      let direction: 'up' | 'down' | 'flat' | 'unknown' = 'unknown'
 
       if (previousDate) {
         const previousRate = getCrossRateAtDate(
@@ -81,5 +89,5 @@ export const getRates = createServerFn()
       })
     }
 
-    return ratesWithDiff
+    return { data: ratesWithDiff, degraded: false }
   })

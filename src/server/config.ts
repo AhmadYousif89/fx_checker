@@ -21,9 +21,9 @@ export const TDI = [
 ] as const
 
 export const TTL_BY_INTERVAL: Record<string, number> = {
-  '1min': 15 * 60 * 1000,
-  '5min': 2 * 60 * 60 * 1000,
-  '15min': 2 * 60 * 60 * 1000,
+  '1min': 5 * 60 * 1000,
+  '5min': 15 * 60 * 1000,
+  '15min': 60 * 60 * 1000,
   '30min': 2 * 60 * 60 * 1000,
   '45min': 2 * 60 * 60 * 1000,
   '1h': 2 * 60 * 60 * 1000,

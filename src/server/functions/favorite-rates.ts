@@ -1,64 +1,85 @@
 import { createServerFn } from '@tanstack/react-start'
 
 import { pairArray } from '../validation'
-import type { RateWithDiff } from '#/types/currency'
+import type { DegradedResponse, RateWithDiff } from '#/types/currency'
 import { getHistoricalRates } from './history-rates'
 import { getCrossRateAtDate, getRateAtDate } from '#/lib/currency/rates'
 
 export const getFavoriteRates = createServerFn()
   .validator(pairArray)
-  .handler(async ({ data: pairs }) => {
-    const rates = await getHistoricalRates()
+  .handler(
+    async ({ data: pairs }): Promise<DegradedResponse<RateWithDiff[]>> => {
+      const rates = await getHistoricalRates()
 
-    const uniqueDates = Array.from(new Set(rates.map((r) => r.date))).sort(
-      (a, b) => b.localeCompare(a),
-    )
-
-    const completeDates = uniqueDates.filter(
-      (date) => rates.filter((r) => r.date === date).length > 20,
-    )
-
-    const result: RateWithDiff[] = []
-
-    for (const { sender, receiver } of pairs) {
-      const latestDate = completeDates.find(
-        (date) => getRateAtDate(rates, date, sender) !== null,
-      )
-      if (!latestDate) continue
-
-      const previousDate = completeDates.find(
-        (date) =>
-          date < latestDate && getRateAtDate(rates, date, sender) !== null,
+      const uniqueDates = Array.from(new Set(rates.map((r) => r.date))).sort(
+        (a, b) => b.localeCompare(a),
       )
 
-      const latestRate = getCrossRateAtDate(rates, latestDate, sender, receiver)
-      if (latestRate === null) continue
+      const completeDates = uniqueDates.filter(
+        (date) => rates.filter((r) => r.date === date).length > 20,
+      )
 
-      let difference = 0
-      let direction: 'up' | 'down' | 'flat' = 'flat'
+      const result: RateWithDiff[] = []
 
-      if (previousDate) {
-        const previousRate = getCrossRateAtDate(
+      for (const { sender, receiver } of pairs) {
+        // Per-pair date selection: latest and previous where BOTH have data
+        let latestDate: string | null = null
+        let previousDate: string | null = null
+
+        for (const date of completeDates) {
+          if (
+            getRateAtDate(rates, date, sender) !== null &&
+            getRateAtDate(rates, date, receiver) !== null
+          ) {
+            if (latestDate === null) {
+              latestDate = date
+            } else {
+              previousDate = date
+              break
+            }
+          }
+        }
+
+        if (!latestDate) continue
+
+        const latestRate = getCrossRateAtDate(
           rates,
-          previousDate,
+          latestDate,
           sender,
           receiver,
         )
-        if (previousRate !== null && previousRate > 0) {
-          difference = ((latestRate - previousRate) / previousRate) * 100
-          direction =
-            difference > 0.0001 ? 'up' : difference < -0.0001 ? 'down' : 'flat'
+        if (latestRate === null) continue
+
+        let difference: number | null = null
+        let direction: 'up' | 'down' | 'flat' | 'unknown' = 'unknown'
+
+        if (previousDate) {
+          const previousRate = getCrossRateAtDate(
+            rates,
+            previousDate,
+            sender,
+            receiver,
+          )
+          if (previousRate !== null && previousRate > 0) {
+            difference = ((latestRate - previousRate) / previousRate) * 100
+            direction =
+              difference > 0.0001
+                ? 'up'
+                : difference < -0.0001
+                  ? 'down'
+                  : 'flat'
+          }
         }
+
+        result.push({
+          base: sender,
+          quote: receiver,
+          rate: latestRate,
+          difference,
+          direction,
+        })
       }
 
-      result.push({
-        base: sender,
-        quote: receiver,
-        rate: latestRate,
-        difference,
-        direction,
-      })
-    }
-
-    return result
-  })
+      return { data: result, degraded: false }
+    },
+  )

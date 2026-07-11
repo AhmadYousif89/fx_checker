@@ -1,7 +1,7 @@
 import type { RateWithDiff } from '#/types/currency'
 
 type RateDiffProps = {
-  difference: number
+  difference: number | null
   direction: RateWithDiff['direction']
   className?: string
 }
@@ -11,6 +11,8 @@ export const RateDiff = ({
   direction,
   className,
 }: RateDiffProps) => {
+  if (direction === 'unknown' || difference === null) return null
+
   const colorClass =
     direction === 'up'
       ? 'text-green'

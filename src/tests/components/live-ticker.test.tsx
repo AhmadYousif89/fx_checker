@@ -11,23 +11,26 @@ function renderWithQuery(ui: React.ReactElement) {
 }
 
 beforeEach(() => {
-  vi.mocked(getRates).mockResolvedValue([
-    {
-      base: 'USD',
-      quote: 'JPY',
-      rate: 130.5,
-      difference: 0.5,
-      direction: 'up',
-    },
-    {
-      base: 'GBP',
-      quote: 'USD',
-      rate: 1.25,
-      difference: -0.2,
-      direction: 'down',
-    },
-    { base: 'EUR', quote: 'USD', rate: 1.1, difference: 0, direction: 'flat' },
-  ])
+  vi.mocked(getRates).mockResolvedValue({
+    data: [
+      {
+        base: 'USD',
+        quote: 'JPY',
+        rate: 130.5,
+        difference: 0.5,
+        direction: 'up',
+      },
+      {
+        base: 'GBP',
+        quote: 'USD',
+        rate: 1.25,
+        difference: -0.2,
+        direction: 'down',
+      },
+      { base: 'EUR', quote: 'USD', rate: 1.1, difference: 0, direction: 'flat' },
+    ],
+    degraded: false,
+  })
 })
 
 afterEach(cleanup)

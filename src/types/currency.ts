@@ -22,8 +22,8 @@ export type RateWithDiff = {
   base: string
   quote: string
   rate: number
-  difference: number
-  direction: 'up' | 'down' | 'flat'
+  difference: number | null
+  direction: 'up' | 'down' | 'flat' | 'unknown'
 }
 
 export type FrankfurterApiRate = {
@@ -37,8 +37,8 @@ export type FavoritePair = {
   sender: string
   receiver: string
   rate: number
-  difference: number
-  direction: 'up' | 'down' | 'flat'
+  difference: number | null
+  direction: 'up' | 'down' | 'flat' | 'unknown'
 }
 
 export type ConversionLog = {
@@ -53,6 +53,11 @@ export type ConversionLog = {
 export type LatestRatesEntry = {
   rate: number
   date: string
+}
+
+export type DegradedResponse<T> = {
+  data: T
+  degraded: boolean
 }
 
 export type TwelveDataApiRate = {
