@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { memo, useCallback } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { domToPng } from 'modern-screenshot'
@@ -12,8 +12,10 @@ import {
 } from '#/components/ui/tooltip'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLoadingStore } from '#/store/loading.store'
+import { useHistoryUI } from './history-context'
 
-export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
+export const ScreenshotAction = memo(() => {
+  const { isWaiting } = useHistoryUI()
   const { sender, receiver } = useActivePair()
   const isActive = useLoadingStore((s) => 'screenshot' in s.loaders)
   const startLoading = useLoadingStore((s) => s.startLoading)
@@ -62,7 +64,7 @@ export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
 
   useHotkey('Shift+H', handleScreenshot, {
     requireReset: true,
-    enabled: !isActive && !disabled,
+    enabled: !isActive && !isWaiting,
   })
 
   return (
@@ -72,7 +74,7 @@ export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
           size="icon-sm"
           variant="ghost"
           onClick={handleScreenshot}
-          disabled={isActive || disabled}
+          disabled={isActive || isWaiting}
           className="h-9 w-auto aspect-square"
         >
           <CameraIcon className="size-4.5" />
@@ -83,4 +85,4 @@ export const ScreenshotAction = ({ disabled }: { disabled?: boolean }) => {
       </TooltipContent>
     </Tooltip>
   )
-}
+})
