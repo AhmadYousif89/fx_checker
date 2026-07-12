@@ -1,4 +1,5 @@
 import { useSearch, useHydrated } from '@tanstack/react-router'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 
 import {
   Select,
@@ -51,15 +52,39 @@ const tabs = [
   },
 ] as const
 
+type TabValue = (typeof tabs)[number]['value']
+
+const tabValues: TabValue[] = ['history', 'favorites', 'compare', 'logs']
+
 export const InsightsSection = () => {
   const { tab: tabParam } = useSearch({ from: '/' })
-  const activeTab = tabParam ?? 'history'
+  const activeTab = (tabParam ?? 'history') as TabValue
   const logsCount = useCurrencyStore((s) => s.logs.length)
   const favoritesCount = useCurrencyStore((s) => s.favorites.length)
   const updateUrl = useUpdateUrl()
   const hydrated = useHydrated()
 
   const handleTabChange = (v: string) => updateUrl({ tab: v })
+
+  useHotkeys(
+    [
+      {
+        hotkey: { key: 'Shift+Right' },
+        callback: () => {
+          const idx = tabValues.indexOf(activeTab)
+          if (idx < tabValues.length - 1) handleTabChange(tabValues[idx + 1])
+        },
+      },
+      {
+        hotkey: { key: 'Shift+Left' },
+        callback: () => {
+          const idx = tabValues.indexOf(activeTab)
+          if (idx > 0) handleTabChange(tabValues[idx - 1])
+        },
+      },
+    ],
+    { requireReset: true },
+  )
 
   const counts: Record<string, number> = {
     favorites: favoritesCount,

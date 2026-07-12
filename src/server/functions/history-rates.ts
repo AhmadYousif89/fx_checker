@@ -33,9 +33,7 @@ export async function getHistoricalRates() {
       if (!Array.isArray(raw)) {
         throw new Error('Invalid historical rates response')
       }
-      return raw.map((r) =>
-        FrankfurterRateSchema.parse(r),
-      )
+      return raw.map((r) => FrankfurterRateSchema.parse(r))
     },
     ttl,
   )
