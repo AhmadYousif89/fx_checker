@@ -11,6 +11,7 @@ export {
   formatInputAmount,
   shortTimeAgo,
   restrictNumeric,
+  MAX_INPUT_AMOUNT,
   abbreviateCurrencyName,
 } from './format'
 export { getFlagUrl } from './flags'

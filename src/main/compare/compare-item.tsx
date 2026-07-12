@@ -84,7 +84,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
       </div>
       <div className="flex items-center gap-5">
         <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
-          <span className="text-body-lg">{formatAmount(converted)}</span>
+          <span className="text-body-lg truncate max-w-32">{formatAmount(converted)}</span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>
         </div>
         <div className="flex items-center gap-1">

@@ -29,7 +29,7 @@ export const ConverterActionsMenu = ({ onCopy }: Props) => {
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="max-md:absolute max-md:top-0 max-md:right-0"
+          className="max-md:absolute max-md:top-0 max-md:-right-3"
         >
           <MoreVerticalIcon />
         </Button>

@@ -30,6 +30,7 @@ import { SendField } from './converter/send.field'
 import { ReceiverField } from './converter/receiver.field'
 import { BaseExchangeRate } from './converter/base-rate'
 import { ConverterActionsMenu } from './converter/actions.menu'
+import { clampInputAmount } from '#/lib/currency/format'
 
 type EditSide = 'send' | 'receive'
 type LogStatus = 'idle' | 'created' | 'updated'
@@ -152,18 +153,16 @@ export const RateConverter = () => {
   const handleSendInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.currentTarget.value.replace(/,/g, '')
-      const sanitized = restrictNumeric(raw)
-
+      const sanitized = clampInputAmount(restrictNumeric(raw))
+      const parsed = parseFloat(sanitized)
       const cursor = e.currentTarget.selectionStart ?? 0
       const rawBefore = raw.slice(0, cursor)
       const formattedBefore = formatInputAmount(rawBefore)
       const newCursor = formattedBefore.length
 
+      updateUrl({ amount: !sanitized || parsed === 0 ? '1' : sanitized })
       setSendValue(sanitized)
       setEditSide('send')
-
-      const parsed = parseFloat(sanitized)
-      updateUrl({ amount: !sanitized || parsed === 0 ? '1' : sanitized })
 
       requestAnimationFrame(() => {
         sendInputRef.current?.setSelectionRange(newCursor, newCursor)
@@ -175,8 +174,8 @@ export const RateConverter = () => {
   const handleReceiveInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.currentTarget.value.replace(/,/g, '')
-      const sanitized = restrictNumeric(raw)
-
+      const sanitized = clampInputAmount(restrictNumeric(raw))
+      const parsed = parseFloat(sanitized)
       const cursor = e.currentTarget.selectionStart ?? 0
       const rawBefore = raw.slice(0, cursor)
       const formattedBefore = formatInputAmount(rawBefore)
@@ -186,9 +185,8 @@ export const RateConverter = () => {
       setEditSide('receive')
 
       if (rate != null) {
-        const num = parseFloat(sanitized)
-        if (!Number.isNaN(num) && num > 0) {
-          updateUrl({ amount: (num / rate).toFixed(2).toString() })
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          updateUrl({ amount: (parsed / rate).toFixed(2).toString() })
         } else {
           updateUrl({ amount: '1' })
         }
@@ -305,7 +303,7 @@ export const RateConverter = () => {
               />
             )}
           </div>
-          <div className="relative flex items-center justify-center gap-3 max-lg:w-full">
+          <div className="relative flex items-center justify-center gap-3 max-lg:w-full md:justify-end">
             <Button
               type="button"
               size="sm"

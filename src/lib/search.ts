@@ -1,5 +1,6 @@
 import z from 'zod'
 import { rangeKeys } from '#/lib/history/config'
+import { MAX_INPUT_AMOUNT } from '#/lib/currency/format'
 import type { RangeKey } from '#/lib/history/config'
 import type { CurrencyDetails, CurrencySearch } from '#/types/currency'
 
@@ -45,7 +46,8 @@ export const searchSchema = z.object({
     if (v == null) return
     if (typeof v !== 'string' || v.length === 0) return '1'
     const n = Number(v)
-    return !isNaN(n) && n >= 0 ? v : '1'
+    if (isNaN(n) || n < 0) return '1'
+    return n > MAX_INPUT_AMOUNT ? String(MAX_INPUT_AMOUNT) : v
   }, z.string().optional()),
   view: z.preprocess((v) => {
     if (v == null) return

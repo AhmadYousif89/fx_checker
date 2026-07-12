@@ -11,8 +11,21 @@ export function abbreviateCurrencyName(name: string): string {
   return `${initials} ${words[words.length - 1]}`
 }
 
+export const MAX_INPUT_AMOUNT = 999_999_999
+const MAX_INPUT_DECIMALS = 2
+
 export function restrictNumeric(value: string) {
-  return value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+  return value
+    .replace(/[^\d.]/g, '')
+    .replace(/(\..*)\./g, '$1')
+    .replace(new RegExp(`(\\..{${MAX_INPUT_DECIMALS}}).*`), '$1')
+}
+
+export function clampInputAmount(value: string): string {
+  const num = parseFloat(value)
+  if (Number.isNaN(num) || num <= 0) return value
+  if (num > MAX_INPUT_AMOUNT) return MAX_INPUT_AMOUNT.toString()
+  return value
 }
 
 export function timeAgo(timestamp: number): string {

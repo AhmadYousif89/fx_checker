@@ -16,17 +16,20 @@ export const SendField = ({ value, onChange, ref }: SendFieldProps) => (
     <Field className="bg-surface-600 rounded-16 p-4 gap-5 border">
       <FieldLabel htmlFor="send-amount">Send</FieldLabel>
       <div className="flex items-center justify-between gap-4">
-        <Input
-          ref={ref}
-          id="send-amount"
-          name="sendAmount"
-          inputMode="decimal"
-          type="text"
-          placeholder="0"
-          value={value}
-          onChange={onChange}
-          className="border-none text-display-sm md:text-display px-1 placeholder:text-display-sm md:placeholder:text-display"
-        />
+        <div className="relative group">
+          <Input
+            ref={ref}
+            id="send-amount"
+            name="sendAmount"
+            inputMode="decimal"
+            type="text"
+            placeholder="0"
+            value={value}
+            onChange={onChange}
+            className="border-none field-sizing-content min-w-30 text-display-sm md:text-display px-1 placeholder:text-display-sm md:placeholder:text-display"
+          />
+          <span className="absolute inset-x-0 -bottom-0.5 h-0.5 group-hover:bg-muted transition-colors duration-200" />
+        </div>
         <CurrencyPicker isSender />
       </div>
     </Field>
