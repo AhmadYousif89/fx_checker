@@ -83,6 +83,7 @@ export const FavoritesItem = memo(
             ) : null}
           </div>
           <Button
+            type="button"
             size="icon-sm"
             variant="outline"
             onClick={(e) => {

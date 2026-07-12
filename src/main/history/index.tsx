@@ -23,7 +23,7 @@ const HistoryChart = lazy(() =>
 )
 
 const HistorySectionLayout = () => {
-  const { isLoading, isError, hasData, isFetching } = useHistoryData()
+  const { isLoading, isFetching, isError, hasData } = useHistoryData()
   const {
     sender,
     receiver,
@@ -119,7 +119,7 @@ const HistorySectionLayout = () => {
         </div>
       </div>
       <div className="relative flex grow overflow-hidden mt-4 md:mt-5">
-        {isFetching && (
+        {(isLoading || isFetching) && (
           <div className="absolute inset-0 bg-surface/25 flex items-center justify-center z-10">
             <CustomSpinner />
           </div>

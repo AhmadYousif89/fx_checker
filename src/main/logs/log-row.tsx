@@ -84,6 +84,7 @@ export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
         </span>
       </div>
       <Button
+        type="button"
         size="icon-sm"
         variant="outline"
         onClick={(e) => {

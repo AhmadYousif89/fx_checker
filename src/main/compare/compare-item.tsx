@@ -89,6 +89,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
         </div>
         <div className="flex items-center gap-1">
           <Button
+            type="button"
             size="icon-sm"
             variant="outline"
             onClick={(e) => {

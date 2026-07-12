@@ -10,6 +10,7 @@ export const ThemeButton = () => {
 
   return (
     <Button
+      type="button"
       variant="ghost"
       size="icon-sm"
       onClick={toggleTheme}

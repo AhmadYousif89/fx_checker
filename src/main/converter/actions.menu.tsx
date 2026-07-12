@@ -26,6 +26,7 @@ export const ConverterActionsMenu = ({ onCopy }: Props) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          type="button"
           variant="ghost"
           size="icon-sm"
           className="max-md:absolute max-md:top-0 max-md:right-0"

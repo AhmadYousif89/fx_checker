@@ -17,6 +17,7 @@ export const SmaToggle = memo(() => {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          type="button"
           size="icon-sm"
           variant="ghost"
           onClick={onSmaToggle}
