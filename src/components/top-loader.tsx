@@ -14,8 +14,9 @@ export const TopLoader = () => {
   const latestFetching = useIsFetching({ queryKey: ['latest-rates'] })
   const currenciesFetching = useIsFetching({ queryKey: ['currencies'] })
   const historyFetching = useIsFetching({ queryKey: ['frankfurter-history'] })
+  const intradayFetching = useIsFetching({ queryKey: ['tweleve-history'] })
   const isFetching =
-    historyFetching + ratesFetching + latestFetching + currenciesFetching
+    historyFetching + intradayFetching + ratesFetching + latestFetching + currenciesFetching
 
   const hasFetched = useRef(false)
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)

@@ -18,7 +18,7 @@ export function useUpdateUrl() {
 
   return useCallback(
     (updates: UpdateUrlOptions) => {
-      if ('from' in updates || 'to' in updates) {
+      if ('from' in updates || 'to' in updates || 'view' in updates) {
         startLoading('url-update')
       }
 
