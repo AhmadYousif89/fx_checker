@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { domToPng } from 'modern-screenshot'
@@ -11,26 +11,18 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import { useActivePair } from '#/hooks/use-active-pair'
-import { useLoadingStore } from '#/store/loading.store'
 import { useHistoryUI } from './history-context'
 
 export const ScreenshotAction = memo(() => {
   const { isWaiting } = useHistoryUI()
   const { sender, receiver } = useActivePair()
-  const isActive = useLoadingStore((s) => 'screenshot' in s.loaders)
-  const startLoading = useLoadingStore((s) => s.startLoading)
-  const stopLoading = useLoadingStore((s) => s.stopLoading)
+  const [isProcessing, setIsProcessing] = useState(false)
   const selectedTime = useSearch({ from: '/', select: (s) => s.view ?? '3m' })
 
   const handleScreenshot = useCallback(async () => {
-    startLoading('screenshot', { keepAlive: true })
+    setIsProcessing(true)
     try {
-      await new Promise((r) => setTimeout(r, 400))
-
       await new Promise((r) => requestAnimationFrame(r))
-
-      const loader = document.querySelector<HTMLElement>('[role="progressbar"]')
-      if (loader) loader.style.display = 'none'
 
       const bg =
         getComputedStyle(document.documentElement)
@@ -46,8 +38,6 @@ export const ScreenshotAction = memo(() => {
         backgroundColor: bg,
       })
 
-      if (loader) loader.style.display = ''
-
       const date = new Date()
       const dateStr = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`
 
@@ -58,23 +48,24 @@ export const ScreenshotAction = memo(() => {
     } catch (err) {
       console.error('Screenshot failed', err)
     } finally {
-      stopLoading('screenshot')
+      setIsProcessing(false)
     }
-  }, [sender, receiver, selectedTime, startLoading, stopLoading])
+  }, [sender, receiver, selectedTime])
 
   useHotkey('Shift+H', handleScreenshot, {
     requireReset: true,
-    enabled: !isActive && !isWaiting,
+    enabled: !isProcessing && !isWaiting,
   })
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          type="button"
           size="icon-sm"
           variant="ghost"
           onClick={handleScreenshot}
-          disabled={isActive || isWaiting}
+          disabled={isProcessing || isWaiting}
           className="h-9 w-auto aspect-square"
         >
           <CameraIcon className="size-4.5" />

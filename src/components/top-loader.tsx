@@ -1,63 +1,76 @@
 import { useEffect, useRef, useState } from 'react'
-import { useIsFetching } from '@tanstack/react-query'
 
 import { cn } from '#/lib/utils'
 import { useLoadingStore } from '#/store/loading.store'
 
+type Phase = 'idle' | 'delayed' | 'growing' | 'completing'
+
 export const TopLoader = () => {
+  const [progress, setProgress] = useState(0)
   const [shouldShow, setShouldShow] = useState(false)
   const anyActive = useLoadingStore((s) => s.anyActive)
-  const hasKeepAlive = useLoadingStore((s) => s.hasKeepAlive)
-  const settleNonKeepAlive = useLoadingStore((s) => s.settleNonKeepAlive)
 
-  const ratesFetching = useIsFetching({ queryKey: ['rates'] })
-  const latestFetching = useIsFetching({ queryKey: ['latest-rates'] })
-  const currenciesFetching = useIsFetching({ queryKey: ['currencies'] })
-  const historyFetching = useIsFetching({ queryKey: ['frankfurter-history'] })
-  const intradayFetching = useIsFetching({ queryKey: ['tweleve-history'] })
-  const isFetching =
-    historyFetching + intradayFetching + ratesFetching + latestFetching + currenciesFetching
+  const rafRef = useRef(0)
+  const startTimeRef = useRef(0)
+  const phaseRef = useRef<Phase>('idle')
+  const prevAnyActive = useRef(false)
 
-  const hasFetched = useRef(false)
-  const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  // settle non-keepAlive loaders after a small delay to avoid flickering
+  // Catch-all cleanup on unmount
   useEffect(() => {
-    if (!anyActive) {
-      hasFetched.current = false
-      return
-    }
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
 
-    if (hasKeepAlive) return
-
-    if (isFetching > 0) {
-      hasFetched.current = true
-      return
-    }
-
-    if (hasFetched.current) {
-      settleTimer.current = setTimeout(() => {
-        settleNonKeepAlive()
-      }, 100)
-      return () => clearTimeout(settleTimer.current)
-    }
-  }, [anyActive, isFetching, hasKeepAlive, settleNonKeepAlive])
-
-  // fallback in case the query is stuck in a loading state
+  // Animate the progress bar
   useEffect(() => {
-    if (!anyActive || hasKeepAlive) return
-    const fallback = setTimeout(() => {
-      if (!hasFetched.current) settleNonKeepAlive()
-    }, 100)
-    return () => clearTimeout(fallback)
-  }, [anyActive, settleNonKeepAlive, hasKeepAlive])
+    const wasActive = prevAnyActive.current
+    prevAnyActive.current = anyActive
 
-  useEffect(() => {
-    if (anyActive) {
-      const timer = setTimeout(() => setShouldShow(true), 200)
-      return () => clearTimeout(timer)
+    if (anyActive && !wasActive) {
+      cancelAnimationFrame(rafRef.current)
+      phaseRef.current = 'delayed'
+      startTimeRef.current = performance.now()
+      setProgress(0.1)
+
+      const showTimer = setTimeout(() => {
+        if (phaseRef.current !== 'delayed') return
+        phaseRef.current = 'growing'
+        setShouldShow(true)
+
+        const animate = () => {
+          if (phaseRef.current !== 'growing') return
+          const elapsed = performance.now() - startTimeRef.current
+          const p = 1 - Math.exp(-elapsed / 3000)
+          setProgress(Math.min(Math.max(p, 0.1), 0.95))
+          rafRef.current = requestAnimationFrame(animate)
+        }
+        rafRef.current = requestAnimationFrame(animate)
+      }, 200)
+
+      return () => {
+        clearTimeout(showTimer)
+        cancelAnimationFrame(rafRef.current)
+      }
     }
-    setShouldShow(false)
+
+    if (!anyActive && wasActive && phaseRef.current !== 'idle') {
+      cancelAnimationFrame(rafRef.current)
+
+      if (phaseRef.current === 'delayed') {
+        phaseRef.current = 'idle'
+        setShouldShow(false)
+        setProgress(0)
+        return
+      }
+
+      // growing → snap to 100% then hide
+      phaseRef.current = 'completing'
+      setProgress(1)
+      const hideTimer = setTimeout(() => {
+        phaseRef.current = 'idle'
+        setShouldShow(false)
+      }, 400)
+      return () => clearTimeout(hideTimer)
+    }
   }, [anyActive])
 
   return (
@@ -69,12 +82,12 @@ export const TopLoader = () => {
         )}
         role="progressbar"
         aria-label="Loading"
+        aria-valuemax={100}
+        aria-valuenow={Math.round(progress * 100)}
       >
         <div
-          className={cn(
-            'h-full bg-accent origin-left',
-            shouldShow && 'animate-loader-grow',
-          )}
+          className="h-full bg-accent origin-left transition-transform duration-200 ease-out"
+          style={{ transform: `scaleX(${progress})` }}
         />
       </div>
     </div>

@@ -15,19 +15,24 @@ type UpdateUrlOptions = {
 export function useUpdateUrl() {
   const navigate = useNavigate()
   const startLoading = useLoadingStore((s) => s.startLoading)
+  const stopLoading = useLoadingStore((s) => s.stopLoading)
 
   return useCallback(
-    (updates: UpdateUrlOptions) => {
+    async (updates: UpdateUrlOptions) => {
       if ('from' in updates || 'to' in updates || 'view' in updates) {
         startLoading('url-update')
       }
 
-      navigate({
-        to: '/',
-        search: (prev) => ({ ...prev, ...updates }),
-        replace: true,
-      })
+      try {
+        await navigate({
+          to: '/',
+          search: (prev) => ({ ...prev, ...updates }),
+          replace: true,
+        })
+      } finally {
+        stopLoading('url-update')
+      }
     },
-    [navigate, startLoading],
+    [navigate, startLoading, stopLoading],
   )
 }

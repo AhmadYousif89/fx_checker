@@ -102,8 +102,6 @@
   --color-amber: var(--amber);
 
   --animate-flash: flash 1s ease-out;
-  --animate-loader-grow: loader-grow 2s ease-out forwards;
-
   @keyframes flash {
     0% {
       background-color: var(--accent-darker);
@@ -112,15 +110,6 @@
     100% {
       background-color: var(--color-surface-600);
       border-color: var(--color-surface-500);
-    }
-  }
-
-  @keyframes loader-grow {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
     }
   }
 }
