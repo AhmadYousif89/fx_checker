@@ -10,9 +10,10 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { keepPreviousData, useQueries } from '@tanstack/react-query'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 
 import { TTL_BY_INTERVAL } from '#/server/config'
-import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
+import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
 import { formatAxisDate } from '#/lib/currency'
 import type { HistoryEntry } from '#/lib/history/helpers'
 import { getTweleveHistory } from '#/server/functions/twelve-history'
@@ -35,6 +36,13 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
   const chartRange = useCurrencyStore((s) => s.chartRange)
   const reducedMotion = useReducedMotion()
   const [hiddenQuotes, setHiddenQuotes] = useState<Set<string>>(new Set())
+
+  useHotkeys(
+    rangeKeys.map((rk, i) => ({
+      hotkey: { key: `${i + 1}` },
+      callback: () => setChartRange(rk),
+    })),
+  )
 
   const isIntraday = chartRange === '1d' || chartRange === '1w'
   const days = TIME_RANGES[chartRange]
@@ -97,7 +105,6 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
           point[`${series.key}_indexed`] = entry
             ? +entry.indexed.toFixed(4)
             : null
-          point[`${series.key}_rate`] = entry ? entry.close : null
         }
         return point
       })
