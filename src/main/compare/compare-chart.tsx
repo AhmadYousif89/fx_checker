@@ -5,35 +5,26 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  ReferenceLine,
   CartesianGrid,
   ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts'
 import { keepPreviousData, useQueries } from '@tanstack/react-query'
 
-import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
-import type { RangeKey } from '#/lib/history/config'
-import { formatRate, formatAxisDate } from '#/lib/currency'
 import { TTL_BY_INTERVAL } from '#/server/config'
+import { TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
+import { formatAxisDate } from '#/lib/currency'
 import type { HistoryEntry } from '#/lib/history/helpers'
 import { getTweleveHistory } from '#/server/functions/twelve-history'
 import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
-import {
-  useCurrencyStore,
-  setChartRange,
-  removeChartPick,
-} from '#/store/currencies.store'
-import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { cn } from '#/lib/utils'
-import { XIcon } from 'lucide-react'
-
-const CHART_COLORS = ['#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4']
-
-type SeriesData = {
-  key: string
-  data: { time: string; close: number; indexed: number }[]
-  latestClose: number
-}
+import { useCurrencyStore, setChartRange } from '#/store/currencies.store'
+import { useReducedMotion } from '#/hooks/use-reduced-motion'
+import { ChartTimeRange } from '#/components/chart-time-range'
+import { CustomSpinner } from '#/components/custom-spinner'
+import { CompareChartLegend } from './compare-chart-legend'
+import { CompareChartTooltip } from './compare-chart-tooltip'
+import type { SeriesData } from './compare-chart.types'
+import { CHART_COLORS } from './compare-chart.types'
 
 type CompareChartProps = {
   sender: string
@@ -42,6 +33,7 @@ type CompareChartProps = {
 
 export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
   const chartRange = useCurrencyStore((s) => s.chartRange)
+  const reducedMotion = useReducedMotion()
   const [hiddenQuotes, setHiddenQuotes] = useState<Set<string>>(new Set())
 
   const isIntraday = chartRange === '1d' || chartRange === '1w'
@@ -170,27 +162,17 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
   return (
     <div className="flex flex-col grow min-h-96 w-full p-2">
       <div className="flex items-center justify-end mb-4">
-        <ToggleGroup
-          type="single"
-          spacing={0.25}
+        <ChartTimeRange
           value={chartRange}
-          onValueChange={(value) => {
-            if (value) setChartRange(value as RangeKey)
-          }}
+          onChange={(v) => setChartRange(v)}
           className="bg-background p-0.5"
-        >
-          {rangeKeys.map((rk) => (
-            <ToggleGroupItem key={rk} value={rk}>
-              {rk.toUpperCase()}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        />
       </div>
 
       <div className="relative grow flex flex-col">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 bg-surface/25 flex items-center justify-center z-10">
-            <div className="size-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          <div className="inset-0 absolute flex items-center justify-center bg-background/10 z-10">
+            <CustomSpinner />
           </div>
         )}
 
@@ -243,7 +225,7 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
                 if (!active) return null
                 if (payload.length === 0) return null
                 return (
-                  <CompareTooltip
+                  <CompareChartTooltip
                     label={label as string}
                     payload={
                       payload as unknown as ReadonlyArray<
@@ -268,7 +250,7 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
                   dot={false}
                   name={series.key}
                   connectNulls={false}
-                  isAnimationActive={false}
+                  isAnimationActive={!reducedMotion}
                 />
               )
             })}
@@ -276,112 +258,11 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
-        {seriesList.map((series, i) => {
-          const isHidden = hiddenQuotes.has(series.key)
-          return (
-            <div
-              key={series.key}
-              className={cn(
-                'group flex items-center gap-2 py-1 px-2 rounded-6 border hover:bg-accent',
-                isHidden
-                  ? 'opacity-40 border-transparent'
-                  : 'border-surface-600 hover:border-accent',
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => toggleQuoteVisibility(series.key)}
-                className="flex items-center gap-2 text-caption"
-              >
-                <span
-                  className="size-2.5 rounded-full shrink-0"
-                  style={{
-                    backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
-                  }}
-                />
-                <span className="group-hover:text-background">
-                  {series.key}
-                </span>
-                <span className="text-muted group-hover:text-background">
-                  {formatRate(series.latestClose)}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  removeChartPick(series.key)
-                }}
-                className="text-muted p-0.5 hover:text-red hover:bg-red/20 cursor-pointer"
-                aria-label={`Remove ${series.key}`}
-              >
-                <XIcon className="size-3.5" />
-              </button>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-const CompareTooltip = ({
-  label,
-  payload,
-  seriesList,
-  hiddenQuotes,
-}: {
-  label: string
-  payload: ReadonlyArray<Record<string, unknown>>
-  seriesList: SeriesData[]
-  hiddenQuotes: Set<string>
-}) => {
-  return (
-    <div className="bg-popover border border-surface-600 rounded-8 shadow-md p-3 text-caption">
-      <p className="text-muted mb-2">{label}</p>
-      <div className="flex flex-col gap-1">
-        {seriesList.map((series, i) => {
-          if (hiddenQuotes.has(series.key)) return null
-
-          const indexedEntry = payload.find(
-            (p) => p.dataKey === `${series.key}_indexed`,
-          )
-          if (!indexedEntry) return null
-          const indexedVal = indexedEntry.value
-          if (typeof indexedVal !== 'number') return null
-          const pctChange = indexedVal - 100
-
-          const rateEntry = payload.find(
-            (p) => p.dataKey === `${series.key}_rate`,
-          )
-          const rateVal =
-            rateEntry && typeof rateEntry.value === 'number'
-              ? rateEntry.value
-              : null
-
-          return (
-            <div key={series.key} className="flex items-center gap-2">
-              <span
-                className="size-2 rounded-full shrink-0"
-                style={{
-                  backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
-                }}
-              />
-              <span className="text-foreground font-medium min-w-8">
-                {series.key}
-              </span>
-              <span className={pctChange >= 0 ? 'text-green' : 'text-red'}>
-                {pctChange >= 0 ? '+' : ''}
-                {pctChange.toFixed(2)}%
-              </span>
-              {rateVal && (
-                <span className="text-muted">{formatRate(rateVal)}</span>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      <CompareChartLegend
+        seriesList={seriesList}
+        hiddenQuotes={hiddenQuotes}
+        onToggle={toggleQuoteVisibility}
+      />
     </div>
   )
 }

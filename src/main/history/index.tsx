@@ -1,15 +1,13 @@
 import { lazy, Suspense } from 'react'
 import { InfoIcon } from 'lucide-react'
 
-import { rangeKeys } from '#/lib/history/config'
-
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '#/components/ui/tooltip'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CustomSpinner } from '#/components/custom-spinner'
+import { ChartTimeRange } from '#/components/chart-time-range'
 import { ScreenshotAction } from './screenshot'
 import { HistoryStats } from './stats'
 import {
@@ -69,29 +67,15 @@ const HistorySectionLayout = () => {
         <div className="mt-5 w-full lg:self-end">
           <div className="flex items-center justify-between lg:justify-end gap-2">
             <div className="flex items-center gap-2">
-              <ToggleGroup
-                type="single"
-                spacing={0.25}
+              <ChartTimeRange
                 value={selectedTime}
-                disabled={isWaiting}
-                onValueChange={(value) => {
-                  if (value) {
-                    onResetZoom()
-                    updateUrl({ view: value })
-                  }
+                onChange={(v) => {
+                  onResetZoom()
+                  updateUrl({ view: v })
                 }}
-                className="bg-surface p-0.5"
-              >
-                {rangeKeys.map((rk) => (
-                  <ToggleGroupItem
-                    key={rk}
-                    value={rk}
-                    onPointerOver={() => prefetchRange(rk)}
-                  >
-                    {rk.toUpperCase()}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+                disabled={isWaiting}
+                prefetchRange={prefetchRange}
+              />
               {isWaiting && (
                 <Tooltip>
                   <TooltipTrigger asChild>
