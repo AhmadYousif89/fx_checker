@@ -4,7 +4,7 @@ import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
 import { useCurrencyStore, seedComparePicks } from '#/store/currencies.store'
-import { formatAmount, orderCompareCurrencies } from '#/lib/currency'
+import { formatAmount, getCrossRateLoose, orderCompareCurrencies } from '#/lib/currency'
 import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
@@ -65,13 +65,33 @@ export const CompareSection = () => {
     }
   }, [defaultPairs, comparePicks.length])
 
-  const validPicks = useMemo(
-    () =>
-      comparePicks.filter(
-        (c) => availableCodes.has(c) && c !== sender && c !== receiver,
-      ),
-    [comparePicks, availableCodes, sender, receiver],
-  )
+  const compareItems = useMemo(() => {
+    if (!ratesData) return []
+    const valid = comparePicks.filter(
+      (c) => availableCodes.has(c) && c !== sender && c !== receiver,
+    )
+    const items: Array<{
+      quote: string
+      rate: number
+      converted: number
+      name: string
+    }> = []
+    for (const quote of valid) {
+      const rate = getCrossRateLoose({
+        rates: ratesData,
+        base: sender,
+        quote,
+      })
+      if (rate == null) continue
+      items.push({
+        quote,
+        rate,
+        converted: amount * rate,
+        name: codeToName.get(quote) ?? quote,
+      })
+    }
+    return items
+  }, [comparePicks, availableCodes, sender, receiver, ratesData, amount, codeToName])
 
   if (isLoading || isFetching) {
     return <InsightCard.Skeleton />
@@ -96,13 +116,13 @@ export const CompareSection = () => {
         </div>
         <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
           <span className="text-caption uppercase text-foreground-darker">
-            {validPicks.length} pairs
+            {compareItems.length} pairs
           </span>
           <ComparePicker
             availableCodes={availableCodes}
             sender={sender}
             receiver={receiver}
-            existingCodes={validPicks}
+            existingCodes={compareItems.map((i) => i.quote)}
           />
         </div>
       </InsightCard.Header>
@@ -111,14 +131,14 @@ export const CompareSection = () => {
         initial={didPlay ? 'visible' : 'hidden'}
         animate="visible"
       >
-        {validPicks.map((quote) => (
+        {compareItems.map((item) => (
           <CompareItem
-            key={quote}
-            quote={quote}
+            key={item.quote}
+            quote={item.quote}
             sender={sender}
-            amount={amount}
-            rates={ratesData}
-            name={codeToName.get(quote) ?? quote}
+            rate={item.rate}
+            converted={item.converted}
+            name={item.name}
           />
         ))}
       </InsightCard.Body>

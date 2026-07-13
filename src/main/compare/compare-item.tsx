@@ -7,14 +7,7 @@ import { cn } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { toggleFavorite, useIsFavorited } from '#/store/currencies.store'
-import type { LatestRatesEntry } from '#/types/currency'
-import {
-  getFlagUrl,
-  formatRate,
-  formatAmount,
-  getCrossRate,
-  abbreviateCurrencyName,
-} from '#/lib/currency'
+import { getFlagUrl, formatRate, formatAmount, abbreviateCurrencyName } from '#/lib/currency'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 4 },
@@ -24,21 +17,16 @@ const itemVariants = {
 type CompareItemProps = {
   sender: string
   quote: string
-  amount: number
-  rates: Map<string, LatestRatesEntry> | undefined
+  rate: number
+  converted: number
   name: string
 }
 
 export const CompareItem = memo((props: CompareItemProps) => {
-  const { sender, quote, amount, rates, name } = props
+  const { sender, quote, rate, converted, name } = props
   const updateUrl = useUpdateUrl()
   const isFavorited = useIsFavorited(sender, quote)
 
-  if (!rates) return null
-  const rate = getCrossRate({ rates, base: sender, quote })
-  if (rate == null) return null
-
-  const converted = amount * rate
   const flagUrl = getFlagUrl(quote)
   const handleClick = () => updateUrl({ from: sender, to: quote })
 
@@ -84,7 +72,9 @@ export const CompareItem = memo((props: CompareItemProps) => {
       </div>
       <div className="flex items-center gap-5">
         <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
-          <span className="text-body-lg truncate max-w-32">{formatAmount(converted)}</span>
+          <span className="text-body-lg truncate max-w-32">
+            {formatAmount(converted)}
+          </span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>
         </div>
         <div className="flex items-center gap-1">

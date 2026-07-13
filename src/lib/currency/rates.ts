@@ -34,6 +34,31 @@ export function getCrossRate({
   return rQuote.rate / rBase.rate
 }
 
+/**
+ * Like getCrossRate but does not enforce same-date — Frankfurter returns
+ * each currency at its latest available date, so dates can differ for
+ * weekend-gapped currencies (e.g. ARS vs USD). Use this when an approximate
+ * live cross rate is acceptable (e.g. compare list).
+ */
+export function getCrossRateLoose({
+  rates,
+  base,
+  quote,
+}: {
+  rates: Map<string, LatestRatesEntry>
+  base: string
+  quote: string
+}): number | null {
+  if (base === quote) return 1
+
+  const rBase = base === 'EUR' ? { rate: 1, date: '' } : rates.get(base)
+  if (rBase == null) return null
+  const rQuote = quote === 'EUR' ? { rate: 1, date: '' } : rates.get(quote)
+  if (rQuote == null) return null
+
+  return rQuote.rate / rBase.rate
+}
+
 /** Look up a single EUR-anchored quote rate at a specific date. */
 export function getRateAtDate(
   rates: FrankfurterApiRate[],
