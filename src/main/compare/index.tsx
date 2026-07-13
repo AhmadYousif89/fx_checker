@@ -3,12 +3,23 @@ import { useEffect, useMemo } from 'react'
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
-import { useCurrencyStore, seedComparePicks } from '#/store/currencies.store'
-import { formatAmount, getCrossRateLoose, orderCompareCurrencies } from '#/lib/currency'
+import {
+  useCurrencyStore,
+  seedComparePicks,
+  addComparePick,
+  addChartPick,
+  setCompareView,
+} from '#/store/currencies.store'
+import {
+  formatAmount,
+  getCrossRateLoose,
+  orderCompareCurrencies,
+} from '#/lib/currency'
 import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
 import { CompareActionMenu } from './compare-actions'
+import { CompareChart } from './compare-chart'
 
 let compsDidPlay = false
 
@@ -17,6 +28,8 @@ export const CompareSection = () => {
   const recent = useCurrencyStore((s) => s.recent)
   const favorites = useCurrencyStore((s) => s.favorites)
   const comparePicks = useCurrencyStore((s) => s.comparePicks)
+  const compareView = useCurrencyStore((s) => s.compareView)
+  const chartPicks = useCurrencyStore((s) => s.chartPicks)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError, isFetching } = useLatestRates()
   const didPlay = compsDidPlay
@@ -25,6 +38,18 @@ export const CompareSection = () => {
     if (isLoading || isError) return
     compsDidPlay = true
   }, [isLoading, isError])
+
+  // Sync chartPicks with sender/receiver changes
+  useEffect(() => {
+    if (compareView !== 'chart') return
+    useCurrencyStore.setState((state) => {
+      let picks = state.chartPicks.filter((c) => c !== sender)
+      if (!picks.includes(receiver) && receiver !== sender) {
+        picks = [...picks, receiver]
+      }
+      return { chartPicks: picks }
+    })
+  }, [compareView, sender, receiver])
 
   const containerVariants = {
     visible: {
@@ -48,14 +73,16 @@ export const CompareSection = () => {
 
   const defaultPairs = useMemo(
     () =>
-      orderCompareCurrencies({
-        sender,
-        recent,
-        receiver,
-        favorites,
-        availableCodes,
-      }),
-    [sender, receiver, favorites, recent, availableCodes],
+      comparePicks.length > 0
+        ? []
+        : orderCompareCurrencies({
+            sender,
+            recent,
+            receiver,
+            favorites,
+            availableCodes,
+          }),
+    [sender, receiver, favorites, recent, availableCodes, comparePicks.length],
   )
 
   // Seed comparePicks once on first load when defaults are ready
@@ -91,7 +118,15 @@ export const CompareSection = () => {
       })
     }
     return items
-  }, [comparePicks, availableCodes, sender, receiver, ratesData, amount, codeToName])
+  }, [
+    comparePicks,
+    availableCodes,
+    sender,
+    receiver,
+    ratesData,
+    amount,
+    codeToName,
+  ])
 
   if (isLoading || isFetching) {
     return <InsightCard.Skeleton />
@@ -105,43 +140,64 @@ export const CompareSection = () => {
     )
   }
 
+  const isTable = compareView === 'table'
+  const pickerExisting = isTable ? compareItems.map((i) => i.quote) : chartPicks
+  const pickerDisabled = !isTable && chartPicks.length >= 5
+  const pickerLabel = isTable
+    ? 'Add to compare'
+    : chartPicks.length >= 5
+      ? 'Max 5 pairs'
+      : 'Add to chart'
+  const pickerOnPick = isTable ? addComparePick : addChartPick
+  const itemCount = isTable ? compareItems.length : chartPicks.length
+
   return (
     <InsightCard.Root>
-      <InsightCard.Header className="pr-0">
-        <div className="flex items-center gap-3">
-          <CompareActionMenu />
+      <InsightCard.Header className="px-0">
+        <div className="flex items-center gap-1">
+          <CompareActionMenu
+            value={compareView}
+            onValueChange={setCompareView}
+          />
           <span className="text-body-lg-medium text-foreground">
             {formatAmount(amount, 0)} from {sender}
           </span>
         </div>
-        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
+        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4 pl-4">
           <span className="text-caption uppercase text-foreground-darker">
-            {compareItems.length} pairs
+            {itemCount} {isTable ? 'pairs' : 'tracks'}
           </span>
           <ComparePicker
             availableCodes={availableCodes}
             sender={sender}
             receiver={receiver}
-            existingCodes={compareItems.map((i) => i.quote)}
+            existingCodes={pickerExisting}
+            onPick={pickerOnPick}
+            disabled={pickerDisabled}
+            triggerLabel={pickerLabel}
           />
         </div>
       </InsightCard.Header>
-      <InsightCard.Body
-        variants={containerVariants}
-        initial={didPlay ? 'visible' : 'hidden'}
-        animate="visible"
-      >
-        {compareItems.map((item) => (
-          <CompareItem
-            key={item.quote}
-            quote={item.quote}
-            sender={sender}
-            rate={item.rate}
-            converted={item.converted}
-            name={item.name}
-          />
-        ))}
-      </InsightCard.Body>
+      {isTable ? (
+        <InsightCard.Body
+          variants={containerVariants}
+          initial={didPlay ? 'visible' : 'hidden'}
+          animate="visible"
+        >
+          {compareItems.map((item) => (
+            <CompareItem
+              key={item.quote}
+              quote={item.quote}
+              sender={sender}
+              rate={item.rate}
+              converted={item.converted}
+              name={item.name}
+            />
+          ))}
+        </InsightCard.Body>
+      ) : (
+        <CompareChart sender={sender} quotes={chartPicks} />
+      )}
     </InsightCard.Root>
   )
 }

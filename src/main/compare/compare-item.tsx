@@ -7,7 +7,12 @@ import { cn } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { toggleFavorite, useIsFavorited } from '#/store/currencies.store'
-import { getFlagUrl, formatRate, formatAmount, abbreviateCurrencyName } from '#/lib/currency'
+import {
+  getFlagUrl,
+  formatRate,
+  formatAmount,
+  abbreviateCurrencyName,
+} from '#/lib/currency'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 4 },

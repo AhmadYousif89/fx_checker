@@ -17,7 +17,7 @@ function Root({
   return (
     <section
       className={cn(
-        'grid grow place-content-start justify-normal gap-2 md:gap-3 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5',
+        'flex flex-col grow gap-2 md:gap-3 bg-surface border border-surface-600 rounded-16 px-2 md:px-3 py-4 md:py-5',
         className,
       )}
     >
@@ -68,6 +68,7 @@ function Body({
     <ScrollArea
       ref={listRef}
       style={maxHeight != null ? { maxHeight } : undefined}
+      className="overflow-y-scroll scrollbar-none"
     >
       <motion.ul
         className="space-y-3 p-2"

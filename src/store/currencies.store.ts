@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import type { RangeKey } from '#/lib/history/config'
 import type { CurrencyPair, ConversionLog } from '#/types/currency'
 
 type ActivePicker = 'sender' | 'receiver' | null
@@ -17,6 +18,9 @@ type CurrencyStore = {
   activePicker: ActivePicker
   lastActivePicker: ActivePicker
   comparePicks: string[]
+  compareView: 'table' | 'chart'
+  chartRange: RangeKey
+  chartPicks: string[]
 }
 
 const initialState: CurrencyStore = {
@@ -28,6 +32,9 @@ const initialState: CurrencyStore = {
   activePicker: null,
   lastActivePicker: null,
   comparePicks: [],
+  compareView: 'table',
+  chartRange: '3m',
+  chartPicks: [],
 }
 
 export const useCurrencyStore = create(
@@ -137,5 +144,27 @@ export function addComparePick(code: string) {
 export function removeComparePick(code: string) {
   useCurrencyStore.setState((state) => ({
     comparePicks: state.comparePicks.filter((c) => c !== code),
+  }))
+}
+
+export function setCompareView(view: 'table' | 'chart') {
+  useCurrencyStore.setState({ compareView: view })
+}
+
+export function setChartRange(range: RangeKey) {
+  useCurrencyStore.setState({ chartRange: range })
+}
+
+export function addChartPick(code: string) {
+  useCurrencyStore.setState((state) => {
+    if (state.chartPicks.includes(code)) return state
+    if (state.chartPicks.length >= 5) return state
+    return { chartPicks: [...state.chartPicks, code] }
+  })
+}
+
+export function removeChartPick(code: string) {
+  useCurrencyStore.setState((state) => ({
+    chartPicks: state.chartPicks.filter((c) => c !== code),
   }))
 }

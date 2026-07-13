@@ -8,14 +8,25 @@ import {
 } from '#/components/ui/select'
 import { cn } from '#/lib/utils'
 
-export const CompareActionMenu = () => {
+type CompareActionMenuProps = {
+  value: 'table' | 'chart'
+  onValueChange: (v: 'table' | 'chart') => void
+}
+
+export const CompareActionMenu = ({
+  value,
+  onValueChange,
+}: CompareActionMenuProps) => {
   return (
-    <Select defaultValue="table">
+    <Select
+      value={value}
+      onValueChange={(v) => onValueChange(v as 'table' | 'chart')}
+    >
       <SelectTrigger
         renderIcon={<ArrowDropDown />}
         className={cn(
-          'min-h-5 min-w-37 text-body rounded-4! p-0 uppercase border-0 cursor-pointer',
-          'not-hover:text-muted hover:text-foreground',
+          'min-h-5 min-w-37 text-body rounded-4! uppercase py-0.5 border-0 cursor-pointer',
+          'not-hover:text-muted hover:text-foreground focus-visible:text-foreground',
         )}
       >
         <SelectValue placeholder="Select view" />

@@ -16,7 +16,6 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
 } from '#/components/ui/combobox'
-import { addComparePick } from '#/store/currencies.store'
 import { useCurrenciesQuery } from '#/hooks/use-currencies'
 import {
   POPULAR_CODES,
@@ -29,6 +28,9 @@ type ComparePickerProps = {
   sender: string
   receiver: string
   existingCodes: string[]
+  onPick: (code: string) => void
+  disabled?: boolean
+  triggerLabel?: string
 }
 
 export const ComparePicker = ({
@@ -36,6 +38,9 @@ export const ComparePicker = ({
   sender,
   receiver,
   existingCodes,
+  onPick,
+  disabled,
+  triggerLabel = 'Add to compare',
 }: ComparePickerProps) => {
   const { currencies } = useCurrenciesQuery()
 
@@ -46,11 +51,23 @@ export const ComparePicker = ({
       availableCodes.has(c.iso_code) &&
       !existingCodes.includes(c.iso_code)
 
+    const popularItems = currencies.filter(
+      (c) => POPULAR_CODES.includes(c.iso_code) && filterFn(c),
+    )
+
     const otherItems = currencies.filter(
       (c) => !POPULAR_CODES.includes(c.iso_code) && filterFn(c),
     )
 
     return [
+      ...(popularItems.length > 0
+        ? [
+            {
+              value: 'Popular',
+              items: popularItems,
+            },
+          ]
+        : []),
       ...(otherItems.length > 0
         ? [
             {
@@ -66,10 +83,11 @@ export const ComparePicker = ({
     <Combobox
       items={groups}
       onValueChange={(code) => {
-        if (typeof code === 'string' && code) addComparePick(code)
+        if (typeof code === 'string' && code) onPick(code)
       }}
     >
       <ComboboxTrigger
+        disabled={disabled}
         render={
           <Button
             variant="ghost"
@@ -77,7 +95,7 @@ export const ComparePicker = ({
           />
         }
       >
-        Add to compare
+        {triggerLabel}
       </ComboboxTrigger>
       <ComboboxContent align="end" className="min-w-77 sm:min-w-94 p-2">
         <ComboboxInput
