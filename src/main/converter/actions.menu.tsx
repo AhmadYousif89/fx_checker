@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,16 +10,13 @@ import { Check, CopyIcon, MoreVerticalIcon } from 'lucide-react'
 
 type Props = {
   onCopy?: () => void
+  isCopied?: boolean
 }
 
-export const ConverterActionsMenu = ({ onCopy }: Props) => {
-  const [copied, setCopied] = useState(false)
-
+export const ConverterActionsMenu = ({ onCopy, isCopied }: Props) => {
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
     onCopy?.()
-    setTimeout(() => setCopied(false), 2000)
   }, [onCopy])
 
   return (
@@ -36,11 +33,11 @@ export const ConverterActionsMenu = ({ onCopy }: Props) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6}>
         <DropdownMenuItem
-          className="gap-3"
+          disabled={isCopied}
           onClick={handleCopyLink}
-          disabled={copied}
+          className="gap-3"
         >
-          {copied ? (
+          {isCopied ? (
             <>
               <Check className="size-4 text-green" /> Copied!
             </>

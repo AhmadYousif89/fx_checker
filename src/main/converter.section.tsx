@@ -340,7 +340,10 @@ export const RateConverter = () => {
               )}
             </Button>
 
-            <ConverterActionsMenu onCopy={() => setShowCopiedPopup(true)} />
+            <ConverterActionsMenu
+              isCopied={showCopiedPopup}
+              onCopy={() => setShowCopiedPopup(true)}
+            />
           </div>
         </div>
       </form>
