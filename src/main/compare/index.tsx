@@ -8,6 +8,7 @@ import { formatAmount, orderCompareCurrencies } from '#/lib/currency'
 import { InsightCard } from '#/components/insight-card'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
+import { CompareActionMenu } from './compare-actions'
 
 let compsDidPlay = false
 
@@ -86,29 +87,25 @@ export const CompareSection = () => {
 
   return (
     <InsightCard.Root>
-      <InsightCard.Header
-        title={
-          <>
-            <span className="text-body text-muted">multi-currency </span>
-            <span className="text-body-lg-medium text-foreground">
-              {formatAmount(amount, 0)} from {sender}
-            </span>
-          </>
-        }
-        headerChildren={
-          <div className="flex items-center justify-between gap-2 md:gap-4 w-full">
-            <span className="text-caption uppercase text-foreground-darker">
-              {validPicks.length} pairs
-            </span>
-            <ComparePicker
-              availableCodes={availableCodes}
-              sender={sender}
-              receiver={receiver}
-              existingCodes={validPicks}
-            />
-          </div>
-        }
-      />
+      <InsightCard.Header className="pr-0">
+        <div className="flex items-center gap-3">
+          <CompareActionMenu />
+          <span className="text-body-lg-medium text-foreground">
+            {formatAmount(amount, 0)} from {sender}
+          </span>
+        </div>
+        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
+          <span className="text-caption uppercase text-foreground-darker">
+            {validPicks.length} pairs
+          </span>
+          <ComparePicker
+            availableCodes={availableCodes}
+            sender={sender}
+            receiver={receiver}
+            existingCodes={validPicks}
+          />
+        </div>
+      </InsightCard.Header>
       <InsightCard.Body
         variants={containerVariants}
         initial={didPlay ? 'visible' : 'hidden'}

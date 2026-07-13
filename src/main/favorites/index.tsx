@@ -100,14 +100,12 @@ export const FavoritesSection = () => {
 
   return (
     <InsightCard.Root>
-      <InsightCard.Header
-        title="pinned pairs"
-        headerChildren={
-          <span className="text-caption uppercase text-foreground-darker">
-            {favoritesCount} favorites
-          </span>
-        }
-      />
+      <InsightCard.Header className="flex-row">
+        <h3 className="text-body-lg-medium uppercase">pinned pairs</h3>
+        <span className="text-caption uppercase text-foreground-darker">
+          {favoritesCount} favorites
+        </span>
+      </InsightCard.Header>
       <InsightCard.Body>
         <AnimatePresence mode="popLayout" initial={shouldAnimateOnMount}>
           {favorites.map((f, idx) => {

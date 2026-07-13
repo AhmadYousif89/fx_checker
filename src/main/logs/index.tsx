@@ -5,7 +5,7 @@ import { useHydrated } from '@tanstack/react-router'
 import { exportLogsAsCsv, exportLogsAsJson } from '#/lib/export'
 import { useCurrencyStore } from '#/store/currencies.store'
 import { InsightCard } from '#/components/insight-card'
-import { ExportMenu } from './export-menu'
+import { LogActionButtons } from './log-actions'
 import { LogRow } from './log-row'
 
 let logsDidMount = false
@@ -43,20 +43,18 @@ export const LogsSection = () => {
 
   return (
     <InsightCard.Root>
-      <InsightCard.Header
-        title="conversion logs"
-        headerChildren={
+      <InsightCard.Header>
+        <h3 className="text-body-lg-medium uppercase">converstion logs</h3>
+        <div className="flex items-center justify-between gap-4">
           <span className="text-caption uppercase text-foreground-darker">
             {logCount} logged
           </span>
-        }
-        actions={
-          <ExportMenu
+          <LogActionButtons
             handleExportCsv={handleExportCsv}
             handleExportJson={handleExportJson}
           />
-        }
-      />
+        </div>
+      </InsightCard.Header>
       <InsightCard.Body>
         <AnimatePresence mode="popLayout" initial={logsDidMount ? false : true}>
           {logs.map((log, idx) => (

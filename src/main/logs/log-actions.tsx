@@ -19,17 +19,17 @@ import {
 import { clearLogs } from '#/store/currencies.store'
 import { DownloadIcon } from 'lucide-react'
 
-type ExportMenuProps = {
+type Props = {
   handleExportCsv: () => void
   handleExportJson: () => void
 }
 
-export const ExportMenu = ({
+export const LogActionButtons = ({
   handleExportCsv,
   handleExportJson,
-}: ExportMenuProps) => {
+}: Props) => {
   return (
-    <>
+    <div className="flex items-center gap-2 md:gap-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -74,6 +74,6 @@ export const ExportMenu = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   )
 }

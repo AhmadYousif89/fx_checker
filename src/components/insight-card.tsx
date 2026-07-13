@@ -27,21 +27,20 @@ function Root({
 }
 
 function Header({
-  title,
-  headerChildren,
-  actions,
+  children,
+  className,
 }: {
-  title: ReactNode
-  headerChildren?: ReactNode
-  actions?: ReactNode
+  children?: ReactNode
+  className?: string
 }) {
   return (
-    <header className="flex flex-col justify-between gap-2 px-2 md:flex-row md:items-center">
-      <h3 className="text-body-lg-medium uppercase">{title}</h3>
-      <div className="flex items-center gap-4">
-        {headerChildren}
-        {actions}
-      </div>
+    <header
+      className={cn(
+        'flex flex-col justify-between gap-2 px-2 md:flex-row md:items-center',
+        className,
+      )}
+    >
+      {children}
     </header>
   )
 }
