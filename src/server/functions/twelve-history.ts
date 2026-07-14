@@ -33,6 +33,7 @@ const schema = z.object({
   quote: currencyCode,
   days: daysParam.default(30),
   interval: z.enum(TDI).default('1day'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })
 
 export type HistoryInput = z.infer<typeof schema>
@@ -59,8 +60,9 @@ async function fetchSymbolTimeSeries(
   days: number,
   interval: string,
   ttl: number,
+  endDate?: string,
 ): Promise<HistoryEntry[]> {
-  const cacheKey = `td:${symbol}/${days}/${interval}`
+  const cacheKey = `td:${symbol}/${days}/${interval}/${endDate ?? 'latest'}`
   const outputsize = computeOutputSize(days, interval)
 
   return getOrFetch<HistoryEntry[]>(
@@ -73,6 +75,15 @@ async function fetchSymbolTimeSeries(
       tdUrl.searchParams.set('outputsize', String(outputsize))
       tdUrl.searchParams.set('timezone', 'UTC')
       tdUrl.searchParams.set('apikey', TWELVE_DATA_API_KEY ?? '')
+      if (endDate) {
+        tdUrl.searchParams.set('end_date', `${endDate} 23:59:59`)
+        const startDate = new Date(endDate + 'T00:00:00Z')
+        startDate.setDate(startDate.getDate() - days)
+        tdUrl.searchParams.set(
+          'start_date',
+          `${startDate.toISOString().split('T')[0]} 00:00:00`,
+        )
+      }
       const res = await fetchWithRetry(tdUrl)
 
       if (!res.ok) {
@@ -101,9 +112,10 @@ async function fetchCurrencyVsUSD(
   days: number,
   interval: string,
   ttl: number,
+  endDate?: string,
 ): Promise<HistoryEntry[]> {
   try {
-    return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl)
+    return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl, endDate)
   } catch (err) {
     if (err instanceof UnsupportedPairError) {
       const data = await fetchSymbolTimeSeries(
@@ -111,6 +123,7 @@ async function fetchCurrencyVsUSD(
         days,
         interval,
         ttl,
+        endDate,
       )
       return invertData(data)
     }
@@ -121,10 +134,10 @@ async function fetchCurrencyVsUSD(
 export const getTweleveHistory = createServerFn()
   .validator(schema)
   .handler(async ({ data: input }) => {
-    const { base, quote, days, interval } = input
+    const { base, quote, days, interval, endDate } = input
     const ttl = TTL_BY_INTERVAL[interval] ?? 15 * 60 * 1000
 
-    const cacheKey = `history:${base}/${quote}/${days}/${interval}`
+    const cacheKey = `history:${base}/${quote}/${days}/${interval}/${endDate ?? 'latest'}`
 
     return getOrFetch<HistoryEntry[]>(
       cacheKey,
@@ -137,6 +150,7 @@ export const getTweleveHistory = createServerFn()
               days,
               interval,
               ttl,
+              endDate,
             )
           } catch (err) {
             if (err instanceof UnsupportedPairError) {
@@ -145,6 +159,7 @@ export const getTweleveHistory = createServerFn()
                 days,
                 interval,
                 ttl,
+                endDate,
               )
               return invertData(data)
             }
@@ -157,8 +172,8 @@ export const getTweleveHistory = createServerFn()
         }
 
         const [baseData, quoteData] = await Promise.all([
-          fetchCurrencyVsUSD(base, days, interval, ttl),
-          fetchCurrencyVsUSD(quote, days, interval, ttl),
+          fetchCurrencyVsUSD(base, days, interval, ttl, endDate),
+          fetchCurrencyVsUSD(quote, days, interval, ttl, endDate),
         ])
         return computeHistoryCrossRate(baseData, quoteData)
       },

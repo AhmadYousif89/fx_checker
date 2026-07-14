@@ -40,4 +40,5 @@ export const schema = z.object({
   quote: currencyCode,
   days: daysParam.default(30),
   interval: z.enum(TDI).default('1day'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })

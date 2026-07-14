@@ -64,6 +64,8 @@ type HistoryUIContextValue = {
   prefetchRange: (key: RangeKey) => void
   updateUrl: (updates: Record<string, unknown>) => void
   isWaiting: boolean
+  customEndDate: Date | null
+  setCustomEndDate: (date: Date | null) => void
 }
 
 const HistoryDataContext = createContext<HistoryDataContextValue | null>(null)
@@ -102,9 +104,15 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     end: number
   } | null>(null)
 
+  const [customEndDate, setCustomEndDate] = useState<Date | null>(null)
+
   useEffect(() => {
     setZoomRange(null)
-  }, [sender, receiver, selectedTime])
+  }, [sender, receiver, selectedTime, customEndDate])
+
+  useEffect(() => {
+    setCustomEndDate(null)
+  }, [sender, receiver])
 
   const handleZoom = useCallback(
     (range: { startIndex: number; endIndex: number }) => {
@@ -142,20 +150,41 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const days = TIME_RANGES[selectedTime]
   const interval = RANGE_INTERVALS[selectedTime]
 
+  const dateStr = customEndDate
+    ? customEndDate.toISOString().split('T')[0]
+    : undefined
+
   const queryKey = isIntraday
-    ? ['tweleve-history', sender, receiver, selectedTime]
-    : ['frankfurter-history', sender, receiver, selectedTime]
+    ? ['tweleve-history', sender, receiver, selectedTime, dateStr ?? 'latest']
+    : [
+        'frankfurter-history',
+        sender,
+        receiver,
+        selectedTime,
+        dateStr ?? 'latest',
+      ]
 
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey,
-    queryFn: () =>
-      isIntraday
-        ? getTweleveHistory({
-            data: { base: sender, quote: receiver, days, interval },
-          })
-        : getFrankfurterHistory({
-            data: { base: sender, quote: receiver, days },
-          }),
+    queryFn: async () => {
+      try {
+        return isIntraday
+          ? await getTweleveHistory({
+              data: {
+                base: sender,
+                quote: receiver,
+                days,
+                interval,
+                endDate: dateStr,
+              },
+            })
+          : await getFrankfurterHistory({
+              data: { base: sender, quote: receiver, days, endDate: dateStr },
+            })
+      } catch {
+        return []
+      }
+    },
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     placeholderData: keepPreviousData,
@@ -178,21 +207,43 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
       const intraday = rangeKey === '1d' || rangeKey === '1w'
       queryClient.prefetchQuery({
         queryKey: intraday
-          ? ['tweleve-history', sender, receiver, rangeKey]
-          : ['frankfurter-history', sender, receiver, rangeKey],
-        queryFn: () =>
-          intraday
-            ? getTweleveHistory({
-                data: { base: sender, quote: receiver, days: d, interval: i },
-              })
-            : getFrankfurterHistory({
-                data: { base: sender, quote: receiver, days: d },
-              }),
+          ? ['tweleve-history', sender, receiver, rangeKey, dateStr ?? 'latest']
+          : [
+              'frankfurter-history',
+              sender,
+              receiver,
+              rangeKey,
+              dateStr ?? 'latest',
+            ],
+        queryFn: async () => {
+          try {
+            return intraday
+              ? await getTweleveHistory({
+                  data: {
+                    base: sender,
+                    quote: receiver,
+                    days: d,
+                    interval: i,
+                    endDate: dateStr,
+                  },
+                })
+              : await getFrankfurterHistory({
+                  data: {
+                    base: sender,
+                    quote: receiver,
+                    days: d,
+                    endDate: dateStr,
+                  },
+                })
+          } catch {
+            return []
+          }
+        },
         staleTime: 1000 * 60 * 60,
         gcTime: 1000 * 60 * 60 * 24,
       })
     },
-    [queryClient, sender, receiver],
+    [queryClient, sender, receiver, dateStr],
   )
 
   const chartData = data
@@ -251,6 +302,8 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
       prefetchRange,
       updateUrl,
       isWaiting: rateLimiterData?.isWaiting ?? false,
+      customEndDate,
+      setCustomEndDate,
     }),
     [
       sender,
@@ -265,6 +318,8 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
       prefetchRange,
       updateUrl,
       rateLimiterData?.isWaiting,
+      customEndDate,
+      setCustomEndDate,
     ],
   )
 

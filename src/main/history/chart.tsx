@@ -22,6 +22,7 @@ import { useDragZoom } from '#/hooks/use-drag-zoom'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
 import { Button } from '#/components/ui/button'
 import { useHistoryData, useHistoryUI } from './history-context'
+import { DatePicker } from './date-picker'
 
 export const HistoryChart = memo(() => {
   const {
@@ -96,7 +97,7 @@ export const HistoryChart = memo(() => {
   return (
     <div className="flex flex-col min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16">
       <style>{`.recharts-brush-texts { font-size: 14px !important; font-weight: 100; stroke: var(--foreground-darker) }`}</style>
-      <div className="flex justify-between items-baseline uppercase mb-5">
+      <div className="flex justify-between items-baseline uppercase mb-5 text-foreground-darker">
         <span className="text-body-lg-medium text-foreground flex items-center gap-1">
           <div className="flex flex-col items-start sm:flex-row sm:items-center gap-1">
             <span className="whitespace-nowrap">
@@ -110,9 +111,10 @@ export const HistoryChart = memo(() => {
             </div>
           </div>
         </span>
-        <span className="whitespace-nowrap text-foreground-darker text-caption">
-          {formatRate(liveRate ?? lastData.close)} • {headerDateStr}
+        <span className="whitespace-nowrap text-caption ml-auto mr-1">
+          {formatRate(liveRate ?? lastData.close)} •
         </span>
+        <DatePicker triggerValue={headerDateStr} />
       </div>
       <div
         ref={chartAreaRef}

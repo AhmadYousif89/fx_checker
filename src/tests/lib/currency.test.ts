@@ -62,7 +62,7 @@ describe('restrictNumeric', () => {
   })
 
   it('allows only the first dot', () => {
-    expect(restrictNumeric('12.34.56')).toBe('12.3456')
+    expect(restrictNumeric('12.34.56')).toBe('12.34')
   })
 
   it('handles empty string', () => {

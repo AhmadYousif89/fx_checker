@@ -40,11 +40,13 @@ describe('HistorySection', () => {
     expect(spinner).toBeInTheDocument()
   })
 
-  it('shows error state on failure', async () => {
+  it('shows empty state on failure', async () => {
     vi.mocked(getTweleveHistory).mockRejectedValue(new Error('fail'))
     vi.mocked(getFrankfurterHistory).mockRejectedValue(new Error('fail'))
     renderWithQuery(<HistorySection />)
-    expect(await screen.findByText(/Something went wrong/)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/No chart data available/),
+    ).toBeInTheDocument()
   })
 
   it('renders time range toggles', async () => {

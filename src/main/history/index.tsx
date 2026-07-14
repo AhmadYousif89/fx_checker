@@ -36,16 +36,6 @@ const HistorySectionLayout = () => {
     return <CustomSpinner />
   }
 
-  if (isError && !hasData) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <p className="text-red text-center">
-          Something went wrong, try again later
-        </p>
-      </div>
-    )
-  }
-
   if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-10">

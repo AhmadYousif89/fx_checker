@@ -27,6 +27,7 @@ export function useUpdateUrl() {
         await navigate({
           to: '/',
           search: (prev) => ({ ...prev, ...updates }),
+          resetScroll: false,
           replace: true,
         })
       } finally {

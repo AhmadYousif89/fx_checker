@@ -7,15 +7,14 @@ import { getOrFetch } from './cache'
 export const getFrankfurterHistory = createServerFn()
   .validator(schema)
   .handler(async ({ data: input }) => {
-    const { base, quote, days } = input
+    const { base, quote, days, endDate: endDateStr } = input
 
-    const endDate = new Date()
+    const fmt = (d: Date) => d.toISOString().split('T')[0]
+    const endDate = endDateStr ? new Date(endDateStr + 'T23:59:59Z') : new Date()
     const startDate = new Date(endDate)
     startDate.setDate(startDate.getDate() - days)
 
-    const fmt = (d: Date) => d.toISOString().split('T')[0]
-
-    const cacheKey = `frankfurter:history:${base}/${quote}/${days}/${fmt(endDate)}`
+    const cacheKey = `frankfurter:history:${base}/${quote}/${days}/${endDateStr ?? fmt(new Date())}`
     const ttl = 60 * 60 * 1000 // 1 hour
 
     return getOrFetch<HistoryEntry[]>(
