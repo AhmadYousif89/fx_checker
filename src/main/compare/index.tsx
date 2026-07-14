@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { AnimatePresence } from 'framer-motion'
 
 import { useActivePair } from '#/hooks/use-active-pair'
 import { useLatestRates } from '#/hooks/use-latest-rates'
@@ -31,6 +32,7 @@ export const CompareSection = () => {
   const compareView = useCurrencyStore((s) => s.compare.view)
   const chartPicks = useCurrencyStore((s) => s.compare.chartPicks)
   const comparePicks = useCurrencyStore((s) => s.compare.tablePicks)
+  const lastAddedPick = useCurrencyStore((s) => s.compare.lastAddedPick)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError, isFetching } = useLatestRates()
   const didPlay = compsDidPlay
@@ -54,15 +56,6 @@ export const CompareSection = () => {
       return { compare: { ...s.compare, chartPicks: picks } }
     })
   }, [compareView, sender, receiver])
-
-  const containerVariants = {
-    visible: {
-      transition: {
-        staggerChildren: didPlay ? 0 : 0.08,
-        default: { duration: 0.35, ease: 'easeOut' },
-      },
-    },
-  }
 
   const amount = parseFloat(urlAmount.replace(/,/g, '')) || 1
 
@@ -184,21 +177,21 @@ export const CompareSection = () => {
         </div>
       </InsightCard.Header>
       {isTable ? (
-        <InsightCard.Body
-          variants={containerVariants}
-          initial={didPlay ? 'visible' : 'hidden'}
-          animate="visible"
-        >
-          {compareItems.map((item) => (
-            <CompareItem
-              key={item.quote}
-              quote={item.quote}
-              sender={sender}
-              rate={item.rate}
-              converted={item.converted}
-              name={item.name}
-            />
-          ))}
+        <InsightCard.Body>
+          <AnimatePresence mode="popLayout" initial={!didPlay}>
+            {compareItems.map((item, idx) => (
+              <CompareItem
+                key={item.quote}
+                quote={item.quote}
+                sender={sender}
+                rate={item.rate}
+                converted={item.converted}
+                name={item.name}
+                staggerDelay={didPlay ? 0 : idx * 80}
+                isNew={didPlay && item.quote === lastAddedPick}
+              />
+            ))}
+          </AnimatePresence>
         </InsightCard.Body>
       ) : (
         <CompareChart sender={sender} quotes={chartPicks} />

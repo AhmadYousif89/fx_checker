@@ -23,7 +23,7 @@ const tabs = [
     label: 'History',
     id: 'tab-history',
     controls: 'panel-history',
-    className: 'min-w-[109px]',
+    className: 'min-h-10.5 min-w-[109px]',
     Component: HistorySection,
   },
   {
@@ -31,7 +31,7 @@ const tabs = [
     label: 'Favorites',
     id: 'tab-favorites',
     controls: 'panel-favorites',
-    className: 'min-w-[156px]',
+    className: 'min-h-10.5 min-w-[156px]',
     Component: FavoritesSection,
   },
   {
@@ -39,7 +39,7 @@ const tabs = [
     label: 'Compare',
     id: 'tab-compare',
     controls: 'panel-compare',
-    className: 'min-w-[109px]',
+    className: 'min-h-10.5 min-w-[109px]',
     Component: CompareSection,
   },
   {
@@ -47,7 +47,7 @@ const tabs = [
     label: 'Logs',
     id: 'tab-logs',
     controls: 'panel-logs',
-    className: 'min-w-[103px]',
+    className: 'min-h-10.5 min-w-[103px]',
     Component: LogsSection,
   },
 ] as const

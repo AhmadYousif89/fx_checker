@@ -25,6 +25,7 @@ type CurrencyStore = {
     tablePicks: string[]
     chartPicks: string[]
     chartRange: RangeKey
+    lastAddedPick: string | null
   }
   logs: {
     entries: ConversionLog[]
@@ -49,6 +50,7 @@ const initialState: CurrencyStore = {
     tablePicks: [],
     chartPicks: [],
     chartRange: '3m',
+    lastAddedPick: null,
   },
   logs: {
     entries: [],
@@ -61,7 +63,7 @@ const initialState: CurrencyStore = {
 export const useCurrencyStore = create(
   persist<CurrencyStore>(() => initialState, {
     name: 'fx_checker',
-    version: 1,
+    version: 2,
     migrate: (persisted, version) => {
       if (version === 0) {
         const old = persisted as Record<string, unknown>
@@ -92,7 +94,15 @@ export const useCurrencyStore = create(
             tablePicks: (old.comparePicks as string[] | undefined) ?? [],
             chartPicks: (old.chartPicks as string[] | undefined) ?? [],
             chartRange: (old.chartRange as RangeKey | undefined) ?? '3m',
+            lastAddedPick: null,
           },
+        }
+      }
+      if (version === 1) {
+        const old = persisted as CurrencyStore
+        return {
+          ...old,
+          compare: { ...old.compare, lastAddedPick: null },
         }
       }
       return persisted as CurrencyStore
@@ -228,7 +238,8 @@ export function addComparePick(code: string) {
     return {
       compare: {
         ...state.compare,
-        tablePicks: [...state.compare.tablePicks, code],
+        tablePicks: [code, ...state.compare.tablePicks],
+        lastAddedPick: code,
       },
     }
   })
