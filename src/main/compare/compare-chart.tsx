@@ -9,15 +9,14 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts'
-import { keepPreviousData, useQueries } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 
 import { TTL_BY_INTERVAL } from '#/server/config'
 import { rangeKeys, TIME_RANGES, RANGE_INTERVALS } from '#/lib/history/config'
 import { formatAxisDate } from '#/lib/currency'
 import type { HistoryEntry } from '#/lib/history/helpers'
-import { getTweleveHistory } from '#/server/functions/twelve-history'
-import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
+import { getCompareHistory } from '#/server/functions/compare-history'
 import { useCurrencyStore, setChartRange } from '#/store/currencies.store'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
 import { ChartTimeRange } from '#/components/chart-time-range'
@@ -49,35 +48,31 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
   const interval = RANGE_INTERVALS[chartRange]
   const staleTime = isIntraday ? TTL_BY_INTERVAL[interval] : 60 * 60 * 1000
 
-  const results = useQueries({
-    queries: quotes.map((quote) => ({
-      queryKey: ['compare-history', sender, quote, chartRange],
-      queryFn: () =>
-        isIntraday
-          ? getTweleveHistory({
-              data: { base: sender, quote, days, interval },
-            })
-          : getFrankfurterHistory({
-              data: { base: sender, quote, days },
-            }),
-      staleTime,
-      gcTime: 1000 * 60 * 60 * 24,
-      placeholderData: keepPreviousData,
-    })),
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['compare-history', sender, quotes.sort().join(','), chartRange],
+    queryFn: () =>
+      getCompareHistory({
+        data: { base: sender, quotes, days, interval },
+      }),
+    staleTime,
+    gcTime: 1000 * 60 * 60 * 24,
+    placeholderData: keepPreviousData,
   })
 
   const seriesList = useMemo(() => {
     const list: SeriesData[] = []
-    for (let i = 0; i < results.length; i++) {
-      const data = results[i].data
-      if (!data || data.length === 0) continue
-      const quote = quotes[i]
-      const first = data[0].close
-      const latest = data[data.length - 1].close
+    if (!data) return list
+    for (const quote of quotes) {
+      const raw: HistoryEntry[] | undefined = data[quote]
+      if (!raw) continue
+      if (raw.length === 0) continue
+      const seriesData = raw
+      const first = seriesData[0].close
+      const latest = seriesData[seriesData.length - 1].close
       if (first === 0 || latest === 0) continue
       list.push({
         key: quote,
-        data: data.map((d: HistoryEntry) => ({
+        data: seriesData.map((d: HistoryEntry) => ({
           time: d.time,
           close: d.close,
           indexed: (d.close / first) * 100,
@@ -86,7 +81,7 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
       })
     }
     return list
-  }, [results, quotes])
+  }, [data, quotes])
 
   const chartData = useMemo(() => {
     if (seriesList.length === 0) return []
@@ -129,9 +124,6 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
     const padding = (max - min) * 0.15 || 1
     return [min - padding, max + padding]
   }, [chartData, seriesList, hiddenQuotes])
-
-  const isLoading = results.some((r) => r.isLoading)
-  const isFetching = results.some((r) => r.isFetching)
 
   const pairCount = seriesList.length
 

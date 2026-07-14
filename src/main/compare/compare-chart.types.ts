@@ -4,6 +4,8 @@ export type SeriesData = {
   latestClose: number
 }
 
+export const MAX_CHART_PICKS = 5
+
 export const CHART_COLORS = [
   '#10b981',
   '#f59e0b',

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { MAX_CHART_PICKS } from '#/main/compare/compare-chart.types'
 import type { RangeKey } from '#/lib/history/config'
 import type { CurrencyPair, ConversionLog } from '#/types/currency'
 
@@ -66,28 +67,31 @@ export const useCurrencyStore = create(
         const old = persisted as Record<string, unknown>
         return {
           logs: {
-            entries: (old.logs as ConversionLog[]) ?? [],
+            entries: (old.logs as ConversionLog[] | undefined) ?? [],
             lastTimestamp: (old.lastLogTimestamp as number | null) ?? null,
-            sortField: (old.logSortField as SortField) ?? 'date',
-            sortDir: (old.logSortDir as SortDir) ?? 'desc',
+            sortField: (old.logSortField as SortField | undefined) ?? 'date',
+            sortDir: (old.logSortDir as SortDir | undefined) ?? 'desc',
           },
           favorites: {
-            pairs: (old.favorites as CurrencyPair[]) ?? [],
+            pairs: (old.favorites as CurrencyPair[] | undefined) ?? [],
             lastAddedKey: (old.lastAddedFavKey as string | null) ?? null,
           },
           conversion: {
-            recent: (old.recent as { from: string[]; to: string[] }) ?? {
+            recent: (old.recent as
+              | { from: string[]; to: string[] }
+              | undefined) ?? {
               from: [],
               to: [],
             },
-            activePicker: (old.activePicker as ActivePicker) ?? null,
-            lastActivePicker: (old.lastActivePicker as ActivePicker) ?? null,
+            activePicker: (old.activePicker as ActivePicker | null) ?? null,
+            lastActivePicker:
+              (old.lastActivePicker as ActivePicker | null) ?? null,
           },
           compare: {
-            view: (old.compareView as 'table' | 'chart') ?? 'table',
-            tablePicks: (old.comparePicks as string[]) ?? [],
-            chartPicks: (old.chartPicks as string[]) ?? [],
-            chartRange: (old.chartRange as RangeKey) ?? '3m',
+            view: (old.compareView as 'table' | 'chart' | undefined) ?? 'table',
+            tablePicks: (old.comparePicks as string[] | undefined) ?? [],
+            chartPicks: (old.chartPicks as string[] | undefined) ?? [],
+            chartRange: (old.chartRange as RangeKey | undefined) ?? '3m',
           },
         }
       }
@@ -254,7 +258,7 @@ export function setChartRange(range: RangeKey) {
 export function addChartPick(code: string) {
   useCurrencyStore.setState((state) => {
     if (state.compare.chartPicks.includes(code)) return state
-    if (state.compare.chartPicks.length >= 5) return state
+    if (state.compare.chartPicks.length >= MAX_CHART_PICKS) return state
     return {
       compare: {
         ...state.compare,

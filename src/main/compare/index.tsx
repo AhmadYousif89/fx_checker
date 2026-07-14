@@ -20,6 +20,7 @@ import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
 import { CompareActionMenu } from './compare-actions'
 import { CompareChart } from './compare-chart'
+import { MAX_CHART_PICKS } from './compare-chart.types'
 
 let compsDidPlay = false
 
@@ -46,6 +47,9 @@ export const CompareSection = () => {
       let picks = s.compare.chartPicks.filter((c) => c !== sender)
       if (!picks.includes(receiver) && receiver !== sender) {
         picks = [...picks, receiver]
+        if (picks.length > MAX_CHART_PICKS) {
+          picks = picks.slice(-MAX_CHART_PICKS)
+        }
       }
       return { compare: { ...s.compare, chartPicks: picks } }
     })
@@ -128,7 +132,9 @@ export const CompareSection = () => {
     codeToName,
   ])
 
-  if (isLoading || isFetching) {
+  const isTable = compareView === 'table'
+
+  if (isLoading || (isFetching && isTable)) {
     return <InsightCard.Skeleton />
   }
 
@@ -140,13 +146,12 @@ export const CompareSection = () => {
     )
   }
 
-  const isTable = compareView === 'table'
   const pickerExisting = isTable ? compareItems.map((i) => i.quote) : chartPicks
-  const pickerDisabled = !isTable && chartPicks.length >= 5
+  const pickerDisabled = !isTable && chartPicks.length >= MAX_CHART_PICKS
   const pickerLabel = isTable
     ? 'Add to compare'
-    : chartPicks.length >= 5
-      ? 'Max 5 pairs'
+    : chartPicks.length >= MAX_CHART_PICKS
+      ? `Max ${MAX_CHART_PICKS} tracks`
       : 'Add to chart'
   const pickerOnPick = isTable ? addComparePick : addChartPick
   const itemCount = isTable ? compareItems.length : chartPicks.length

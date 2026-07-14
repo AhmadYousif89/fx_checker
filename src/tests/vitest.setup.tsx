@@ -25,6 +25,10 @@ vi.mock('#/server/functions/frankfurter-history', () => ({
   getFrankfurterHistory: vi.fn(),
 }))
 
+vi.mock('#/server/functions/compare-history', () => ({
+  getCompareHistory: vi.fn(),
+}))
+
 vi.mock('#/server/functions/rates', () => ({
   getRates: vi.fn(),
 }))
