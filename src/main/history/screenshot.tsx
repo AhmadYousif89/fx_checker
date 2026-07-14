@@ -1,4 +1,5 @@
 import { memo, useCallback, useState } from 'react'
+import { format } from 'date-fns'
 import { useSearch } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { domToPng } from 'modern-screenshot'
@@ -38,8 +39,7 @@ export const ScreenshotAction = memo(() => {
         backgroundColor: bg,
       })
 
-      const date = new Date()
-      const dateStr = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`
+      const dateStr = format(new Date(), 'yyyy-MM-dd')
 
       const link = document.createElement('a')
       link.download = `fx-checker-${sender}-${receiver}-${selectedTime}_${dateStr}.png`

@@ -1,4 +1,5 @@
 import { memo, useMemo, useRef } from 'react'
+import { subDays, format, isValid, isSameYear } from 'date-fns'
 import {
   AreaChart,
   Area,
@@ -11,7 +12,7 @@ import {
 } from 'recharts'
 import { RotateCcw } from 'lucide-react'
 
-import { SMA_PERIODS } from '#/lib/history/config'
+import { SMA_PERIODS, TIME_RANGES } from '#/lib/history/config'
 import { formatAxisDate, formatRate } from '#/lib/currency'
 import { computeSMA, computeHistoryYAxisDomain } from '#/lib/history/helpers'
 
@@ -39,6 +40,7 @@ export const HistoryChart = memo(() => {
     zoomed,
     onZoom,
     onResetZoom,
+    customEndDate,
   } = useHistoryUI()
 
   const reducedMotion = useReducedMotion()
@@ -77,22 +79,38 @@ export const HistoryChart = memo(() => {
     return yDomainProp
   }, [data, smaSeries, yDomainProp])
 
-  const headerDate =
-    selectedTime === '5y'
-      ? new Date()
-      : new Date(lastData.time.replace(' ', 'T') + 'Z')
+  const headerDate = new Date()
 
-  const timeStr = Number.isNaN(headerDate.getTime())
-    ? ''
-    : headerDate.toLocaleTimeString('en-US', {
+  const headerValid = isValid(headerDate)
+  const timeStr = headerValid
+    ? headerDate.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         timeZoneName: 'short',
       })
+    : ''
 
-  const headerDateStr = Number.isNaN(headerDate.getTime())
-    ? lastData.time
-    : `${headerDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase()} ${timeStr}`
+  const headerDateStr = headerValid
+    ? `${format(headerDate, 'MMM dd').toUpperCase()} ${timeStr}`
+    : lastData.time
+
+  const isIntraday = selectedTime === '1d' || selectedTime === '1w'
+
+  const rangeText = customEndDate
+    ? (() => {
+        const startDate = subDays(customEndDate, TIME_RANGES[selectedTime])
+        const fmtDate = (d: Date) => format(d, 'MMM dd, yyyy').toUpperCase()
+        const fmtDateShort = (d: Date) => format(d, 'MMM dd').toUpperCase()
+        const start = isSameYear(startDate, customEndDate)
+          ? fmtDateShort(startDate)
+          : fmtDate(startDate)
+        const end = fmtDate(customEndDate)
+        if (isIntraday) {
+          return `${start} - ${end}`
+        }
+        return `${start} - ${end}`
+      })()
+    : null
 
   return (
     <div className="flex flex-col min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16">
@@ -111,10 +129,21 @@ export const HistoryChart = memo(() => {
             </div>
           </div>
         </span>
-        <span className="whitespace-nowrap text-caption ml-auto mr-1">
-          {formatRate(liveRate ?? lastData.close)} •
-        </span>
-        <DatePicker triggerValue={headerDateStr} />
+        <div className="ml-auto flex flex-col gap-2 items-end">
+          <div className="flex items-baseline">
+            <span className="whitespace-nowrap text-caption mr-1">
+              {formatRate(liveRate ?? lastData.close)} •
+            </span>
+            <DatePicker triggerValue={headerDateStr} />
+          </div>
+          {rangeText && (
+            <p className="text-caption text-muted whitespace-nowrap">
+              <span className="hidden sm:inline">selected </span>
+              <span className="mr-2">range:</span>
+              {rangeText}
+            </p>
+          )}
+        </div>
       </div>
       <div
         ref={chartAreaRef}

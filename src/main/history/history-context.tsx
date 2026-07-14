@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import {
   createContext,
   useContext,
@@ -151,7 +152,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const interval = RANGE_INTERVALS[selectedTime]
 
   const dateStr = customEndDate
-    ? customEndDate.toISOString().split('T')[0]
+    ? format(customEndDate, 'yyyy-MM-dd')
     : undefined
 
   const queryKey = isIntraday

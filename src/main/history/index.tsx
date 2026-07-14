@@ -21,7 +21,7 @@ const HistoryChart = lazy(() =>
 )
 
 const HistorySectionLayout = () => {
-  const { isLoading, isFetching, isError, hasData } = useHistoryData()
+  const { isLoading, isFetching, hasData } = useHistoryData()
   const {
     sender,
     receiver,

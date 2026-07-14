@@ -1,3 +1,4 @@
+import { startOfDay, subDays, subYears } from 'date-fns'
 import { useMemo, useState } from 'react'
 
 import {
@@ -15,43 +16,16 @@ import { Calendar } from '@/components/ui/calendar'
 import { useHistoryUI } from './history-context'
 
 type DatePickerProps = {
-  triggerValue?: React.ReactNode
+  triggerValue: React.ReactNode
 }
 
 export const DatePicker = ({ triggerValue }: DatePickerProps) => {
   const [openPicker, setOpenPicker] = useState(false)
   const { customEndDate, setCustomEndDate } = useHistoryUI()
 
-  const formatDate = (date: Date) => {
-    const dateStr = date
-      .toLocaleDateString('en-US', {
-        month: 'short',
-        day: '2-digit',
-        year: '2-digit',
-      })
-      .toUpperCase()
-    const timeStr = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    return `${dateStr} ${timeStr}`
-  }
-
-  const displayValue = customEndDate ? formatDate(customEndDate) : triggerValue
-
   const now = useMemo(() => new Date(), [])
-  const yesterday = useMemo(() => {
-    const d = new Date()
-    d.setDate(d.getDate() - 1)
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
-  const fiveYearsAgo = useMemo(() => {
-    const d = new Date()
-    d.setFullYear(d.getFullYear() - 5)
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
+  const yesterday = useMemo(() => startOfDay(subDays(new Date(), 1)), [])
+  const fiveYearsAgo = useMemo(() => startOfDay(subYears(new Date(), 5)), [])
 
   return (
     <Popover open={openPicker} onOpenChange={setOpenPicker}>
@@ -63,7 +37,7 @@ export const DatePicker = ({ triggerValue }: DatePickerProps) => {
               variant="outline"
               className="text-foreground-darker text-caption h-5 py-0 px-1.5 rounded-full border-border hover:border-accent"
             >
-              {displayValue ?? 'Pick a date'}
+              {triggerValue}
             </Button>
           </TooltipTrigger>
         </PopoverTrigger>
