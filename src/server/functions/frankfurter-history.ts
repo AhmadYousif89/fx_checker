@@ -1,3 +1,4 @@
+import { subDays } from 'date-fns'
 import type { HistoryEntry } from '#/lib/history/helpers'
 import { createServerFn } from '@tanstack/react-start'
 import { OPEN_API_URL, schema } from '../config'
@@ -10,9 +11,8 @@ export const getFrankfurterHistory = createServerFn()
     const { base, quote, days, endDate: endDateStr } = input
 
     const fmt = (d: Date) => d.toISOString().split('T')[0]
-    const endDate = endDateStr ? new Date(endDateStr + 'T23:59:59Z') : new Date()
-    const startDate = new Date(endDate)
-    startDate.setDate(startDate.getDate() - days)
+    const endDate = endDateStr ? new Date(endDateStr + 'T00:00:00Z') : new Date()
+    const startDate = subDays(endDate, days)
 
     const cacheKey = `frankfurter:history:${base}/${quote}/${days}/${endDateStr ?? fmt(new Date())}`
     const ttl = 60 * 60 * 1000 // 1 hour

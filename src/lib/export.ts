@@ -1,14 +1,8 @@
+import { format } from 'date-fns'
 import type { ConversionLog } from '#/types/currency'
 
 function fmtTimestamp(ts: number): string {
-  const d = new Date(ts)
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  const hours = String(d.getHours()).padStart(2, '0')
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const seconds = String(d.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  return format(new Date(ts), 'yyyy-MM-dd HH:mm:ss')
 }
 
 function escapeCsv(value: string | number): string {
@@ -16,8 +10,7 @@ function escapeCsv(value: string | number): string {
 }
 
 function getFilename(ext: string): string {
-  const date = new Date().toISOString().slice(0, 10)
-  return `fx-checker-logs-${date}.${ext}`
+  return `fx-checker-logs-${format(new Date(), 'yyyy-MM-dd')}.${ext}`
 }
 
 function download(content: string, filename: string, mime: string) {

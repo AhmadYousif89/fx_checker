@@ -1,3 +1,4 @@
+import { subDays } from 'date-fns'
 import { OPEN_API_URL } from '../config'
 import { FrankfurterRateSchema } from '../validation'
 import { getOrFetch } from './cache'
@@ -9,8 +10,7 @@ export async function getHistoricalRates() {
   const endDate = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   )
-  const startDate = new Date(endDate)
-  startDate.setUTCDate(endDate.getUTCDate() - 5)
+  const startDate = subDays(endDate, 5)
 
   const format = (d: Date) => d.toISOString().split('T')[0]
 

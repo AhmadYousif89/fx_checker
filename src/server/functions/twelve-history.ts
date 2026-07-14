@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
+import { subDays } from 'date-fns'
 import { getOrFetch } from './cache'
 import {
   invertData,
@@ -77,8 +78,7 @@ async function fetchSymbolTimeSeries(
       tdUrl.searchParams.set('apikey', TWELVE_DATA_API_KEY ?? '')
       if (endDate) {
         tdUrl.searchParams.set('end_date', `${endDate} 23:59:59`)
-        const startDate = new Date(endDate + 'T00:00:00Z')
-        startDate.setDate(startDate.getDate() - days)
+        const startDate = subDays(new Date(endDate + 'T00:00:00Z'), days)
         tdUrl.searchParams.set(
           'start_date',
           `${startDate.toISOString().split('T')[0]} 00:00:00`,

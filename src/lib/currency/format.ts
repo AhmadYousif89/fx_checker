@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 export function abbreviateCurrencyName(name: string): string {
   const words = name.split(' ')
   if (words.length < 3) return name
@@ -72,8 +74,5 @@ export function shortTimeAgo(timestamp: number): string {
   if (minutes < 60) return `${minutes}M`
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}H`
-  const d = new Date(timestamp)
-  const day = d.getDate()
-  const month = d.toLocaleString('en-US', { month: 'short' })
-  return `${day} ${month}`
+  return format(new Date(timestamp), 'd MMM')
 }
