@@ -33,8 +33,8 @@ type CompareChartProps = {
 }
 
 export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
-  const chartRange = useCurrencyStore((s) => s.chartRange)
   const reducedMotion = useReducedMotion()
+  const chartRange = useCurrencyStore((s) => s.compare.chartRange)
   const [hiddenQuotes, setHiddenQuotes] = useState<Set<string>>(new Set())
 
   useHotkeys(

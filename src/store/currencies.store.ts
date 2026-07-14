@@ -10,83 +10,141 @@ type SortField = 'date' | 'base' | 'quote' | 'result' | 'amount'
 type SortDir = 'asc' | 'desc'
 
 type CurrencyStore = {
-  favorites: CurrencyPair[]
-  logs: ConversionLog[]
-  lastLogTimestamp: number | null
-  lastAddedFavKey: string | null
-  recent: {
-    from: string[]
-    to: string[]
+  conversion: {
+    recent: { from: string[]; to: string[] }
+    activePicker: ActivePicker
+    lastActivePicker: ActivePicker
   }
-  activePicker: ActivePicker
-  lastActivePicker: ActivePicker
-  comparePicks: string[]
-  compareView: 'table' | 'chart'
-  chartRange: RangeKey
-  chartPicks: string[]
-  logSortField: SortField
-  logSortDir: SortDir
+  favorites: {
+    pairs: CurrencyPair[]
+    lastAddedKey: string | null
+  }
+  compare: {
+    view: 'table' | 'chart'
+    tablePicks: string[]
+    chartPicks: string[]
+    chartRange: RangeKey
+  }
+  logs: {
+    entries: ConversionLog[]
+    lastTimestamp: number | null
+    sortField: SortField
+    sortDir: SortDir
+  }
 }
 
 const initialState: CurrencyStore = {
-  favorites: [],
-  logs: [],
-  lastLogTimestamp: null,
-  lastAddedFavKey: null,
-  recent: { from: [], to: [] },
-  activePicker: null,
-  lastActivePicker: null,
-  comparePicks: [],
-  compareView: 'table',
-  chartRange: '3m',
-  chartPicks: [],
-  logSortField: 'date',
-  logSortDir: 'desc',
+  conversion: {
+    recent: { from: [], to: [] },
+    activePicker: null,
+    lastActivePicker: null,
+  },
+  favorites: {
+    pairs: [],
+    lastAddedKey: null,
+  },
+  compare: {
+    view: 'table',
+    tablePicks: [],
+    chartPicks: [],
+    chartRange: '3m',
+  },
+  logs: {
+    entries: [],
+    lastTimestamp: null,
+    sortField: 'date',
+    sortDir: 'desc',
+  },
 }
 
 export const useCurrencyStore = create(
-  persist<CurrencyStore>(() => initialState, { name: 'fx_checker' }),
+  persist<CurrencyStore>(() => initialState, {
+    name: 'fx_checker',
+    version: 1,
+    migrate: (persisted, version) => {
+      if (version === 0) {
+        const old = persisted as Record<string, unknown>
+        return {
+          logs: {
+            entries: (old.logs as ConversionLog[]) ?? [],
+            lastTimestamp: (old.lastLogTimestamp as number | null) ?? null,
+            sortField: (old.logSortField as SortField) ?? 'date',
+            sortDir: (old.logSortDir as SortDir) ?? 'desc',
+          },
+          favorites: {
+            pairs: (old.favorites as CurrencyPair[]) ?? [],
+            lastAddedKey: (old.lastAddedFavKey as string | null) ?? null,
+          },
+          conversion: {
+            recent: (old.recent as { from: string[]; to: string[] }) ?? {
+              from: [],
+              to: [],
+            },
+            activePicker: (old.activePicker as ActivePicker) ?? null,
+            lastActivePicker: (old.lastActivePicker as ActivePicker) ?? null,
+          },
+          compare: {
+            view: (old.compareView as 'table' | 'chart') ?? 'table',
+            tablePicks: (old.comparePicks as string[]) ?? [],
+            chartPicks: (old.chartPicks as string[]) ?? [],
+            chartRange: (old.chartRange as RangeKey) ?? '3m',
+          },
+        }
+      }
+      return persisted as CurrencyStore
+    },
+  }),
 )
 
 export function pushToRecent(side: 'from' | 'to', code: string) {
   useCurrencyStore.setState((state) => ({
-    recent: {
-      ...state.recent,
-      [side]: [code, ...state.recent[side].filter((c) => c !== code)].slice(
-        0,
-        3,
-      ),
+    conversion: {
+      ...state.conversion,
+      recent: {
+        ...state.conversion.recent,
+        [side]: [
+          code,
+          ...state.conversion.recent[side].filter((c) => c !== code),
+        ].slice(0, 3),
+      },
     },
   }))
 }
 
 export function useIsFavorited(sender: string, receiver: string) {
   return useCurrencyStore((s) =>
-    s.favorites.some((f) => f.sender === sender && f.receiver === receiver),
+    s.favorites.pairs.some(
+      (f) => f.sender === sender && f.receiver === receiver,
+    ),
   )
 }
 
 export function toggleFavorite(sender: string, receiver: string) {
   useCurrencyStore.setState((state) => {
-    const exists = state.favorites.some(
+    const exists = state.favorites.pairs.some(
       (f) => f.sender === sender && f.receiver === receiver,
     )
     return {
-      favorites: exists
-        ? state.favorites.filter(
-            (f) => f.sender !== sender || f.receiver !== receiver,
-          )
-        : [{ sender, receiver }, ...state.favorites],
-      ...(exists ? {} : { lastAddedFavKey: `${sender}_${receiver}` }),
+      favorites: {
+        pairs: exists
+          ? state.favorites.pairs.filter(
+              (f) => f.sender !== sender || f.receiver !== receiver,
+            )
+          : [{ sender, receiver }, ...state.favorites.pairs],
+        lastAddedKey: exists ? null : `${sender}_${receiver}`,
+      },
     }
   })
 }
 
 export function removeFavorite(pair: CurrencyPair) {
   useCurrencyStore.setState((state) => ({
-    favorites: state.favorites.filter(
-      (f) => f.sender !== pair.sender || f.receiver !== pair.receiver,
-    ),
+    favorites: {
+      ...state.favorites,
+      pairs: state.favorites.pairs.filter(
+        (f) => f.sender !== pair.sender || f.receiver !== pair.receiver,
+      ),
+    },
   }))
 }
 
@@ -94,7 +152,7 @@ export function addLog(log: ConversionLog): 'created' | 'updated' {
   let status: 'created' | 'updated' = 'created'
 
   useCurrencyStore.setState((state) => {
-    const existingIndex = state.logs.findIndex(
+    const existingIndex = state.logs.entries.findIndex(
       (l) =>
         l.sender === log.sender &&
         l.receiver === log.receiver &&
@@ -104,17 +162,26 @@ export function addLog(log: ConversionLog): 'created' | 'updated' {
     )
 
     if (existingIndex !== -1) {
-      const updated = [...state.logs]
+      const updated = [...state.logs.entries]
       updated.splice(existingIndex, 1)
       const newTimestamp = Date.now()
       status = 'updated'
       return {
-        logs: [{ ...log, timestamp: newTimestamp }, ...updated],
-        lastLogTimestamp: newTimestamp,
+        logs: {
+          ...state.logs,
+          entries: [{ ...log, timestamp: newTimestamp }, ...updated],
+          lastTimestamp: newTimestamp,
+        },
       }
     }
 
-    return { logs: [log, ...state.logs], lastLogTimestamp: log.timestamp }
+    return {
+      logs: {
+        ...state.logs,
+        entries: [log, ...state.logs.entries],
+        lastTimestamp: log.timestamp,
+      },
+    }
   })
 
   return status
@@ -122,62 +189,94 @@ export function addLog(log: ConversionLog): 'created' | 'updated' {
 
 export function removeLog(timestamp: number) {
   useCurrencyStore.setState((state) => ({
-    logs: state.logs.filter((l) => l.timestamp !== timestamp),
+    logs: {
+      ...state.logs,
+      entries: state.logs.entries.filter((l) => l.timestamp !== timestamp),
+    },
   }))
 }
 
 export function clearLogs() {
-  useCurrencyStore.setState({ logs: [], lastLogTimestamp: null })
+  useCurrencyStore.setState((state) => ({
+    logs: { ...state.logs, entries: [], lastTimestamp: null },
+  }))
 }
 
 export function setActivePicker(picker: ActivePicker) {
-  useCurrencyStore.setState(() => ({
-    activePicker: picker,
-    ...(picker !== null ? { lastActivePicker: picker } : {}),
+  useCurrencyStore.setState((state) => ({
+    conversion: {
+      ...state.conversion,
+      activePicker: picker,
+      ...(picker !== null ? { lastActivePicker: picker } : {}),
+    },
   }))
 }
 
 export function seedComparePicks(codes: string[]) {
-  useCurrencyStore.setState({ comparePicks: codes })
+  useCurrencyStore.setState((state) => ({
+    compare: { ...state.compare, tablePicks: codes },
+  }))
 }
 
 export function addComparePick(code: string) {
   useCurrencyStore.setState((state) => {
-    if (state.comparePicks.includes(code)) return state
-    return { comparePicks: [...state.comparePicks, code] }
+    if (state.compare.tablePicks.includes(code)) return state
+    return {
+      compare: {
+        ...state.compare,
+        tablePicks: [...state.compare.tablePicks, code],
+      },
+    }
   })
 }
 
 export function removeComparePick(code: string) {
   useCurrencyStore.setState((state) => ({
-    comparePicks: state.comparePicks.filter((c) => c !== code),
+    compare: {
+      ...state.compare,
+      tablePicks: state.compare.tablePicks.filter((c) => c !== code),
+    },
   }))
 }
 
 export function setCompareView(view: 'table' | 'chart') {
-  useCurrencyStore.setState({ compareView: view })
+  useCurrencyStore.setState((state) => ({
+    compare: { ...state.compare, view },
+  }))
 }
 
 export function setChartRange(range: RangeKey) {
-  useCurrencyStore.setState({ chartRange: range })
+  useCurrencyStore.setState((state) => ({
+    compare: { ...state.compare, chartRange: range },
+  }))
 }
 
 export function addChartPick(code: string) {
   useCurrencyStore.setState((state) => {
-    if (state.chartPicks.includes(code)) return state
-    if (state.chartPicks.length >= 5) return state
-    return { chartPicks: [...state.chartPicks, code] }
+    if (state.compare.chartPicks.includes(code)) return state
+    if (state.compare.chartPicks.length >= 5) return state
+    return {
+      compare: {
+        ...state.compare,
+        chartPicks: [...state.compare.chartPicks, code],
+      },
+    }
   })
 }
 
 export function removeChartPick(code: string) {
   useCurrencyStore.setState((state) => ({
-    chartPicks: state.chartPicks.filter((c) => c !== code),
+    compare: {
+      ...state.compare,
+      chartPicks: state.compare.chartPicks.filter((c) => c !== code),
+    },
   }))
 }
 
 export type { SortField, SortDir }
 
 export function setLogSort(field: SortField, dir: SortDir) {
-  useCurrencyStore.setState({ logSortField: field, logSortDir: dir })
+  useCurrencyStore.setState((state) => ({
+    logs: { ...state.logs, sortField: field, sortDir: dir },
+  }))
 }

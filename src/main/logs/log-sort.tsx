@@ -34,8 +34,8 @@ const fieldLabels: Record<SortField, string> = {
 }
 
 export const LogSortButton = memo(() => {
-  const field = useCurrencyStore((s) => s.logSortField)
-  const dir = useCurrencyStore((s) => s.logSortDir)
+  const dir = useCurrencyStore((s) => s.logs.sortDir)
+  const field = useCurrencyStore((s) => s.logs.sortField)
 
   const handleSelect = (selected: SortField) => {
     if (selected === field) {

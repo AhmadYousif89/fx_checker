@@ -59,8 +59,8 @@ const tabValues: TabValue[] = ['history', 'favorites', 'compare', 'logs']
 export const InsightsSection = () => {
   const { tab: tabParam } = useSearch({ from: '/' })
   const activeTab = (tabParam ?? 'history') as TabValue
-  const logsCount = useCurrencyStore((s) => s.logs.length)
-  const favoritesCount = useCurrencyStore((s) => s.favorites.length)
+  const logsCount = useCurrencyStore((s) => s.logs.entries.length)
+  const favoritesCount = useCurrencyStore((s) => s.favorites.pairs.length)
   const updateUrl = useUpdateUrl()
   const hydrated = useHydrated()
 

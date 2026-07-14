@@ -25,11 +25,11 @@ let compsDidPlay = false
 
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
-  const recent = useCurrencyStore((s) => s.recent)
-  const favorites = useCurrencyStore((s) => s.favorites)
-  const comparePicks = useCurrencyStore((s) => s.comparePicks)
-  const compareView = useCurrencyStore((s) => s.compareView)
-  const chartPicks = useCurrencyStore((s) => s.chartPicks)
+  const recent = useCurrencyStore((s) => s.conversion.recent)
+  const favorites = useCurrencyStore((s) => s.favorites.pairs)
+  const compareView = useCurrencyStore((s) => s.compare.view)
+  const chartPicks = useCurrencyStore((s) => s.compare.chartPicks)
+  const comparePicks = useCurrencyStore((s) => s.compare.tablePicks)
   const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError, isFetching } = useLatestRates()
   const didPlay = compsDidPlay
@@ -42,12 +42,12 @@ export const CompareSection = () => {
   // Sync chartPicks with sender/receiver changes
   useEffect(() => {
     if (compareView !== 'chart') return
-    useCurrencyStore.setState((state) => {
-      let picks = state.chartPicks.filter((c) => c !== sender)
+    useCurrencyStore.setState((s) => {
+      let picks = s.compare.chartPicks.filter((c) => c !== sender)
       if (!picks.includes(receiver) && receiver !== sender) {
         picks = [...picks, receiver]
       }
-      return { chartPicks: picks }
+      return { compare: { ...s.compare, chartPicks: picks } }
     })
   }, [compareView, sender, receiver])
 

@@ -13,8 +13,8 @@ import { FavoritesItem } from './favorit-item'
 let favsDidMount = false
 
 export const FavoritesSection = () => {
-  const favorites = useCurrencyStore((s) => s.favorites)
-  const lastAddedFavKey = useCurrencyStore((s) => s.lastAddedFavKey)
+  const favorites = useCurrencyStore((s) => s.favorites.pairs)
+  const lastAddedFavKey = useCurrencyStore((s) => s.favorites.lastAddedKey)
   const favoritesCount = favorites.length
   const shouldAnimateOnMount = !favsDidMount
 
