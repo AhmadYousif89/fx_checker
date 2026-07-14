@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRightIcon, TrashIcon } from 'lucide-react'
 
@@ -19,6 +19,7 @@ export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
   const updateUrl = useUpdateUrl()
   const logTime = shortTimeAgo(log.timestamp)
   const [showFlash, setShowFlash] = useState(false)
+  const flashShown = useRef(false)
 
   const handleClick = () => {
     updateUrl({
@@ -55,7 +56,13 @@ export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
           },
         },
       }}
-      onAnimationStart={() => isNew && setShowFlash(true)}
+      onAnimationStart={() => {
+        if (isNew && !flashShown.current) {
+          flashShown.current = true
+          setShowFlash(true)
+        }
+      }}
+      onAnimationEnd={() => setShowFlash(false)}
       className={cn(
         'relative h-15 flex items-center justify-between gap-5 bg-surface-600 border py-2.5 px-3 md:px-4 rounded-10 cursor-pointer',
         'hover:border-surface-300 active:border-surface-300 transition-colors',

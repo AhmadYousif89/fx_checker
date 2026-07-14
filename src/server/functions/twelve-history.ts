@@ -34,7 +34,10 @@ const schema = z.object({
   quote: currencyCode,
   days: daysParam.default(30),
   interval: z.enum(TDI).default('1day'),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 })
 
 export type HistoryInput = z.infer<typeof schema>
@@ -115,7 +118,13 @@ async function fetchCurrencyVsUSD(
   endDate?: string,
 ): Promise<HistoryEntry[]> {
   try {
-    return await fetchSymbolTimeSeries(`${currency}/USD`, days, interval, ttl, endDate)
+    return await fetchSymbolTimeSeries(
+      `${currency}/USD`,
+      days,
+      interval,
+      ttl,
+      endDate,
+    )
   } catch (err) {
     if (err instanceof UnsupportedPairError) {
       const data = await fetchSymbolTimeSeries(

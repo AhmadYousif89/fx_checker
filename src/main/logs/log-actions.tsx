@@ -37,7 +37,7 @@ export const LogActionButtons = ({
             className="h-7.5 md:w-auto px-3 py-2 text-caption"
           >
             <DownloadIcon />
-            <span className="hidden md:inline">Export</span>
+            <span className="hidden md:inline">Backup</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

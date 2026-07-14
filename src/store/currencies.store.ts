@@ -6,6 +6,9 @@ import type { CurrencyPair, ConversionLog } from '#/types/currency'
 
 type ActivePicker = 'sender' | 'receiver' | null
 
+type SortField = 'date' | 'base' | 'quote' | 'result' | 'amount'
+type SortDir = 'asc' | 'desc'
+
 type CurrencyStore = {
   favorites: CurrencyPair[]
   logs: ConversionLog[]
@@ -21,6 +24,8 @@ type CurrencyStore = {
   compareView: 'table' | 'chart'
   chartRange: RangeKey
   chartPicks: string[]
+  logSortField: SortField
+  logSortDir: SortDir
 }
 
 const initialState: CurrencyStore = {
@@ -35,6 +40,8 @@ const initialState: CurrencyStore = {
   compareView: 'table',
   chartRange: '3m',
   chartPicks: [],
+  logSortField: 'date',
+  logSortDir: 'desc',
 }
 
 export const useCurrencyStore = create(
@@ -167,4 +174,10 @@ export function removeChartPick(code: string) {
   useCurrencyStore.setState((state) => ({
     chartPicks: state.chartPicks.filter((c) => c !== code),
   }))
+}
+
+export type { SortField, SortDir }
+
+export function setLogSort(field: SortField, dir: SortDir) {
+  useCurrencyStore.setState({ logSortField: field, logSortDir: dir })
 }

@@ -11,7 +11,9 @@ export const getFrankfurterHistory = createServerFn()
     const { base, quote, days, endDate: endDateStr } = input
 
     const fmt = (d: Date) => d.toISOString().split('T')[0]
-    const endDate = endDateStr ? new Date(endDateStr + 'T00:00:00Z') : new Date()
+    const endDate = endDateStr
+      ? new Date(endDateStr + 'T00:00:00Z')
+      : new Date()
     const startDate = subDays(endDate, days)
 
     const cacheKey = `frankfurter:history:${base}/${quote}/${days}/${endDateStr ?? fmt(new Date())}`

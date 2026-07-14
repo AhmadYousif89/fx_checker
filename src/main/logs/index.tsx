@@ -1,19 +1,55 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useHydrated } from '@tanstack/react-router'
 
 import { exportLogsAsCsv, exportLogsAsJson } from '#/lib/export'
 import { useCurrencyStore } from '#/store/currencies.store'
+import type { SortDir, SortField } from '#/store/currencies.store'
+import type { ConversionLog } from '#/types/currency'
 import { InsightCard } from '#/components/insight-card'
 import { LogActionButtons } from './log-actions'
+import { LogSortButton } from './log-sort'
 import { LogRow } from './log-row'
 
 let logsDidMount = false
 
+function sortLogs(logs: ConversionLog[], field: SortField, dir: SortDir) {
+  const sorted = [...logs]
+  sorted.sort((a, b) => {
+    let cmp = 0
+    switch (field) {
+      case 'date':
+        cmp = a.timestamp - b.timestamp
+        break
+      case 'base':
+        cmp = a.sender.localeCompare(b.sender)
+        break
+      case 'quote':
+        cmp = a.receiver.localeCompare(b.receiver)
+        break
+      case 'result':
+        cmp = a.result - b.result
+        break
+      case 'amount':
+        cmp = a.amount - b.amount
+        break
+    }
+    return dir === 'desc' ? -cmp : cmp
+  })
+  return sorted
+}
+
 export const LogsSection = () => {
   const logs = useCurrencyStore((s) => s.logs)
+  const logSortField = useCurrencyStore((s) => s.logSortField)
+  const logSortDir = useCurrencyStore((s) => s.logSortDir)
   const lastLogTimestamp = useCurrencyStore.getState().lastLogTimestamp
   const logCount = logs.length
+
+  const sortedLogs = useMemo(
+    () => sortLogs(logs, logSortField, logSortDir),
+    [logs, logSortField, logSortDir],
+  )
 
   useEffect(() => {
     logsDidMount = logCount > 0
@@ -44,20 +80,23 @@ export const LogsSection = () => {
   return (
     <InsightCard.Root>
       <InsightCard.Header>
-        <h3 className="text-body-lg-medium uppercase">converstion logs</h3>
+        <h3 className="text-body-lg-medium uppercase">conversion logs</h3>
         <div className="flex items-center justify-between gap-4">
           <span className="text-caption uppercase text-foreground-darker">
             {logCount} logged
           </span>
-          <LogActionButtons
-            handleExportCsv={handleExportCsv}
-            handleExportJson={handleExportJson}
-          />
+          <div className="flex items-center gap-2 md:gap-4">
+            <LogSortButton />
+            <LogActionButtons
+              handleExportCsv={handleExportCsv}
+              handleExportJson={handleExportJson}
+            />
+          </div>
         </div>
       </InsightCard.Header>
       <InsightCard.Body>
         <AnimatePresence mode="popLayout" initial={logsDidMount ? false : true}>
-          {logs.map((log, idx) => (
+          {sortedLogs.map((log, idx) => (
             <LogRow
               key={log.timestamp}
               log={log}
