@@ -6,12 +6,14 @@ import { CHART_COLORS } from './compare-chart.types'
 import type { SeriesData } from './compare-chart.types'
 
 type CompareChartLegendProps = {
+  isFetching: boolean
   seriesList: SeriesData[]
   hiddenQuotes: Set<string>
   onToggle: (quote: string) => void
 }
 
 export const CompareChartLegend = ({
+  isFetching,
   seriesList,
   hiddenQuotes,
   onToggle,
@@ -27,10 +29,12 @@ export const CompareChartLegend = ({
             isHidden
               ? 'opacity-40 border-transparent'
               : 'border-surface-600 hover:border-accent',
+            isFetching ? 'pointer-events-none opacity-40' : '',
           )}
         >
           <button
             type="button"
+            disabled={isFetching}
             onClick={() => onToggle(series.key)}
             className="flex items-center gap-2 text-caption"
           >
@@ -47,11 +51,12 @@ export const CompareChartLegend = ({
           </button>
           <button
             type="button"
+            disabled={isFetching}
             onClick={(e) => {
               e.stopPropagation()
               removeChartPick(series.key)
             }}
-            className="text-muted p-0.5 hover:text-red hover:bg-red/20 cursor-pointer"
+            className="text-muted p-0.5 group-hover:text-background group-hover:bg-red/20 cursor-pointer"
             aria-label={`Remove ${series.key}`}
           >
             <XIcon className="size-3.5" />

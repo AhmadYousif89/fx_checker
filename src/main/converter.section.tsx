@@ -47,8 +47,8 @@ export const RateConverter = () => {
   }, [showCopiedPopup])
 
   const isFavorited = useIsFavorited(sender, receiver)
-  const activePicker = useCurrencyStore((s) => s.activePicker)
-  const lastActivePicker = useCurrencyStore((s) => s.lastActivePicker)
+  const activePicker = useCurrencyStore((s) => s.conversion.activePicker)
+  const lastActivePicker = useCurrencyStore((s) => s.conversion.lastActivePicker)
 
   const [sendValue, setSendValue] = useState(urlAmount)
   const [receiveValue, setReceiveValue] = useState('')

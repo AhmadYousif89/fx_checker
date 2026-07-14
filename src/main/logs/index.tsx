@@ -40,10 +40,10 @@ function sortLogs(logs: ConversionLog[], field: SortField, dir: SortDir) {
 }
 
 export const LogsSection = () => {
-  const logs = useCurrencyStore((s) => s.logs)
-  const logSortField = useCurrencyStore((s) => s.logSortField)
-  const logSortDir = useCurrencyStore((s) => s.logSortDir)
-  const lastLogTimestamp = useCurrencyStore.getState().lastLogTimestamp
+  const logs = useCurrencyStore((s) => s.logs.entries)
+  const logSortField = useCurrencyStore((s) => s.logs.sortField)
+  const logSortDir = useCurrencyStore((s) => s.logs.sortDir)
+  const lastLogTimestamp = useCurrencyStore.getState().logs.lastTimestamp
   const logCount = logs.length
 
   const sortedLogs = useMemo(

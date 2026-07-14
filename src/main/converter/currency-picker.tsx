@@ -46,9 +46,9 @@ export const CurrencyPicker = ({ isSender = false }: CurrencyPickerProps) => {
   const { currencies, isLoading, isError } = useCurrenciesQuery()
 
   const recent = useCurrencyStore((s) =>
-    isSender ? s.recent.from : s.recent.to,
+    isSender ? s.conversion.recent.from : s.conversion.recent.to,
   )
-  const activePicker = useCurrencyStore((s) => s.activePicker)
+  const activePicker = useCurrencyStore((s) => s.conversion.activePicker)
   const isActive = isSender
     ? activePicker === 'sender'
     : activePicker === 'receiver'

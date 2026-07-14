@@ -64,9 +64,10 @@ beforeEach(() => {
     },
   ])
   useCurrencyStore.setState({
-    favorites: [],
-    logs: [],
-    recent: { from: [], to: [] },
+    logs: { entries: [], lastTimestamp: null, sortField: 'date', sortDir: 'desc' },
+    favorites: { pairs: [], lastAddedKey: null },
+    conversion: { recent: { from: [], to: [] }, activePicker: null, lastActivePicker: null },
+    compare: { view: 'table', tablePicks: [], chartPicks: [], chartRange: '3m' },
   })
 })
 
