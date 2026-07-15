@@ -81,27 +81,21 @@ const HistorySectionLayout = () => {
       </div>
       <div className="relative grid grow min-h-96 overflow-hidden rounded-16 bg-surface mt-4 md:mt-5">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 grid bg-surface/20 rounded-16 z-10">
+          <div className="absolute inset-0 grid bg-surface/20 z-10">
             <CustomSpinner />
           </div>
         )}
-        <Suspense fallback={<ChartSkeleton />}>
+        <Suspense
+          fallback={
+            <div className="size-full flex items-center justify-center">
+              <CustomSpinner />
+            </div>
+          }
+        >
           <HistoryChart />
         </Suspense>
       </div>
     </>
-  )
-}
-
-const ChartSkeleton = () => {
-  return (
-    <div className="flex flex-col gap-5 py-4 px-3 md:p-4 md:py-7 rounded-16">
-      <div className="flex items-center justify-between h-5.5">
-        <span className="h-full w-28 bg-muted/10 rounded-full animate-pulse" />
-        <span className="h-full w-60 bg-muted/10 rounded-full animate-pulse" />
-      </div>
-      <CustomSpinner />
-    </div>
   )
 }
 

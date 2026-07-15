@@ -59,20 +59,21 @@ export const DatePicker = ({ triggerValue }: DatePickerProps) => {
             setOpenPicker(false)
           }}
         />
-        <div className="flex justify-center mt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="text-caption"
-            onClick={() => {
-              setCustomEndDate(null)
-              setOpenPicker(false)
-            }}
-          >
-            Latest
-          </Button>
-        </div>
+        {customEndDate && (
+          <div className="flex justify-center mt-2">
+            <Button
+              type="button"
+              size="xs"
+              className="text-caption uppercase"
+              onClick={() => {
+                setCustomEndDate(null)
+                setOpenPicker(false)
+              }}
+            >
+              reset
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )
