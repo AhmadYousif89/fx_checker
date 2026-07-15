@@ -113,7 +113,7 @@ export const HistoryChart = memo(() => {
     : null
 
   return (
-    <div className="flex flex-col min-h-96 w-full py-4 px-3 md:p-5 md:pb-3 bg-surface border border-surface-600 rounded-16">
+    <div className="flex flex-col grow min-h-96 w-full py-4 px-3 md:p-5 md:pb-3">
       <style>{`.recharts-brush-texts { font-size: 14px !important; font-weight: 100; stroke: var(--foreground-darker) }`}</style>
       <div className="flex justify-between items-baseline uppercase mb-5 text-foreground-darker">
         <span className="text-body-lg-medium text-foreground flex items-center gap-1">
@@ -147,7 +147,7 @@ export const HistoryChart = memo(() => {
       </div>
       <div
         ref={chartAreaRef}
-        className="grow relative mb-2"
+        className="grow grid size-full relative mb-2"
         style={{ touchAction: 'none' }}
         onPointerDown={drag.handlers.onPointerDown}
         onPointerMove={drag.handlers.onPointerMove}

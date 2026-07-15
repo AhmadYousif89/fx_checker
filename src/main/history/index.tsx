@@ -30,8 +30,6 @@ const HistorySectionLayout = () => {
     prefetchRange,
     isWaiting,
   } = useHistoryUI()
-  const hydrated = hasData && !isLoading && !isFetching
-
   if (!hasData && !isLoading && !isFetching) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-10">
@@ -81,14 +79,14 @@ const HistorySectionLayout = () => {
           </div>
         </div>
       </div>
-      <div className="relative flex grow overflow-hidden rounded-16 bg-surface mt-4 md:mt-5">
+      <div className="relative grid grow min-h-96 overflow-hidden rounded-16 bg-surface mt-4 md:mt-5">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 bg-surface/50 flex items-center justify-center  rounded-16 z-10">
-            <ChartSkeleton />
+          <div className="absolute inset-0 grid bg-surface/20 rounded-16 z-10">
+            <CustomSpinner />
           </div>
         )}
         <Suspense fallback={<ChartSkeleton />}>
-          {hydrated && <HistoryChart />}
+          <HistoryChart />
         </Suspense>
       </div>
     </>
@@ -97,7 +95,7 @@ const HistorySectionLayout = () => {
 
 const ChartSkeleton = () => {
   return (
-    <div className="size-full flex flex-col gap-5 py-4 px-3 md:p-4 md:py-7 rounded-16">
+    <div className="flex flex-col gap-5 py-4 px-3 md:p-4 md:py-7 rounded-16">
       <div className="flex items-center justify-between h-5.5">
         <span className="h-full w-28 bg-muted/10 rounded-full animate-pulse" />
         <span className="h-full w-60 bg-muted/10 rounded-full animate-pulse" />

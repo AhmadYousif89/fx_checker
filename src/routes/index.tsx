@@ -44,7 +44,7 @@ export const Route = createFileRoute('/')({
     await Promise.all([
       isIntraday
         ? context.queryClient.prefetchQuery({
-            queryKey: ['tweleve-history', from, to, view],
+            queryKey: ['tweleve-history', from, to, view, 'latest'],
             queryFn: () =>
               getTweleveHistory({
                 data: { base: from, quote: to, days, interval },
@@ -53,7 +53,7 @@ export const Route = createFileRoute('/')({
             gcTime: 1000 * 60 * 60 * 24,
           })
         : context.queryClient.prefetchQuery({
-            queryKey: ['frankfurter-history', from, to, view],
+            queryKey: ['frankfurter-history', from, to, view, 'latest'],
             queryFn: () =>
               getFrankfurterHistory({ data: { base: from, quote: to, days } }),
             staleTime: 1000 * 60 * 60,
