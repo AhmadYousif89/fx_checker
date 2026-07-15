@@ -2,9 +2,9 @@ import { memo, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
+import { cn } from '#/lib/utils'
 import { toasts } from './store'
 import type { ToastItem } from './store'
-import { cn } from '#/lib/utils'
 
 type Props = {
   className?: string
@@ -16,7 +16,9 @@ export const NotificationToaster = memo(({ className }: Props) => {
   useEffect(() => {
     const unsub = toasts.subscribe(() => setItems(toasts.getSnapshot()))
     setItems(toasts.getSnapshot())
-    return () => { unsub() }
+    return () => {
+      unsub()
+    }
   }, [])
 
   useEffect(() => {
