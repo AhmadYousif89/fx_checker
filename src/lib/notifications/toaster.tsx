@@ -1,4 +1,4 @@
-import { memo, useEffect, useSyncExternalStore } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
@@ -10,14 +10,14 @@ type Props = {
   className?: string
 }
 
-const SSR_SNAPSHOT: ToastItem[] = []
-
 export const NotificationToaster = memo(({ className }: Props) => {
-  const items = useSyncExternalStore(
-    toasts.subscribe,
-    toasts.getSnapshot,
-    () => SSR_SNAPSHOT,
-  )
+  const [items, setItems] = useState<ToastItem[]>([])
+
+  useEffect(() => {
+    const unsub = toasts.subscribe(() => setItems(toasts.getSnapshot()))
+    setItems(toasts.getSnapshot())
+    return () => { unsub() }
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => toasts.removeExpired(), 250)
