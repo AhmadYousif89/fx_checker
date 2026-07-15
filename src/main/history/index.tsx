@@ -8,7 +8,6 @@ import {
 } from '#/components/ui/tooltip'
 import { CustomSpinner } from '#/components/custom-spinner'
 import { ChartTimeRange } from '#/components/chart-time-range'
-import { ScreenshotAction } from './screenshot'
 import { HistoryStats } from './stats'
 import {
   HistoryProvider,
@@ -31,12 +30,9 @@ const HistorySectionLayout = () => {
     prefetchRange,
     isWaiting,
   } = useHistoryUI()
+  const hydrated = hasData && !isLoading && !isFetching
 
-  if (isLoading && !hasData) {
-    return <CustomSpinner />
-  }
-
-  if (!hasData) {
+  if (!hasData && !isLoading && !isFetching) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-10">
         <h3 className="text-heading text-foreground-darker">
@@ -56,50 +52,43 @@ const HistorySectionLayout = () => {
         <HistoryStats />
         <div className="mt-5 w-full lg:self-end">
           <div className="flex items-center justify-between lg:justify-end gap-2">
-            <div className="flex items-center gap-2">
-              <ChartTimeRange
-                value={selectedTime}
-                onChange={(v) => {
-                  onResetZoom()
-                  updateUrl({ view: v })
-                }}
-                disabled={isWaiting}
-                prefetchRange={prefetchRange}
-              />
-              {isWaiting && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InfoIcon className="size-4 text-red" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    align="end"
-                    sideOffset={6}
-                    className="max-w-xs"
-                  >
-                    <p className="text-caption text-balance text-center flex flex-col gap-1">
-                      <span className="text-red uppercase">
-                        Rate limit exceeded!
-                      </span>
-                      <span>
-                        Please wait a few seconds before switching time ranges.
-                      </span>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-            <ScreenshotAction />
+            <ChartTimeRange
+              value={selectedTime}
+              onChange={(v) => {
+                onResetZoom()
+                updateUrl({ view: v })
+              }}
+              disabled={isLoading || isWaiting}
+              prefetchRange={prefetchRange}
+            />
+            {isWaiting && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="size-4 text-red" />
+                </TooltipTrigger>
+                <TooltipContent align="end" sideOffset={6} className="max-w-xs">
+                  <p className="text-caption text-balance text-center flex flex-col gap-1">
+                    <span className="text-red uppercase">
+                      Rate limit exceeded!
+                    </span>
+                    <span>
+                      Please wait a few seconds before switching time ranges.
+                    </span>
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
-      <div className="relative flex grow overflow-hidden mt-4 md:mt-5">
+      <div className="relative flex grow overflow-hidden rounded-16 bg-surface mt-4 md:mt-5">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 bg-surface/25 flex items-center justify-center z-10">
-            <CustomSpinner />
+          <div className="absolute inset-0 bg-surface/50 flex items-center justify-center  rounded-16 z-10">
+            <ChartSkeleton />
           </div>
         )}
         <Suspense fallback={<ChartSkeleton />}>
-          <HistoryChart />
+          {hydrated && <HistoryChart />}
         </Suspense>
       </div>
     </>
@@ -108,12 +97,12 @@ const HistorySectionLayout = () => {
 
 const ChartSkeleton = () => {
   return (
-    <div className="w-full bg-surface flex flex-col gap-5 py-4 px-3 md:p-5 rounded-16">
-      <div className="flex items-center justify-between h-5">
-        <span className="h-full w-18.5 bg-muted/10 rounded-full animate-pulse" />
-        <span className="h-full w-57.5 bg-muted/10 rounded-full animate-pulse" />
+    <div className="size-full flex flex-col gap-5 py-4 px-3 md:p-4 md:py-7 rounded-16">
+      <div className="flex items-center justify-between h-5.5">
+        <span className="h-full w-28 bg-muted/10 rounded-full animate-pulse" />
+        <span className="h-full w-60 bg-muted/10 rounded-full animate-pulse" />
       </div>
-      <div className="size-full bg-muted/10 animate-pulse rounded-16" />
+      <CustomSpinner />
     </div>
   )
 }

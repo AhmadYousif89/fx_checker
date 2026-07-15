@@ -21,7 +21,6 @@ const SHORTCUTS = [
   { keys: '\u2190', action: 'Switch to sender picker' },
   { keys: '1-6', action: 'Select chart range' },
   { keys: 'Shift+S', action: 'Swap currencies' },
-  { keys: 'Shift+H', action: 'Take a screenshot' },
   { keys: 'Shift+T', action: 'Toggle theme' },
   { keys: 'Shift+Right', action: 'Switch to next tab' },
   { keys: 'Shift+Left', action: 'Switch to previous tab' },
