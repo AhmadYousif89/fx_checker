@@ -6,18 +6,39 @@ import {
   DropdownMenuItem,
 } from '#/components/ui/dropdown-menu'
 import { Button } from '#/components/ui/button'
-import { Check, CopyIcon, MoreVerticalIcon } from 'lucide-react'
+import { ArrowLeftRight, Check, CopyIcon, MoreVerticalIcon } from 'lucide-react'
+import { formatRate } from '#/lib/currency'
 
 type Props = {
-  onCopy?: () => void
-  isCopied?: boolean
+  sender: string
+  receiver: string
+  rate: number | null
+  flippedRate: number | null
+  onCopy?: (type: 'link' | 'rate') => void
+  copiedType?: 'link' | 'rate' | null
 }
 
-export const ConverterActionsMenu = ({ onCopy, isCopied }: Props) => {
+export const ConverterActionsMenu = ({
+  sender,
+  receiver,
+  rate,
+  flippedRate,
+  onCopy,
+  copiedType,
+}: Props) => {
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href)
-    onCopy?.()
+    onCopy?.('link')
   }, [onCopy])
+
+  const handleCopyRate = useCallback(() => {
+    if (rate == null || flippedRate == null) return
+    const text = `1 ${sender} = ${formatRate(rate)} ${receiver}\n1 ${receiver} = ${formatRate(flippedRate)} ${sender}`
+    navigator.clipboard.writeText(text)
+    onCopy?.('rate')
+  }, [sender, receiver, rate, flippedRate, onCopy])
+
+  const cannotCopyRate = rate == null || flippedRate == null
 
   return (
     <DropdownMenu>
@@ -33,17 +54,32 @@ export const ConverterActionsMenu = ({ onCopy, isCopied }: Props) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6}>
         <DropdownMenuItem
-          disabled={isCopied}
+          disabled={copiedType === 'link'}
           onClick={handleCopyLink}
           className="gap-3"
         >
-          {isCopied ? (
+          {copiedType === 'link' ? (
             <>
               <Check className="size-4 text-green" /> Copied!
             </>
           ) : (
             <>
               <CopyIcon /> Copy link
+            </>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={cannotCopyRate || copiedType === 'rate'}
+          onClick={handleCopyRate}
+          className="gap-3"
+        >
+          {copiedType === 'rate' ? (
+            <>
+              <Check className="size-4 text-green" /> Copied!
+            </>
+          ) : (
+            <>
+              <ArrowLeftRight className="size-4" /> Copy conversion rate
             </>
           )}
         </DropdownMenuItem>

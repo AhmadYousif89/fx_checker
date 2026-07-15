@@ -38,13 +38,13 @@ type LogStatus = 'idle' | 'created' | 'updated'
 export const RateConverter = () => {
   const updateUrl = useUpdateUrl()
   const { sender, receiver, amount: urlAmount, swap } = useActivePair()
-  const [showCopiedPopup, setShowCopiedPopup] = useState(false)
+  const [copiedType, setCopiedType] = useState<'link' | 'rate' | null>(null)
 
   useEffect(() => {
-    if (!showCopiedPopup) return
-    const timer = setTimeout(() => setShowCopiedPopup(false), 2000)
+    if (!copiedType) return
+    const timer = setTimeout(() => setCopiedType(null), 2000)
     return () => clearTimeout(timer)
-  }, [showCopiedPopup])
+  }, [copiedType])
 
   const isFavorited = useIsFavorited(sender, receiver)
   const activePicker = useCurrencyStore((s) => s.conversion.activePicker)
@@ -344,23 +344,29 @@ export const RateConverter = () => {
             </Button>
 
             <ConverterActionsMenu
-              isCopied={showCopiedPopup}
-              onCopy={() => setShowCopiedPopup(true)}
+              sender={sender}
+              receiver={receiver}
+              rate={rate}
+              flippedRate={rate ? 1 / rate : null}
+              copiedType={copiedType}
+              onCopy={setCopiedType}
             />
           </div>
         </div>
       </form>
       <AnimatePresence>
-        {showCopiedPopup && (
+        {copiedType && (
           <motion.div
-            key="copy-popup"
+            key={copiedType}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35 }}
             className="absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-[black] -z-10"
           >
-            Link copied to clipboard
+            {copiedType === 'link'
+              ? 'Link copied to clipboard'
+              : 'Rate copied to clipboard'}
           </motion.div>
         )}
       </AnimatePresence>
