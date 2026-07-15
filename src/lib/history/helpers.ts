@@ -12,13 +12,18 @@ export function computeOutputSize(days: number, interval: string): number {
 }
 
 export function computeHistoryYAxisDomain(
-  data: { close: number }[] | undefined,
+  data: { close: number; high?: number; low?: number }[] | undefined,
 ): [number, number] {
   if (!data || data.length === 0) return [0, 1]
 
-  const closes = data.map((point) => point.close)
-  const min = Math.min(...closes)
-  const max = Math.max(...closes)
+  const values = data.flatMap((point) => {
+    const vals = [point.close]
+    if (point.high != null) vals.push(point.high)
+    if (point.low != null) vals.push(point.low)
+    return vals
+  })
+  const min = Math.min(...values)
+  const max = Math.max(...values)
 
   if (min === max) {
     const padding = Math.max(Math.abs(min) * 0.0001, 0.0005)

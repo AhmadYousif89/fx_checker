@@ -220,6 +220,22 @@ export const HistoryChart = memo(() => {
             />
             <Area
               type="monotone"
+              dataKey="high"
+              stroke="none"
+              fill="var(--accent)"
+              fillOpacity={0.1}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="low"
+              stroke="none"
+              fill="var(--surface)"
+              fillOpacity={1}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
               dataKey="close"
               stroke="var(--accent)"
               strokeWidth={2}
