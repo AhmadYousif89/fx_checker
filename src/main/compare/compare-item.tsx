@@ -6,7 +6,12 @@ import { StarIcon } from 'lucide-react'
 import { cn } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
-import { toggleFavorite, useIsFavorited } from '#/store/currencies.store'
+import {
+  toggleFavorite,
+  useIsFavorited,
+  useCurrencyStore,
+} from '#/store/currencies.store'
+import { toasts } from '#/lib/notifications'
 import {
   getFlagUrl,
   formatRate,
@@ -110,7 +115,15 @@ export const CompareItem = memo((props: CompareItemProps) => {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
+              const wasFav = useCurrencyStore.getState().favorites.pairs.some(
+                (f) => f.sender === sender && f.receiver === quote,
+              )
               toggleFavorite(sender, quote)
+              toasts.push(
+                wasFav
+                  ? `${sender}/${quote} removed from favorites`
+                  : `${sender}/${quote} added to favorites`,
+              )
             }}
             className="hover:bg-surface-500 active:bg-surface-500"
           >

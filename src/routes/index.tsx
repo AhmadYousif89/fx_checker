@@ -4,6 +4,7 @@ import { Main } from '#/main'
 import { Header } from '#/header'
 import { Footer } from '#/footer'
 import { TopLoader } from '#/components/top-loader'
+import { NotificationToaster } from '#/lib/notifications'
 import { getRates } from '#/server/functions/rates'
 import { getCurrencies } from '#/server/functions/currencies'
 import { getFrankfurterHistory } from '#/server/functions/frankfurter-history'
@@ -72,6 +73,7 @@ export const Route = createFileRoute('/')({
 function Home() {
   return (
     <>
+      <NotificationToaster />
       <Header />
       <TopLoader />
       <Main />

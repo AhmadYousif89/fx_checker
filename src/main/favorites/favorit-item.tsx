@@ -6,6 +6,7 @@ import { cn } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { toggleFavorite } from '#/store/currencies.store'
+import { toasts } from '#/lib/notifications'
 import type { CurrencyPair, RateWithDiff } from '#/types/currency'
 import { RateDiff } from '#/components/rate-diff'
 
@@ -96,6 +97,9 @@ export const FavoritesItem = memo(
             onClick={(e) => {
               e.stopPropagation()
               toggleFavorite(item.sender, item.receiver)
+              toasts.push(
+                `${item.sender}/${item.receiver} removed from favorites`,
+              )
             }}
             className="hover:bg-surface-500 active:bg-surface-500"
           >

@@ -24,6 +24,7 @@ import {
   formatAmount,
   formatInputAmount,
 } from '#/lib/currency'
+import { toasts } from '#/lib/notifications'
 import { cn } from '#/lib/utils'
 
 import { SendField } from './converter/send.field'
@@ -38,14 +39,6 @@ type LogStatus = 'idle' | 'created' | 'updated'
 export const RateConverter = () => {
   const updateUrl = useUpdateUrl()
   const { sender, receiver, amount: urlAmount, swap } = useActivePair()
-  const [copiedType, setCopiedType] = useState<'link' | 'rate' | null>(null)
-
-  useEffect(() => {
-    if (!copiedType) return
-    const timer = setTimeout(() => setCopiedType(null), 2000)
-    return () => clearTimeout(timer)
-  }, [copiedType])
-
   const isFavorited = useIsFavorited(sender, receiver)
   const activePicker = useCurrencyStore((s) => s.conversion.activePicker)
   const lastActivePicker = useCurrencyStore(
@@ -311,7 +304,17 @@ export const RateConverter = () => {
               type="button"
               size="sm"
               aria-pressed={isFavorited}
-              onClick={() => toggleFavorite(sender, receiver)}
+              onClick={() => {
+                const wasFav = useCurrencyStore.getState().favorites.pairs.some(
+                  (f) => f.sender === sender && f.receiver === receiver,
+                )
+                toggleFavorite(sender, receiver)
+                toasts.push(
+                  wasFav
+                    ? `${sender}/${receiver} removed from favorites`
+                    : `${sender}/${receiver} added to favorites`,
+                )
+              }}
               className="group min-w-29.5 uppercase text-caption-medium gap-2.5 aria-pressed:bg-accent aria-pressed:border-accent aria-pressed:text-background"
             >
               <StarIcon className="group-aria-pressed:fill-background" />
@@ -348,28 +351,10 @@ export const RateConverter = () => {
               receiver={receiver}
               rate={rate}
               flippedRate={rate ? 1 / rate : null}
-              copiedType={copiedType}
-              onCopy={setCopiedType}
             />
           </div>
         </div>
       </form>
-      <AnimatePresence>
-        {copiedType && (
-          <motion.div
-            key={copiedType}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.35 }}
-            className="absolute bottom-0 inset-x-0 mx-auto w-fit translate-y-9 bg-accent px-4 py-2 rounded-6 text-caption! text-[black] -z-10"
-          >
-            {copiedType === 'link'
-              ? 'Link copied to clipboard'
-              : 'Rate copied to clipboard'}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   )
 }

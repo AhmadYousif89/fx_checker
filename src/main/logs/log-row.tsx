@@ -7,6 +7,7 @@ import { Button } from '#/components/ui/button'
 import { useUpdateUrl } from '#/hooks/use-update-url'
 import { formatAmount, shortTimeAgo } from '#/lib/currency'
 import { removeLog } from '#/store/currencies.store'
+import { toasts } from '#/lib/notifications'
 import type { ConversionLog } from '#/types/currency'
 
 type LogRowProps = {
@@ -94,10 +95,13 @@ export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
         type="button"
         size="icon-sm"
         variant="outline"
-        onClick={(e) => {
-          e.stopPropagation()
-          removeLog(log.timestamp)
-        }}
+          onClick={(e) => {
+            e.stopPropagation()
+            removeLog(log.timestamp)
+            toasts.push(
+              `${log.sender}/${log.receiver} - Log entry removed`,
+            )
+          }}
         className="border-border hover:text-[white] hover:bg-red hover:border-red focus-visible:ring-red active:bg-red active:border-red"
       >
         <TrashIcon />

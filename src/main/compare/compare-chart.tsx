@@ -29,9 +29,10 @@ import { CHART_COLORS } from './compare-chart.types'
 type CompareChartProps = {
   sender: string
   quotes: string[]
+  codeToName: Map<string, string>
 }
 
-export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
+export const CompareChart = ({ sender, quotes, codeToName }: CompareChartProps) => {
   const reducedMotion = useReducedMotion()
   const chartRange = useCurrencyStore((s) => s.compare.chartRange)
   const [hiddenQuotes, setHiddenQuotes] = useState<Set<string>>(new Set())
@@ -72,6 +73,7 @@ export const CompareChart = ({ sender, quotes }: CompareChartProps) => {
       if (first === 0 || latest === 0) continue
       list.push({
         key: quote,
+        name: codeToName.get(quote) ?? quote,
         data: seriesData.map((d: HistoryEntry) => ({
           time: d.time,
           close: d.close,

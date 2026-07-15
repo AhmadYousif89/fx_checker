@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 
 import { useActivePair } from '#/hooks/use-active-pair'
@@ -11,6 +11,7 @@ import {
   addChartPick,
   setCompareView,
 } from '#/store/currencies.store'
+import { toasts } from '#/lib/notifications'
 import {
   formatAmount,
   getCrossRate,
@@ -127,6 +128,29 @@ export const CompareSection = () => {
 
   const isTable = compareView === 'table'
 
+  const pickerOnPick = useCallback(
+    (code: string) => {
+      const name = codeToName.get(code) ?? code
+      const store = useCurrencyStore.getState()
+
+      if (isTable) {
+        if (store.compare.tablePicks.includes(code)) return
+        addComparePick(code)
+        toasts.push(`${name} added to compare`)
+      } else {
+        if (store.compare.chartPicks.includes(code)) return
+        if (store.compare.chartPicks.length >= MAX_CHART_PICKS) {
+          toasts.push(`Maximum ${MAX_CHART_PICKS} currencies tracked`)
+          return
+        }
+        addChartPick(code)
+        toasts.push(`${name} added to compare chart`)
+      }
+    },
+    [isTable, codeToName],
+  )
+  const itemCount = isTable ? compareItems.length : chartPicks.length
+
   if (isLoading || (isFetching && isTable)) {
     return <InsightCard.Skeleton />
   }
@@ -146,8 +170,6 @@ export const CompareSection = () => {
     : chartPicks.length >= MAX_CHART_PICKS
       ? `Max ${MAX_CHART_PICKS} tracks`
       : 'Add to chart'
-  const pickerOnPick = isTable ? addComparePick : addChartPick
-  const itemCount = isTable ? compareItems.length : chartPicks.length
 
   return (
     <InsightCard.Root>
@@ -194,7 +216,7 @@ export const CompareSection = () => {
           </AnimatePresence>
         </InsightCard.Body>
       ) : (
-        <CompareChart sender={sender} quotes={chartPicks} />
+        <CompareChart sender={sender} quotes={chartPicks} codeToName={codeToName} />
       )}
     </InsightCard.Root>
   )

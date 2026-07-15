@@ -1,3 +1,4 @@
+import { DownloadIcon } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,15 +10,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '#/components/ui/alert-dialog'
-import { Button } from '#/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
+import { Button } from '#/components/ui/button'
 import { clearLogs } from '#/store/currencies.store'
-import { DownloadIcon } from 'lucide-react'
+import { toasts } from '#/lib/notifications'
 
 type Props = {
   handleExportCsv: () => void
@@ -65,7 +66,10 @@ export const LogActionButtons = ({
           <AlertDialogFooter>
             <AlertDialogCancel className="text-body">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={clearLogs}
+              onClick={() => {
+                clearLogs()
+                toasts.push('All logs cleared')
+              }}
               variant="destructive"
               className="text-[white]! text-body"
             >

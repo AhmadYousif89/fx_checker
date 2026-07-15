@@ -2,6 +2,7 @@ import { formatRate } from '#/lib/currency'
 import { cn } from '#/lib/utils'
 import { XIcon } from 'lucide-react'
 import { removeChartPick } from '#/store/currencies.store'
+import { toasts } from '#/lib/notifications'
 import { CHART_COLORS } from './compare-chart.types'
 import type { SeriesData } from './compare-chart.types'
 
@@ -55,6 +56,7 @@ export const CompareChartLegend = ({
             onClick={(e) => {
               e.stopPropagation()
               removeChartPick(series.key)
+              toasts.push(`${series.name} removed from compare chart`)
             }}
             className="text-muted p-0.5 group-hover:text-background group-hover:bg-red/20 cursor-pointer"
             aria-label={`Remove ${series.key}`}

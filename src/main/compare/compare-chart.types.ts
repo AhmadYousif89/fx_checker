@@ -1,5 +1,6 @@
 export type SeriesData = {
   key: string
+  name: string
   data: { time: string; close: number; indexed: number }[]
   latestClose: number
 }
