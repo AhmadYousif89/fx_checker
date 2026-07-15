@@ -19,7 +19,6 @@ export { orderCompareCurrencies } from './ordering'
 export { formatTooltipDate, formatAxisDate } from './chart-dates'
 export {
   getCrossRate,
-  getCrossRateLoose,
   getCrossRateAtDate,
   generateFallbackPairs,
   getRateAtDate,

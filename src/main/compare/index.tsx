@@ -13,7 +13,7 @@ import {
 } from '#/store/currencies.store'
 import {
   formatAmount,
-  getCrossRateLoose,
+  getCrossRate,
   orderCompareCurrencies,
 } from '#/lib/currency'
 import { InsightCard } from '#/components/insight-card'
@@ -101,7 +101,7 @@ export const CompareSection = () => {
       name: string
     }> = []
     for (const quote of valid) {
-      const rate = getCrossRateLoose({
+      const rate = getCrossRate({
         rates: ratesData,
         base: sender,
         quote,

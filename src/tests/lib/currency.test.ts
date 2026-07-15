@@ -152,12 +152,12 @@ describe('getCrossRate', () => {
     expect(getCrossRate({ rates, base: 'USD', quote: 'XYZ' })).toBeNull()
   })
 
-  it('returns null when base and quote have different dates', () => {
+  it('falls back to loose calculation when base and quote have different dates', () => {
     const mismatched = new Map(rates)
     mismatched.set('USD', { rate: 1.1, date: '2026-06-30' })
     expect(
       getCrossRate({ rates: mismatched, base: 'USD', quote: 'JPY' }),
-    ).toBeNull()
+    ).toBeCloseTo(130 / 1.1)
   })
 })
 

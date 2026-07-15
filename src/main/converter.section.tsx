@@ -48,7 +48,9 @@ export const RateConverter = () => {
 
   const isFavorited = useIsFavorited(sender, receiver)
   const activePicker = useCurrencyStore((s) => s.conversion.activePicker)
-  const lastActivePicker = useCurrencyStore((s) => s.conversion.lastActivePicker)
+  const lastActivePicker = useCurrencyStore(
+    (s) => s.conversion.lastActivePicker,
+  )
 
   const [sendValue, setSendValue] = useState(urlAmount)
   const [receiveValue, setReceiveValue] = useState('')
@@ -131,6 +133,7 @@ export const RateConverter = () => {
   // Sync receive from send
   useEffect(() => {
     if (rate == null || editSide !== 'send') return
+
     const num = parseFloat(sendValue)
     if (!Number.isNaN(num) && num > 0) {
       setReceiveValue(formatAmount(num * rate))
