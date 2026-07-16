@@ -179,9 +179,12 @@ export const CompareSection = () => {
             value={compareView}
             onValueChange={setCompareView}
           />
-          <span className="text-body-lg-medium text-foreground">
-            {formatAmount(amount, 0)} from {sender}
-          </span>
+          {compareView === 'table' && (
+            <p className="text-body-lg-medium text-foreground truncate">
+              {formatAmount(amount, 0)}{' '}
+              <span className="hidden sm:inline">from</span> {sender}
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4 pl-4">
           <span className="text-caption uppercase text-foreground-darker">
@@ -216,7 +219,11 @@ export const CompareSection = () => {
           </AnimatePresence>
         </InsightCard.Body>
       ) : (
-        <CompareChart sender={sender} quotes={chartPicks} codeToName={codeToName} />
+        <CompareChart
+          sender={sender}
+          quotes={chartPicks}
+          codeToName={codeToName}
+        />
       )}
     </InsightCard.Root>
   )

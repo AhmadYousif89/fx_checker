@@ -22,6 +22,7 @@ import {
   getFlagUrl,
   abbreviateCurrencyName,
 } from '#/lib/currency'
+import { cn } from '#/lib/utils'
 
 type ComparePickerProps = {
   availableCodes: Set<string>
@@ -91,7 +92,11 @@ export const ComparePicker = ({
         render={
           <Button
             variant="ghost"
-            className="h-5 text-caption rounded-4! uppercase"
+            size="sm"
+            className={cn(
+              'h-5 text-muted text-caption! rounded-xs uppercase',
+              'hover:bg-transparent hover:text-foreground focus-visible:text-foreground data-popup-open:text-foreground',
+            )}
           />
         }
       >

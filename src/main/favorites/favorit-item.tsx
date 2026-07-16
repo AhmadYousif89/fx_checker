@@ -10,6 +10,16 @@ import { toasts } from '#/lib/notifications'
 import type { CurrencyPair, RateWithDiff } from '#/types/currency'
 import { RateDiff } from '#/components/rate-diff'
 
+type FavItemProps = {
+  item: CurrencyPair
+  rate: string
+  difference?: number | null
+  direction?: RateWithDiff['direction']
+  staggerDelay: number
+  isNew: boolean
+  isFetchingRate?: boolean
+}
+
 export const FavoritesItem = memo(
   ({
     item,
@@ -18,14 +28,8 @@ export const FavoritesItem = memo(
     direction,
     staggerDelay,
     isNew,
-  }: {
-    item: CurrencyPair
-    rate: string
-    difference?: number | null
-    direction?: RateWithDiff['direction']
-    staggerDelay: number
-    isNew: boolean
-  }) => {
+    isFetchingRate = false,
+  }: FavItemProps) => {
     const updateUrl = useUpdateUrl()
     const [showFlash, setShowFlash] = useState(false)
     const flashShown = useRef(false)
@@ -84,6 +88,7 @@ export const FavoritesItem = memo(
             <span className="text-body">{rate}</span>
             {difference != null && direction ? (
               <RateDiff
+                isFetching={isFetchingRate}
                 difference={difference}
                 direction={direction}
                 className="text-overline"

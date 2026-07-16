@@ -29,7 +29,7 @@ export const FavoritesSection = () => {
     [favorites],
   )
 
-  const { data: diffData } = useQuery({
+  const { data: diffData, isFetching } = useQuery({
     queryKey: ['favorites-diff', favKey],
     queryFn: () => getFavoriteRates({ data: favorites }),
     staleTime: 1000 * 60 * 10,
@@ -115,6 +115,7 @@ export const FavoritesSection = () => {
               <FavoritesItem
                 key={key}
                 item={f}
+                isFetchingRate={isFetching}
                 rate={formatRate(diff?.rate ?? 0)}
                 difference={diff?.difference}
                 direction={diff?.direction}

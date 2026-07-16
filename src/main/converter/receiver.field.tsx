@@ -20,7 +20,7 @@ export const ReceiverField = ({
       Receive currency
     </FieldLegend>
     <Field className="bg-surface-600 rounded-16 p-4 gap-5 border">
-      <FieldLabel htmlFor="receive-amount">Receive</FieldLabel>
+      <FieldLabel htmlFor="receiver-amount">Receive</FieldLabel>
       <div className="relative flex items-center justify-between gap-4">
         <div className="absolute inset-0 w-fit flex items-center justify-center">
           {isLoading && (

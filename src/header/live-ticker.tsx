@@ -5,7 +5,12 @@ import { RateDiff } from '#/components/rate-diff'
 
 export const LiveTicker = () => {
   const { sender } = useActivePair()
-  const ratesQuery = useLiveTicker(sender)
+  const {
+    data: ratesQuery,
+    isLoading,
+    isFetching,
+    isError,
+  } = useLiveTicker(sender)
 
   const {
     scrollerRef,
@@ -16,7 +21,7 @@ export const LiveTicker = () => {
     handlePointerUp,
   } = useMarqueeDrag()
 
-  const tickerRates = ratesQuery.data || []
+  const tickerRates = ratesQuery || []
 
   return (
     <div className="grid items-center">
@@ -32,9 +37,9 @@ export const LiveTicker = () => {
         <div className="absolute inset-y-0 left-0 w-12 bg-linear-to-r from-surface to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-12 bg-linear-to-l from-surface to-transparent z-10 pointer-events-none" />
 
-        {ratesQuery.isLoading ? (
+        {isLoading ? (
           <div className="flex items-center size-full animate-pulse bg-muted/10" />
-        ) : ratesQuery.isError ? (
+        ) : isError ? (
           <p className="text-caption text-red text-center px-6 w-full">
             Failed to load market rates
           </p>
@@ -65,6 +70,7 @@ export const LiveTicker = () => {
                       })}
                     </span>
                     <RateDiff
+                      isFetching={isFetching}
                       difference={rate.difference}
                       direction={rate.direction}
                       className="text-overline md:text-caption-medium"

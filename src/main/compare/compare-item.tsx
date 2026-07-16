@@ -30,7 +30,15 @@ type CompareItemProps = {
 }
 
 export const CompareItem = memo((props: CompareItemProps) => {
-  const { sender, quote, rate, converted, name, isNew, staggerDelay = 0 } = props
+  const {
+    sender,
+    quote,
+    rate,
+    converted,
+    name,
+    isNew,
+    staggerDelay = 0,
+  } = props
   const updateUrl = useUpdateUrl()
   const isFavorited = useIsFavorited(sender, quote)
   const [showFlash, setShowFlash] = useState(false)
@@ -103,7 +111,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
       </div>
       <div className="flex items-center gap-5">
         <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
-          <span className="text-body-lg truncate max-w-32">
+          <span className="text-body-lg truncate max-md:max-w-32">
             {formatAmount(converted)}
           </span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>
@@ -115,9 +123,11 @@ export const CompareItem = memo((props: CompareItemProps) => {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              const wasFav = useCurrencyStore.getState().favorites.pairs.some(
-                (f) => f.sender === sender && f.receiver === quote,
-              )
+              const wasFav = useCurrencyStore
+                .getState()
+                .favorites.pairs.some(
+                  (f) => f.sender === sender && f.receiver === quote,
+                )
               toggleFavorite(sender, quote)
               toasts.push(
                 wasFav
