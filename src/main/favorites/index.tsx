@@ -8,7 +8,7 @@ import { useLatestRates } from '#/hooks/use-latest-rates'
 import { useCurrencyStore } from '#/store/currencies.store'
 import { getFavoriteRates } from '#/server/functions/favorite-rates'
 import { InsightCard } from '#/components/insight-card'
-import { FavoritesItem } from './favorit-item'
+import { FavoritesItem } from './favorite-item'
 
 let favsDidMount = false
 

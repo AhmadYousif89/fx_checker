@@ -59,6 +59,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
       }}
       tabIndex={0}
       role="button"
+      aria-label={`View ${sender}/${quote} exchange rate`}
       layout
       initial="hidden"
       animate="visible"
@@ -111,7 +112,7 @@ export const CompareItem = memo((props: CompareItemProps) => {
       </div>
       <div className="flex items-center gap-5">
         <div className="flex flex-col items-end gap-1.5 whitespace-nowrap">
-          <span className="text-body-lg truncate max-md:max-w-32">
+          <span className="text-body-lg truncate max-sm:max-w-32">
             {formatAmount(converted)}
           </span>
           <span className="text-overline text-muted">@ {formatRate(rate)}</span>

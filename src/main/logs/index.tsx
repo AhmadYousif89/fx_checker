@@ -9,7 +9,7 @@ import type { ConversionLog } from '#/types/currency'
 import { InsightCard } from '#/components/insight-card'
 import { LogActionButtons } from './log-actions'
 import { LogSortButton } from './log-sort'
-import { LogRow } from './log-row'
+import { LogRow } from './log-item'
 
 let logsDidMount = false
 

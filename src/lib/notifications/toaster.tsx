@@ -28,6 +28,8 @@ export const NotificationToaster = memo(({ className }: Props) => {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={cn(
         'fixed left-1/2 -translate-x-1/2 z-100 flex flex-col gap-2 top-28',
         className,
