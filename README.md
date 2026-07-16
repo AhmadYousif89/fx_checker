@@ -2,7 +2,12 @@
 
 A full-stack foreign exchange converter and rate-history dashboard built with TanStack Start.
 
-![FX_Checker](preview.png)
+### Screenshot
+
+<table>
+    <td><img src='preview.png' alt='home-dark'/></td>
+    <td><img src='preview-light.png' alt='home-light'/></td>
+</table>
 
 ## Links
 
@@ -72,6 +77,29 @@ TWELVE_DATA_API_KEY=your_key_here
 ```
 
 All other features work using the free Frankfurter API.
+
+### Challenges
+
+**Orchestrating two data sources for the history chart:**
+
+- **Frankfurter API** provides daily EOD rates — sufficient for 1M+ chart ranges but produces too few points for 1D/1W intraday views.
+- **Twelve Data API** fills the gap with OHLC intraday data for 1D/1W ranges. The `compare-history` server function routes requests by interval: Twelve Data for intraday intervals, Frankfurter otherwise.
+- Twelve Data's free tier is rate-limited to **8 req/min**. A `TokenBucket` gates all outgoing calls, and requests retry with exponential backoff on 429 responses.
+
+**Handling unsupported and non-USD pairs on Twelve Data:**
+
+- Twelve Data doesn't support certain currency pairs as the base symbol (e.g., `BHD/USD` returns 404). The `twelve-history` server function tries `{base}/{quote}` first; on 404 it falls back to `{quote}/{base}` and **inverts the OHLC data**, carefully swapping high/low values to avoid invalid candles.
+- For pairs where neither leg is USD, the server fetches both currencies' series against USD, then computes a **cross-rate** from the two intraday datasets — all server-side, so the client receives clean, correctly-oriented data.
+
+**Weekend data gaps in Frankfurter:**
+
+- ~109 of 165 currencies have no Saturday/Sunday data. The `getRates` server function finds the **latest date where the base currency actually has data** rather than picking the absolute latest date, preventing empty results for bases like ARS, BDT, or CLP. A `generateFallbackPairs` list provides 27 curated mixed-base pairs as a last resort.
+
+**Multi-layered caching:**
+
+- An in-memory `Map` with **LRU-style eviction** (`MAX_CACHE_SIZE=500`) paired with a disk JSON fallback survives server restarts.
+- Request deduplication via `getOrFetch` ensures concurrent requests for the same key share a single in-flight promise.
+- Per-source TTLs: 24h for daily rates, 1h for Frankfurter history, 5min–24h for Twelve Data intervals depending on granularity.
 
 ### AI Collaboration
 
