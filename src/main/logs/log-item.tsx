@@ -95,13 +95,11 @@ export const LogRow = memo(({ log, staggerDelay, isNew }: LogRowProps) => {
         type="button"
         size="icon-sm"
         variant="outline"
-          onClick={(e) => {
-            e.stopPropagation()
-            removeLog(log.timestamp)
-            toasts.push(
-              `${log.sender}/${log.receiver} - Log entry removed`,
-            )
-          }}
+        onClick={(e) => {
+          e.stopPropagation()
+          removeLog(log.timestamp)
+          toasts.push(`${log.sender}/${log.receiver} - Log entry removed`)
+        }}
         className="border-border hover:text-[white] hover:bg-red hover:border-red focus-visible:ring-red active:bg-red active:border-red"
       >
         <TrashIcon />

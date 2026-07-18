@@ -11,10 +11,26 @@ import {
 
 beforeEach(() => {
   useCurrencyStore.setState({
-    logs: { entries: [], lastTimestamp: null, sortField: 'date', sortDir: 'desc' },
+    logs: {
+      entries: [],
+      lastTimestamp: null,
+      sortField: 'date',
+      sortDir: 'desc',
+    },
     favorites: { pairs: [], lastAddedKey: null },
-    conversion: { recent: { from: [], to: [] }, activePicker: null, lastActivePicker: null },
-    compare: { view: 'table', tablePicks: [], chartPicks: [], chartRange: '3m', lastAddedPick: null },
+    conversion: {
+      recent: { from: [], to: [] },
+      activePicker: null,
+      lastActivePicker: null,
+    },
+    compare: {
+      view: 'table',
+      tablePicks: [],
+      chartPicks: [],
+      chartRange: '3m',
+      lastAddedPick: null,
+      swipeHintDismissed: false,
+    },
   })
 })
 
@@ -55,7 +71,10 @@ describe('toggleFavorite / useIsFavorited / removeFavorite', () => {
   it('adds a favorite', () => {
     toggleFavorite('USD', 'EUR')
     const state = useCurrencyStore.getState()
-    expect(state.favorites.pairs).toContainEqual({ sender: 'USD', receiver: 'EUR' })
+    expect(state.favorites.pairs).toContainEqual({
+      sender: 'USD',
+      receiver: 'EUR',
+    })
   })
 
   it('removes an existing favorite on second toggle', () => {

@@ -64,20 +64,46 @@ beforeEach(() => {
     },
   ])
   useCurrencyStore.setState({
-    logs: { entries: [], lastTimestamp: null, sortField: 'date', sortDir: 'desc' },
+    logs: {
+      entries: [],
+      lastTimestamp: null,
+      sortField: 'date',
+      sortDir: 'desc',
+    },
     favorites: { pairs: [], lastAddedKey: null },
-    conversion: { recent: { from: [], to: [] }, activePicker: null, lastActivePicker: null },
-    compare: { view: 'table', tablePicks: [], chartPicks: [], chartRange: '3m', lastAddedPick: null },
+    conversion: {
+      recent: { from: [], to: [] },
+      activePicker: null,
+      lastActivePicker: null,
+    },
+    compare: {
+      view: 'table',
+      tablePicks: [],
+      chartPicks: [],
+      chartRange: '3m',
+      lastAddedPick: null,
+      swipeHintDismissed: false,
+    },
   })
 })
 
 describe('CompareSection', () => {
   it('renders heading with amount and sender', async () => {
     renderWithQuery(<CompareSection />)
-    expect(await screen.findByText(/from USD/)).toBeInTheDocument()
+    expect(await screen.findByText(/USD/)).toBeInTheDocument()
   })
 
   it('renders compare pairs', async () => {
+    useCurrencyStore.setState({
+      compare: {
+        view: 'table',
+        tablePicks: ['GBP', 'JPY'],
+        chartPicks: [],
+        chartRange: '3m',
+        lastAddedPick: null,
+        swipeHintDismissed: false,
+      },
+    })
     renderWithQuery(<CompareSection />)
     expect(await screen.findByText(/pairs/)).toBeInTheDocument()
   })

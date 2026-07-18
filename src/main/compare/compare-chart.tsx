@@ -32,7 +32,11 @@ type CompareChartProps = {
   codeToName: Map<string, string>
 }
 
-export const CompareChart = ({ sender, quotes, codeToName }: CompareChartProps) => {
+export const CompareChart = ({
+  sender,
+  quotes,
+  codeToName,
+}: CompareChartProps) => {
   const reducedMotion = useReducedMotion()
   const chartRange = useCurrencyStore((s) => s.compare.chartRange)
   const [hiddenQuotes, setHiddenQuotes] = useState<Set<string>>(new Set())

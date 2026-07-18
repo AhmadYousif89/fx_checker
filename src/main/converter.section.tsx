@@ -305,9 +305,11 @@ export const RateConverter = () => {
               size="sm"
               aria-pressed={isFavorited}
               onClick={() => {
-                const wasFav = useCurrencyStore.getState().favorites.pairs.some(
-                  (f) => f.sender === sender && f.receiver === receiver,
-                )
+                const wasFav = useCurrencyStore
+                  .getState()
+                  .favorites.pairs.some(
+                    (f) => f.sender === sender && f.receiver === receiver,
+                  )
                 toggleFavorite(sender, receiver)
                 toasts.push(
                   wasFav

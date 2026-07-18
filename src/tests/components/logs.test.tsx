@@ -11,10 +11,26 @@ afterEach(cleanup)
 
 beforeEach(() => {
   useCurrencyStore.setState({
-    logs: { entries: [], lastTimestamp: null, sortField: 'date', sortDir: 'desc' },
+    logs: {
+      entries: [],
+      lastTimestamp: null,
+      sortField: 'date',
+      sortDir: 'desc',
+    },
     favorites: { pairs: [], lastAddedKey: null },
-    conversion: { recent: { from: [], to: [] }, activePicker: null, lastActivePicker: null },
-    compare: { view: 'table', tablePicks: [], chartPicks: [], chartRange: '3m', lastAddedPick: null },
+    conversion: {
+      recent: { from: [], to: [] },
+      activePicker: null,
+      lastActivePicker: null,
+    },
+    compare: {
+      view: 'table',
+      tablePicks: [],
+      chartPicks: [],
+      chartRange: '3m',
+      lastAddedPick: null,
+      swipeHintDismissed: false,
+    },
   })
 })
 
