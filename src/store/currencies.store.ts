@@ -26,6 +26,7 @@ type CurrencyStore = {
     chartPicks: string[]
     chartRange: RangeKey
     lastAddedPick: string | null
+    swipeHintDismissed: boolean
   }
   logs: {
     entries: ConversionLog[]
@@ -51,6 +52,7 @@ const initialState: CurrencyStore = {
     chartPicks: [],
     chartRange: '3m',
     lastAddedPick: null,
+    swipeHintDismissed: false,
   },
   logs: {
     entries: [],
@@ -95,6 +97,7 @@ export const useCurrencyStore = create(
             chartPicks: (old.chartPicks as string[] | undefined) ?? [],
             chartRange: (old.chartRange as RangeKey | undefined) ?? '3m',
             lastAddedPick: null,
+            swipeHintDismissed: false,
           },
         }
       }
@@ -102,7 +105,11 @@ export const useCurrencyStore = create(
         const old = persisted as CurrencyStore
         return {
           ...old,
-          compare: { ...old.compare, lastAddedPick: null },
+          compare: {
+            ...old.compare,
+            lastAddedPick: null,
+            swipeHintDismissed: false,
+          },
         }
       }
       return persisted as CurrencyStore
@@ -257,6 +264,12 @@ export function removeComparePick(code: string) {
 export function setCompareView(view: 'table' | 'chart') {
   useCurrencyStore.setState((state) => ({
     compare: { ...state.compare, view },
+  }))
+}
+
+export function dismissSwipeHint() {
+  useCurrencyStore.setState((state) => ({
+    compare: { ...state.compare, swipeHintDismissed: true },
   }))
 }
 

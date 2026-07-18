@@ -10,6 +10,7 @@ import {
   addComparePick,
   addChartPick,
   setCompareView,
+  dismissSwipeHint,
 } from '#/store/currencies.store'
 import { toasts } from '#/lib/notifications'
 import {
@@ -17,7 +18,10 @@ import {
   getCrossRate,
   orderCompareCurrencies,
 } from '#/lib/currency'
+import { ArrowRightFromLine } from 'lucide-react'
+
 import { InsightCard } from '#/components/insight-card'
+import { Button } from '#/components/ui/button'
 import { CompareItem } from './compare-item'
 import { ComparePicker } from './compare-picker'
 import { CompareActionMenu } from './compare-actions'
@@ -25,6 +29,7 @@ import { CompareChart } from './compare-chart'
 import { MAX_CHART_PICKS } from './compare-chart.types'
 
 let compsDidPlay = false
+let hasAutoSeeded = false
 
 export const CompareSection = () => {
   const { currencies } = useCurrenciesQuery()
@@ -34,9 +39,33 @@ export const CompareSection = () => {
   const chartPicks = useCurrencyStore((s) => s.compare.chartPicks)
   const comparePicks = useCurrencyStore((s) => s.compare.tablePicks)
   const lastAddedPick = useCurrencyStore((s) => s.compare.lastAddedPick)
-  const { sender, receiver, amount: urlAmount } = useActivePair()
   const { data: ratesData, isLoading, isError, isFetching } = useLatestRates()
+  const { sender, receiver, amount: urlAmount } = useActivePair()
+
   const didPlay = compsDidPlay
+  const amount = parseFloat(urlAmount.replace(/,/g, '')) || 1
+  const swipeHintDismissed = useCurrencyStore(
+    (s) => s.compare.swipeHintDismissed,
+  )
+
+  const availableCodes = useMemo(() => {
+    if (!ratesData) return new Set<string>()
+    return new Set([...ratesData.keys(), 'EUR'])
+  }, [ratesData])
+
+  const defaultPairs = useMemo(
+    () =>
+      comparePicks.length > 0
+        ? []
+        : orderCompareCurrencies({
+            sender,
+            recent,
+            receiver,
+            favorites,
+            availableCodes,
+          }),
+    [sender, receiver, favorites, recent, availableCodes, comparePicks.length],
+  )
 
   useEffect(() => {
     if (isLoading || isError) return
@@ -58,37 +87,19 @@ export const CompareSection = () => {
     })
   }, [compareView, sender, receiver])
 
-  const amount = parseFloat(urlAmount.replace(/,/g, '')) || 1
+  // Seed comparePicks once on first load when defaults are ready
+  useEffect(() => {
+    if (hasAutoSeeded) return
+    if (isLoading || isError || !ratesData) return
+    hasAutoSeeded = true
+    if (comparePicks.length === 0) {
+      seedComparePicks(defaultPairs)
+    }
+  }, [isLoading, isError, ratesData, defaultPairs, comparePicks.length])
 
   const codeToName = useMemo(() => {
     return new Map(currencies.map((c) => [c.iso_code, c.name]))
   }, [currencies])
-
-  const availableCodes = useMemo(() => {
-    if (!ratesData) return new Set<string>()
-    return new Set([...ratesData.keys(), 'EUR'])
-  }, [ratesData])
-
-  const defaultPairs = useMemo(
-    () =>
-      comparePicks.length > 0
-        ? []
-        : orderCompareCurrencies({
-            sender,
-            recent,
-            receiver,
-            favorites,
-            availableCodes,
-          }),
-    [sender, receiver, favorites, recent, availableCodes, comparePicks.length],
-  )
-
-  // Seed comparePicks once on first load when defaults are ready
-  useEffect(() => {
-    if (comparePicks.length === 0 && defaultPairs.length > 0) {
-      seedComparePicks(defaultPairs)
-    }
-  }, [defaultPairs, comparePicks.length])
 
   const compareItems = useMemo(() => {
     if (!ratesData) return []
@@ -140,7 +151,7 @@ export const CompareSection = () => {
       } else {
         if (store.compare.chartPicks.includes(code)) return
         if (store.compare.chartPicks.length >= MAX_CHART_PICKS) {
-          toasts.push(`Maximum ${MAX_CHART_PICKS} currencies tracked`)
+          toasts.push(`Maximum of ${MAX_CHART_PICKS} currencies tracked`)
           return
         }
         addChartPick(code)
@@ -151,11 +162,11 @@ export const CompareSection = () => {
   )
   const itemCount = isTable ? compareItems.length : chartPicks.length
 
-  if (isLoading || (isFetching && isTable)) {
+  if (isLoading) {
     return <InsightCard.Skeleton />
   }
 
-  if (isError || !ratesData) {
+  if (isError) {
     return (
       <p className="text-caption text-red text-center py-10">
         Something went wrong, try again later
@@ -201,21 +212,51 @@ export const CompareSection = () => {
           />
         </div>
       </InsightCard.Header>
+      {isTable && (
+        <InsightCard.Hint dismissed={swipeHintDismissed}>
+          <ArrowRightFromLine className="size-4 shrink-0" />
+          <span className="grow uppercase">swipe to delete</span>
+          <button
+            type="button"
+            onClick={() => dismissSwipeHint()}
+            className="underline hover:text-surface-400 cursor-pointer whitespace-nowrap"
+          >
+            don&apos;t show again
+          </button>
+        </InsightCard.Hint>
+      )}
       {isTable ? (
         <InsightCard.Body>
           <AnimatePresence mode="popLayout" initial={!didPlay}>
-            {compareItems.map((item, idx) => (
-              <CompareItem
-                key={item.quote}
-                quote={item.quote}
-                sender={sender}
-                rate={item.rate}
-                converted={item.converted}
-                name={item.name}
-                staggerDelay={didPlay ? 0 : idx * 80}
-                isNew={didPlay && item.quote === lastAddedPick}
-              />
-            ))}
+            {compareItems.length === 0 ? (
+              <div className="flex flex-col items-center gap-4 py-10 text-center">
+                <p className="text-body text-muted">
+                  No currencies in comparison
+                </p>
+                <Button
+                  onClick={() => seedComparePicks(defaultPairs)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-caption uppercase"
+                >
+                  Fill with default pairs
+                </Button>
+              </div>
+            ) : (
+              compareItems.map((item, idx) => (
+                <CompareItem
+                  key={item.quote}
+                  quote={item.quote}
+                  sender={sender}
+                  rate={item.rate}
+                  converted={item.converted}
+                  name={item.name}
+                  staggerDelay={didPlay ? 0 : idx * 80}
+                  isNew={didPlay && item.quote === lastAddedPick}
+                  isFetching={isFetching}
+                />
+              ))
+            )}
           </AnimatePresence>
         </InsightCard.Body>
       ) : (

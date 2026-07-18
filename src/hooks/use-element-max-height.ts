@@ -21,13 +21,11 @@ export function useElementMaxHeight(bottom = 0) {
     setHeight(Math.max(150, Math.round(available)))
   }, [])
 
-  const ref = useCallback(
-    (node: HTMLElement | null) => {
-      elementRef.current = node
-      if (node) measure()
-    },
-    [measure],
-  )
+  useEffect(() => measure(), [measure])
+
+  const ref = useCallback((node: HTMLElement | null) => {
+    elementRef.current = node
+  }, [])
 
   useEffect(() => {
     const el = elementRef.current
