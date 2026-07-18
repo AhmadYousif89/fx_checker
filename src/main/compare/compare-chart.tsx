@@ -19,6 +19,14 @@ import type { HistoryEntry } from '#/lib/history/helpers'
 import { getCompareHistory } from '#/server/functions/compare-history'
 import { useCurrencyStore, setChartRange } from '#/store/currencies.store'
 import { useReducedMotion } from '#/hooks/use-reduced-motion'
+import { InfoIcon } from 'lucide-react'
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTrigger,
+} from '#/components/ui/popover'
 import { ChartTimeRange } from '#/components/chart-time-range'
 import { CustomSpinner } from '#/components/custom-spinner'
 import { CompareChartLegend } from './compare-chart-legend'
@@ -166,7 +174,30 @@ export const CompareChart = ({
 
   return (
     <div className="flex flex-col grow min-h-96 w-full p-2">
-      <div className="flex items-center justify-end mb-4">
+      <div className="flex items-center justify-between gap-2 mb-4 ml-1">
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="text-muted hover:text-foreground cursor-pointer"
+            >
+              <InfoIcon className="size-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            side="top"
+            sideOffset={6}
+            className="max-w-sm"
+          >
+            <PopoverDescription className="text-caption">
+              Each currency is indexed to 100 at the start of the selected
+              range. A value above the baseline means{' '}
+              <strong className="underline">{sender}</strong> strengthened
+              against the competitors; below means it weakened.
+            </PopoverDescription>
+          </PopoverContent>
+        </Popover>
         <ChartTimeRange
           value={chartRange}
           onChange={(v) => setChartRange(v)}
