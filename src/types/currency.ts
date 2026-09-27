@@ -11,9 +11,9 @@ export type CurrencyPair = {
 
 export type CurrencyDetails = {
   name: string
-  symbol: string
-  iso_code: string
-  iso_numeric: string
+  symbol: string | null
+  iso_code: string 
+  iso_numeric: string | null
   start_date: string
   end_date: string
 }

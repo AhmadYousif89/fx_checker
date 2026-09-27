@@ -22,9 +22,9 @@ export const FrankfurterRateSchema = z.object({
 
 export const CurrencyDetailsSchema = z.object({
   name: z.string().min(1),
-  symbol: z.string(),
+  symbol: z.string().nullable(),
   iso_code: currencyCode,
-  iso_numeric: z.string(),
+  iso_numeric: z.string().nullable(),
   start_date: z.string(),
   end_date: z.string(),
 })

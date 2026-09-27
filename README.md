@@ -105,7 +105,7 @@ All other features work using the free Frankfurter API.
 
 This project was developed with [Opencode](https://opencode.ai/), a CLI-based AI coding agent. Opencode supports multiple models out of the box and allows connecting to any provider, making it a flexible alternative to hosted AI coding tools. Development was done using the `DeepSeek V4 Flash Free` model on Opencode's free tier, which provided solid reasoning and code generation throughout the project.
 
-### Author
+## Author
 
 Github - [ahmadyousif89](https://github.com/ahmadyousif89)
 
@@ -113,4 +113,4 @@ Frontend Mentor - [Jo89 😈](https://www.frontendmentor.io/profile/AhmadYousif8
 
 ## License
 
-MIT
+Read [LICENSE](LICENSE)
