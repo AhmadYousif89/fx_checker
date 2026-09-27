@@ -25,19 +25,28 @@ const MAX_CACHE_SIZE = 500
 const store = new Map<string, { data: unknown; expires: number }>()
 const pending = new Map<string, Promise<unknown>>()
 
-let diskAvailable = false
 let initialized = false
+let diskAvailable = false
+let initPromise: Promise<void> | undefined
 
 async function init(): Promise<void> {
   if (initialized) return
-  initialized = true
-  try {
-    await mkdir(CACHE_DIR, { recursive: true })
-    diskAvailable = true
-    await loadFromDisk()
-  } catch {
-    diskAvailable = false
-  }
+  if (initPromise) return initPromise
+
+  initPromise = (async () => {
+    try {
+      await mkdir(CACHE_DIR, { recursive: true })
+      diskAvailable = true
+      await loadFromDisk()
+    } catch {
+      diskAvailable = false
+    } finally {
+      initialized = true
+      initPromise = undefined
+    }
+  })()
+
+  return initPromise
 }
 
 function getFilePath(key: string): string {
@@ -69,11 +78,7 @@ async function loadFromDisk(): Promise<void> {
       const filePath = resolve(CACHE_DIR, file)
       try {
         const content = await readFile(filePath, 'utf-8')
-        const parsed = JSON.parse(content) as {
-          key: string
-          data: unknown
-          expires: number
-        }
+        const parsed = JSON.parse(content) as (typeof entries)[number]
         if (Date.now() > parsed.expires) {
           await unlink(filePath).catch(() => {})
           return null
@@ -99,6 +104,7 @@ async function loadFromDisk(): Promise<void> {
   for (const entry of keep) {
     store.set(entry.key, { data: entry.data, expires: entry.expires })
   }
+
   for (const entry of remove) {
     await unlink(entry.path).catch(() => {})
   }
@@ -212,8 +218,7 @@ export function clearCache(): void {
 }
 
 export async function resetCache(dir?: string): Promise<void> {
-  store.clear()
-  pending.clear()
+  clearCache()
   initialized = false
   diskAvailable = false
   if (dir) CACHE_DIR = dir
