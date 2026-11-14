@@ -78,11 +78,12 @@ export const CompareChart = ({
     for (const quote of quotes) {
       const raw: HistoryEntry[] | undefined = data[quote]
       if (!raw) continue
-      if (raw.length === 0) continue
-      const seriesData = raw
+      const seriesData = raw.filter(
+        (d) => Number.isFinite(d.close) && d.close > 0,
+      )
+      if (seriesData.length === 0) continue
       const first = seriesData[0].close
       const latest = seriesData[seriesData.length - 1].close
-      if (first === 0 || latest === 0) continue
       list.push({
         key: quote,
         name: codeToName.get(quote) ?? quote,
@@ -173,7 +174,7 @@ export const CompareChart = ({
   const yTickFormatter = (v: number) => v.toFixed(1)
 
   return (
-    <div className="flex flex-col grow min-h-96 w-full p-2">
+    <div className="flex min-w-0 min-h-96 flex-col grow w-full p-2">
       <div className="flex items-center justify-between gap-2 mb-4 ml-1">
         <Popover>
           <PopoverTrigger asChild>
@@ -205,7 +206,7 @@ export const CompareChart = ({
         />
       </div>
 
-      <div className="relative grow flex flex-col">
+      <div className="relative min-w-0 min-h-0 grow flex flex-col">
         {(isLoading || isFetching) && (
           <div className="inset-0 absolute flex items-center justify-center bg-background/10 z-10">
             <CustomSpinner />
@@ -214,6 +215,9 @@ export const CompareChart = ({
 
         <ResponsiveContainer
           width="100%"
+          height="100%"
+          minWidth={0}
+          minHeight={200}
           className="grow"
           initialDimension={{ height: 300, width: 300 }}
         >
