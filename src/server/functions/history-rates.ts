@@ -1,6 +1,6 @@
 import { subDays } from 'date-fns'
 import { OPEN_API_URL } from '../config'
-import { FrankfurterRateSchema } from '../validation'
+import { FrankfurterRatesSchema } from '../validation'
 import { getOrFetch } from './cache'
 import type { FrankfurterApiRate } from '#/types/currency'
 
@@ -30,10 +30,7 @@ export async function getHistoricalRates() {
       }
 
       const raw: unknown = await response.json()
-      if (!Array.isArray(raw)) {
-        throw new Error('Invalid historical rates response')
-      }
-      return raw.map((r) => FrankfurterRateSchema.parse(r))
+      return FrankfurterRatesSchema.parse(raw)
     },
     ttl,
   )

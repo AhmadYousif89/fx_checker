@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
-export const currencyCode = z.string().length(3).toUpperCase()
+export const currencyCode = z
+  .string()
+  .trim()
+  .length(3)
+  .regex(/^[A-Za-z]{3}$/)
+  .toUpperCase()
 
 export const daysParam = z.number().int().min(1).max(1825)
 
@@ -28,6 +33,40 @@ export const CurrencyDetailsSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
 })
+
+export const CurrencyDetailsResponseSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== 'object' || value === null) {
+      return value
+    }
+
+    const entries = Array.isArray(value) ? value : Object.values(value)
+
+    return entries.filter((entry) => {
+      if (typeof entry !== 'object' || entry === null) return false
+
+      const currency = entry as Record<string, unknown>
+      return (
+        currency.type === 'currency' &&
+        currencyCode.safeParse(currency.iso_code).success
+      )
+    })
+  },
+  z.array(CurrencyDetailsSchema),
+)
+
+const isFiatRate = (value: unknown): value is Record<string, unknown> => {
+  if (typeof value !== 'object' || value === null) return false
+
+  const rate = value as Record<string, unknown>
+  return currencyCode.safeParse(rate.base).success &&
+    currencyCode.safeParse(rate.quote).success
+}
+
+export const FrankfurterRatesSchema = z.preprocess(
+  (value) => (Array.isArray(value) ? value.filter(isFiatRate) : value),
+  z.array(FrankfurterRateSchema),
+)
 
 const ohlcString = z.string().transform((v) => {
   const n = parseFloat(v)

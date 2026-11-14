@@ -2,7 +2,7 @@ import { subDays } from 'date-fns'
 import type { HistoryEntry } from '#/lib/history/helpers'
 import { createServerFn } from '@tanstack/react-start'
 import { OPEN_API_URL, schema } from '../config'
-import { FrankfurterRateSchema } from '../validation'
+import { FrankfurterRatesSchema } from '../validation'
 import { getOrFetch } from './cache'
 
 export const getFrankfurterHistory = createServerFn()
@@ -34,8 +34,7 @@ export const getFrankfurterHistory = createServerFn()
         }
 
         const raw: unknown = await res.json()
-        if (!Array.isArray(raw)) throw new Error('Invalid Frankfurter history')
-        const data = raw.map((r) => FrankfurterRateSchema.parse(r))
+        const data = FrankfurterRatesSchema.parse(raw)
 
         return data.map((entry) => ({
           time: entry.date,

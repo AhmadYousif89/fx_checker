@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 
 import { OPEN_API_URL } from '../config'
-import { FrankfurterRateSchema, currencyCode } from '../validation'
+import { FrankfurterRatesSchema, currencyCode } from '../validation'
 import type { LatestRatesEntry } from '#/types/currency'
 
 export const getLatestRates = createServerFn()
@@ -17,8 +17,7 @@ export const getLatestRates = createServerFn()
     }
 
     const raw: unknown = await res.json()
-    if (!Array.isArray(raw)) throw new Error('Invalid latest rates response')
-    const resData = raw.map((r) => FrankfurterRateSchema.parse(r))
+    const resData = FrankfurterRatesSchema.parse(raw)
     const rates = new Map<string, LatestRatesEntry>()
 
     for (const r of resData) rates.set(r.quote, { rate: r.rate, date: r.date })

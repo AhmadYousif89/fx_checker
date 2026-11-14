@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 
 import { getOrFetch } from './cache'
-import { CurrencyDetailsSchema } from '../validation'
+import { CurrencyDetailsResponseSchema } from '../validation'
 import type { CurrencyDetails } from '#/types/currency'
 
 export const getCurrencies = createServerFn().handler(async () => {
@@ -20,11 +20,7 @@ export const getCurrencies = createServerFn().handler(async () => {
       }
 
       const raw: unknown = await response.json()
-      if (typeof raw !== 'object' || raw === null) {
-        throw new Error('Invalid currencies response')
-      }
-
-      return Object.values(raw).map((v) => CurrencyDetailsSchema.parse(v))
+      return CurrencyDetailsResponseSchema.parse(raw)
     },
     1000 * 60 * 60, // 1 hour TTL
   )
